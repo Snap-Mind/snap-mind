@@ -10,19 +10,16 @@
     "dev:electron": "npm run copy:assets && concurrently -k -r \"tsc -p tsconfig.main.json -w\" \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/main.js\"",
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "tsc -p tsconfig.main.json && npm run copy:assets",
-    "copy:assets": "node scripts/copy-assets.js",
     "build:renderer": "tsc & vite build",
     "build:helper": "swiftc helper/SelectedText.swift -o helper/selectedtext && chmod +x helper/selectedtext",
     "build:win-helper": "cd helper/SelectedTextWin && dotnet build -c Release && copy /Y bin\\Release\\net8.0-windows\\SelectedTextWin.* ..\\",
     "build:prod": "./build.sh",
     "build:win-prod": "build.cmd",
-    "build:arm64": "npm run build:helper && vite build && electron-builder --mac --arm64",
-    "build:x64": "npm run build:helper && vite build && electron-builder --mac --x64",
+    "copy:assets": "node scripts/copy-assets.js",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "preview": "vite preview",
-    "electron": "electron ."
+    "preview": "vite preview"
   },
   "dependencies": {
     "@heroui/react": "^2.8.2",
