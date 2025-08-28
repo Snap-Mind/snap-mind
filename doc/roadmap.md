@@ -1,0 +1,1 @@
+- [ ] settings can't sync in different window
