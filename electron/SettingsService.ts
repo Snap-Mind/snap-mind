@@ -5,6 +5,7 @@ import { app } from 'electron';
 
 import { SafeStorageService } from './SafeStorageService.js';
 import logService from './LogService.js';
+import { mergeDeep } from './utils/mergeDeep.js';
 
 const __rootdir = process.cwd();
 
@@ -58,8 +59,9 @@ class SettingsService {
     const defaultSettings = this.loadDefaultSettings();
     const userSettings = this.loadSettings();
 
-    // Merge user settings over default settings
-    const mergedSettings = { ...defaultSettings, ...userSettings };
+    // Deep merge default settings with user settings
+    // This will preserve all user settings while adding any missing fields from default settings
+    const mergedSettings = mergeDeep(userSettings, defaultSettings);
     this.settings = this.processApiKeys(mergedSettings, false);
 
     this.loadHotkeys();
