@@ -1,1 +1,5 @@
 - [ ] settings can't sync in different window
+- [ ] no confirm when click on delete button in the model table
+- [ ] mode list not updated while edit model list in the settings window
+- [ ] app icon not set
+- [ ] app not signed
