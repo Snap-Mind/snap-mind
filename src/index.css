@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+@import 'github-markdown-css/github-markdown.css';
+@plugin '../src/styles/hero.ts';
+
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
+
+@import '../src/styles/github-markdown-css-overwrite.css'
+

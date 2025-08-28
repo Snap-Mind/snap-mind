@@ -1,0 +1,66 @@
+{
+  "appId": "com.snap-mind.app",
+  "productName": "SnapMind",
+  "directories": {
+    "output": "build"
+  },
+  "files": [
+    "dist-electron/**/*",
+    "dist/**/*",
+    "src/assets/**/*",
+    "node_modules/**/*",
+    "electron/**/*"
+  ],
+  "asarUnpack": ["helper/**"],
+  "extraResources": [
+    {
+      "from": "helper/SelectedTextWin.exe",
+      "to": "helper/SelectedTextWin.exe"
+    },
+    {
+      "from": "helper/SelectedTextWin.dll",
+      "to": "helper/SelectedTextWin.dll"
+    },
+    {
+      "from": "helper/SelectedTextWin.runtimeconfig.json",
+      "to": "helper/SelectedTextWin.runtimeconfig.json"
+    },
+    {
+      "from": "helper/SelectedTextWin.deps.json",
+      "to": "helper/SelectedTextWin.deps.json"
+    },
+    {
+      "from": "settings.default.json",
+      "to": "settings.default.json"
+    },
+    {
+      "from": "hotkeys.default.json",
+      "to": "hotkeys.default.json"
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "signAndEditExecutable": false
+  },
+  "portable": {
+    "artifactName": "${productName}-${version}-${arch}-portable.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "artifactName": "${productName}-${version}-${arch}-setup.${ext}"
+  },
+  "asar": true,
+  "compression": "maximum"
+}

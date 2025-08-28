@@ -1,0 +1,39 @@
+{
+  "appId": "com.snap-mind.app",
+  "productName": "SnapMind",
+  "directories": {
+    "output": "build"
+  },
+  "files": [
+    "dist-electron/**/*",
+    "dist/**/*",
+    "src/assets/**/*",
+    "node_modules/**/*",
+    "electron/**/*"
+  ],
+  "asarUnpack": ["helper/**"],
+  "extraResources": [
+    {
+      "from": "helper/selectedtext",
+      "to": "helper/selectedtext"
+    },
+    {
+      "from": "settings.default.json",
+      "to": "settings.default.json"
+    },
+    {
+      "from": "hotkeys.default.json",
+      "to": "hotkeys.default.json"
+    }
+  ],
+  "mac": {
+    "target": ["dmg"],
+    "category": "public.app-category.productivity",
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "config/entitlements/mac.plist",
+    "entitlementsInherit": "config/entitlements/mac.plist"
+  },
+  "asar": true,
+  "compression": "maximum"
+}

@@ -1,0 +1,8 @@
+.markdown-body {
+  background-color: transparent;
+}
+
+/* Dark mode overrides */
+.dark .markdown-body {
+  background-color: transparent;
+}

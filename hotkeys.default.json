@@ -1,0 +1,22 @@
+[
+  {
+    "id": 0,
+    "key": "CommandOrControl+`",
+    "enabled": true
+  },
+  {
+    "key": "CommandOrControl+Shift+T",
+    "prompt": "Translate the following word or phrase to Chinese:",
+    "enabled": true
+  },
+  {
+    "key": "CommandOrControl+Shift+E",
+    "prompt": "Explain the following text: ",
+    "enabled": true
+  },
+  {
+    "key": "CommandOrControl+Shift+S",
+    "prompt": "Summarize the following text: ",
+    "enabled": false
+  }
+]
