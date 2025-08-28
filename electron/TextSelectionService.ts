@@ -19,7 +19,7 @@ class TextSelectionService {
     logService.info(`Processing text from ${source}:`, text);
 
     // Use custom prompt if provided, otherwise use default
-    const prompt = customPrompt || 'Translate the following word or phrase to Chinese: ';
+    const prompt = customPrompt || '';
 
     // Create the chat message
     const initialMessages = [{ role: 'user', content: `${prompt}${text}` }];

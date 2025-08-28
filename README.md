@@ -1,4 +1,4 @@
-# Electron Word Translation Tool
+# SnapMind
 
 This is an Electron + Vite + React application for translating selected words using OpenAI or user-selected LLM APIs. The app monitors the clipboard and supports hotkeys to trigger translation. UI includes language/model selection and translation display.
 

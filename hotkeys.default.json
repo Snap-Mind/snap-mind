@@ -5,16 +5,19 @@
     "enabled": true
   },
   {
+    "id": 1,
     "key": "CommandOrControl+Shift+T",
     "prompt": "Translate the following word or phrase to Chinese:",
     "enabled": true
   },
   {
+    "id": 2,
     "key": "CommandOrControl+Shift+E",
     "prompt": "Explain the following text: ",
     "enabled": true
   },
   {
+    "id": 3,
     "key": "CommandOrControl+Shift+S",
     "prompt": "Summarize the following text: ",
     "enabled": false
