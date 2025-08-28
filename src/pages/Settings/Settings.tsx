@@ -1,5 +1,6 @@
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useCallback, useState, useMemo, useTransition } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { useSettings } from '../../hooks/useSettings';
 import { useLogService } from '../../hooks/useLogService';
 
@@ -10,15 +11,15 @@ import SettingsChat from './SettingsChat';
 import SettingsHotkeys from './SettingsHotkeys';
 import SettingsOther from './SettingsOther';
 
-const categories = [
-  { id: 'general', name: 'General', path: '/settings/general' },
-  { id: 'models', name: 'Providers', path: '/settings/models' },
-  { id: 'chat', name: 'Chat', path: '/settings/chat' },
-  { id: 'hotkeys', name: 'Hotkeys', path: '/settings/hotkeys' },
-  { id: 'others', name: 'Others', path: '/settings/others' },
-];
-
 function Settings() {
+  const { t } = useTranslation();
+  const categories = [
+    { id: 'general', name: t('settings.general.title'), path: '/settings/general' },
+    { id: 'models', name: t('settings.providers.title'), path: '/settings/models' },
+    { id: 'chat', name: t('settings.chat.title'), path: '/settings/chat' },
+    { id: 'hotkeys', name: t('settings.hotkeys.title'), path: '/settings/hotkeys' },
+    { id: 'others', name: t('settings.others.title'), path: '/settings/others' },
+  ];
   const location = useLocation();
   const getCurrentCategory = useCallback(() => {
     return categories.find((cat) => location.pathname.includes(cat.path)) || categories[0];

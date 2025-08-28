@@ -1,0 +1,50 @@
+{
+  "settings": {
+    "title": "设置",
+    "general": {
+      "title": "通用",
+      "language": "语言",
+      "clipboardFallback": "启用剪贴板备用",
+      "clipboardFallbackDescription": "当无法通过 API 获取所选文本时使用剪贴板备用"
+    },
+    "providers": {
+      "title": "供应商",
+      "searchModels": "搜索模型...",
+      "models": "模型列表",
+      "newModel": "新建模型",
+      "addModel": "添加模型",
+      "editModel": "编辑模型",
+      "name": "名称",
+      "actions": "操作"
+    },
+    "chat": {
+      "title": "聊天",
+      "maxTokens": "最大令牌数",
+      "temperature": "温度",
+      "topP": "Top P",
+      "streaming": "响应流式传输",
+      "streamingDescription": "实时显示生成的回应"
+    },
+    "hotkeys": {
+      "title": "快捷键",
+      "custom": "自定义键盘快捷键",
+      "customDescription": "配置最多 3 个带有个性化提示的自定义键盘快捷键",
+      "shortcut": "快捷键",
+      "defaultDescription": "使用默认快捷键打开空白聊天窗口"
+    },
+    "others": {
+      "title": "其他",
+      "showLogFiles": "显示日志文件"
+    }
+  },
+  "common": {
+    "create": "创建",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "confirm": "确认",
+    "enabled": "已启用",
+    "default": "默认"
+  }
+}

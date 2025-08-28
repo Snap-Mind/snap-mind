@@ -3,6 +3,7 @@ import ModelTable from '../../../components/ModelTable';
 import { SettingsChangeHandler } from '@/types';
 import { AzureOpenAIConfig } from '@/types/providers';
 import PasswordInput from '../../../components/PasswordInput';
+import { useTranslation } from 'react-i18next';
 
 interface ProviderAzureOpenAIProps {
   settings: AzureOpenAIConfig;
@@ -10,6 +11,7 @@ interface ProviderAzureOpenAIProps {
 }
 
 function ProviderAzureOpenAI({ settings, onSettingsChange }: ProviderAzureOpenAIProps) {
+  const { t } = useTranslation();
   return (
     <div className=" overflow-y-auto p-1 flex flex-col gap-5">
       <h1 className="font-bold text-2xl">{settings.name}</h1>
@@ -39,7 +41,7 @@ function ProviderAzureOpenAI({ settings, onSettingsChange }: ProviderAzureOpenAI
         />
       </Form>
       <div className="max-w-full flex flex-col gap-4">
-        <div className="font-weight-bold">Models</div>
+        <div className="font-weight-bold">{t('settings.providers.models')}</div>
         <ModelTable
           models={settings.models}
           onModelsChange={(newModels) => onSettingsChange(['providers', 1, 'models'], newModels)}

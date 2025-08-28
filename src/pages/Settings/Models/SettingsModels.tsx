@@ -10,6 +10,7 @@ import ProviderGoogle from './ProviderGoogle';
 import { ProviderSetting } from '@/types/setting';
 import { SettingsChangeHandler } from '@/types';
 import { AzureOpenAIConfig } from '@/types/providers';
+import { useTranslation } from 'react-i18next';
 
 interface SettingsModelProps {
   settings: ProviderSetting[];
@@ -17,6 +18,7 @@ interface SettingsModelProps {
 }
 
 function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
+  const { t } = useTranslation();
   const [activeProvider, setActiveProvider] = useState<ProviderSetting | null>(null);
   const providers = settings.map((provider) => {
     let newProvider = null;
@@ -47,7 +49,7 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
       <div className="setting-category bg-background">
         <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full px-3 py-3">
           <div className="header">
-            <h1 className="font-bold text-2xl">Providers</h1>
+            <h1 className="font-bold text-2xl">{t('settings.providers.title')}</h1>
             <Divider className="my-4" />
           </div>
           <div className="body overflow-y-auto">

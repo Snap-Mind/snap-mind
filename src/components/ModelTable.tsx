@@ -17,6 +17,7 @@ import Icon from './Icon';
 import { ModelCreateForm } from './ModelCreateForm';
 import { ModelSetting } from '@/types/setting';
 import { ModelEditForm } from './ModelEditForm';
+import { useTranslation } from 'react-i18next';
 
 interface Column {
   name: string;
@@ -28,11 +29,6 @@ interface ModelTableProps {
   onModelsChange: (models: ModelSetting[]) => void;
 }
 
-const columns: Column[] = [
-  { name: 'Name', uid: 'name' },
-  { name: 'Actions', uid: 'actions' },
-];
-
 const initialFormData: ModelSetting = {
   id: '',
   name: '',
@@ -41,7 +37,12 @@ const initialFormData: ModelSetting = {
 };
 
 function ModelTable({ models, onModelsChange }: ModelTableProps) {
+  const { t } = useTranslation();
   const { theme } = useTheme();
+  const columns: Column[] = [
+    { name: t('settings.providers.name'), uid: 'name' },
+    { name: t('settings.providers.actions'), uid: 'actions' },
+  ];
   const {
     isOpen: isAddModelOpen,
     onOpen: onAddModelOpen,
@@ -165,13 +166,13 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
         <Input
           isClearable
           className="w-full sm:max-w-[44%]"
-          placeholder="Search models..."
+          placeholder={t('settings.providers.searchModels')}
           value={searchQuery}
           onChange={handleSearchChange}
         />
         <div className="flex gap-3">
           <Button startContent={<Icon size={18} icon="plus" />} onPress={onAddModelOpen}>
-            New model
+            {t('settings.providers.newModel')}
           </Button>
         </div>
       </div>
@@ -179,7 +180,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">Add new model</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">{t('settings.providers.addModel')}</ModalHeader>
               <ModalBody>
                 <ModelCreateForm
                   formRef={addFormRef}
@@ -193,10 +194,10 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
                   variant="light"
                   onPress={() => handleAddModelCancel(onClose)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button color="primary" onPress={handleAddModel}>
-                  Create
+                  {t('common.create')}
                 </Button>
               </ModalFooter>
             </>
@@ -207,7 +208,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">Edit model</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">{t('settings.providers.editModel')}</ModalHeader>
               <ModalBody>
                 <ModelEditForm
                   formRef={editFormRef}
@@ -221,10 +222,10 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
                   variant="light"
                   onPress={() => handleEditModelCancel(onClose)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button color="primary" onPress={handleEditModel}>
-                  Confirm
+                  {t('common.confirm')}
                 </Button>
               </ModalFooter>
             </>

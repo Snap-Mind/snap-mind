@@ -3,6 +3,7 @@ import ModelTable from '../../../components/ModelTable';
 import { SettingsChangeHandler } from '@/types';
 import { AnthropicConfig } from '@/types/providers';
 import PasswordInput from '../../../components/PasswordInput';
+import { useTranslation } from 'react-i18next';
 
 interface ProviderAnthropicProps {
   settings: AnthropicConfig;
@@ -10,6 +11,7 @@ interface ProviderAnthropicProps {
 }
 
 function ProviderAnthropic({ settings, onSettingsChange }: ProviderAnthropicProps) {
+  const { t } = useTranslation();
   return (
     <div className=" overflow-y-auto p-1 flex flex-col gap-5">
       <h1 className="font-bold text-2xl">{settings.name}</h1>
@@ -32,7 +34,7 @@ function ProviderAnthropic({ settings, onSettingsChange }: ProviderAnthropicProp
       </Form>
 
       <div className="max-w-full flex flex-col gap-4">
-        <div className="font-weight-bold">Models</div>
+        <div className="font-weight-bold">{t('settings.providers.models')}</div>
         <ModelTable
           models={settings.models}
           onModelsChange={(newModels) => onSettingsChange(['providers', 2, 'models'], newModels)}

@@ -1,6 +1,7 @@
 import { Listbox, ListboxItem } from '@heroui/listbox';
 import { Divider } from '@heroui/divider';
 import { Bot, Cog, Flame, SquareDashed, MessageCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface SettingsCategoryProps {
   categories: {
@@ -20,6 +21,7 @@ function SettingsCategory({
   categories,
   activeCategory /*onCategoryChange*/,
 }: SettingsCategoryProps) {
+  const { t } = useTranslation();
   const renderIcon = (categoryId) => {
     if (categoryId === 'general') return <Cog className="inline-block ml-2" size={18} />;
     if (categoryId === 'models') return <Bot className="inline-block ml-2" size={18} />;
@@ -38,7 +40,7 @@ function SettingsCategory({
   return (
     <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
       <div className="header">
-        <h1 className="font-bold text-2xl">Settings</h1>
+        <h1 className="font-bold text-2xl">{t('settings.title')}</h1>
         <Divider className="my-4" />
       </div>
       <div className="body overflow-y-auto">

@@ -11,6 +11,7 @@ import {
   Divider,
   KbdKey,
 } from '@heroui/react';
+import { useTranslation } from 'react-i18next';
 
 interface SettingsHotkeysProps {
   hotkeys: Hotkey[];
@@ -32,6 +33,7 @@ const renderHotkeyKey = (key: string) => {
 };
 
 function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
+  const { t } = useTranslation();
   const handleHotkeyChange = (index, key, value) => {
     const newHotkeys = [...hotkeys];
     newHotkeys[index] = {
@@ -40,12 +42,12 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
     };
     onHotkeysChange(newHotkeys);
   };
-  const title = 'Custom Keyboard Shortcuts';
-  const description = 'Configure up to 3 custom keyboard shortcuts with personalized prompts';
+  const title = t('settings.hotkeys.custom');
+  const description = t('settings.hotkeys.customDescription');
   return (
     <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
       <div className="header">
-        <h1 className="font-bold text-2xl">Hotkeys</h1>
+        <h1 className="font-bold text-2xl">{t('settings.hotkeys.title')}</h1>
         <Divider className="my-4" />
       </div>
       <div className="body overflow-y-auto">
@@ -55,22 +57,21 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
         {hotkeys.map((hotkey, index) => (
           <Card key={index} className="w-full my-5 border-1 border-gray-100" shadow="none">
             <CardHeader className="flex gap-3 justify-between">
-              <h4>{hotkey.id === 0 ? 'Default' : `Shortcut ${index}`}</h4>
+              <h4>{hotkey.id === 0 ? t('common.default') : `${t('settings.hotkeys.shortcut')} ${index}`}</h4>
               <Switch
                 size="sm"
                 defaultSelected={hotkey.enabled}
                 onValueChange={(value) => handleHotkeyChange(index, 'enabled', value)}
               >
-                Enabled
+                {t('common.enabled')}
               </Switch>
             </CardHeader>
             <CardBody className="flex flex-col gap-5">
               <div>{renderHotkeyKey(hotkey.key)}</div>
-
               {hotkey.id === 0 ? (
                 <Card shadow="none" isHoverable={true}>
                   <CardBody>
-                    <p>Use default hotkey to open blank chat window.</p>
+                    <p>{t('settings.hotkeys.defaultDescription')}</p>
                   </CardBody>
                 </Card>
               ) : (

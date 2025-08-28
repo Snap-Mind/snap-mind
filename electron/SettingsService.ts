@@ -55,9 +55,27 @@ class SettingsService {
     this.ensureDefaultConfig('settings.json', 'settings.default.json');
     this.ensureDefaultConfig('hotkeys.json', 'hotkeys.default.json');
 
-    // Load both default and user settings, then merge them
+    // Load both default and user settings
     const defaultSettings = this.loadDefaultSettings();
     const userSettings = this.loadSettings();
+
+    // Check if we need to set system language
+    if (!userSettings.general?.language && !defaultSettings.general?.language) {
+      const systemLocale = app.getSystemLocale();
+      // Handle special cases for Chinese variants
+      let systemLanguage;
+      if (systemLocale.startsWith('zh')) {
+        // zh-CN -> zh-Hans (Simplified Chinese)
+        // zh-TW/zh-HK -> zh-Hant (Traditional Chinese)
+        systemLanguage = systemLocale.includes('CN') ? 'zh-Hans' : 'zh-Hant';
+      } else {
+        // For other languages, just take the primary language part
+        systemLanguage = systemLocale.split('-')[0];
+      }
+      if (!userSettings.general) userSettings.general = {};
+      userSettings.general.language = systemLanguage;
+      logService.info(`Setting default language to system locale: ${systemLanguage}`);
+    }
 
     // Deep merge default settings with user settings
     // This will preserve all user settings while adding any missing fields from default settings

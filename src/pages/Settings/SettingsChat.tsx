@@ -3,6 +3,7 @@ import { Divider } from '@heroui/react';
 import BooleanInput from '../../components/BooleanInput';
 import { SettingsChangeHandler } from '@/types';
 import { ChatSetting } from '@/types/setting';
+import { useTranslation } from 'react-i18next';
 
 interface SettingsChatProps {
   settings: ChatSetting;
@@ -10,17 +11,18 @@ interface SettingsChatProps {
 }
 
 function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
+  const { t } = useTranslation();
   return (
     <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
       <div className="header">
-        <h1 className="font-bold text-2xl">Chat</h1>
+        <h1 className="font-bold text-2xl">{t('settings.chat.title')}</h1>
         <Divider className="my-4" />
       </div>
       <div className="body overflow-y-auto flex flex-col gap-4 max-w-[calc(100%_-_theme(spacing.3))]">
         <Slider
           className="max-w-full"
           defaultValue={settings.max_tokens}
-          label="Max Tokens"
+          label={t('settings.chat.maxTokens')}
           minValue={1}
           maxValue={16000}
           step={1}
@@ -49,7 +51,7 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
         <Slider
           className="max-w-full"
           defaultValue={settings.temperature}
-          label="Temperature"
+          label={t('settings.chat.temperature')}
           minValue={0}
           maxValue={1}
           step={0.01}
@@ -59,7 +61,7 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
         <Slider
           className="max-w-full"
           defaultValue={settings.top_p}
-          label="Top P"
+          label={t("settings.chat.topP")}
           minValue={0.1}
           maxValue={1}
           step={0.01}
@@ -68,8 +70,8 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
 
         <BooleanInput
           id="streaming"
-          label="Response Streaming"
-          description="Show responses as they are being generated"
+          label={t("settings.chat.streaming")}
+          description={t("settings.chat.streamingDescription")}
           defaultSelected={settings.streamingEnabled}
           onValueChange={(checked) => onSettingsChange(['chat', 'streamingEnabled'], checked)}
         />
