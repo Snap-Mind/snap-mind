@@ -9,12 +9,14 @@ import loggerService from '../../services/LoggerService';
 import ChatMessage from '../ChatMessage/ChatMessage';
 
 import { Message } from '@/types/chat';
+import { useTranslation } from 'react-i18next';
 
 interface ChatPopupProps {
   initialMessage?: Message | Message[];
 }
 
 export default function ChatPopup({ initialMessage }: ChatPopupProps) {
+  const {t} = useTranslation();
   const [messages, setMessages] = useState<Message[]>(() =>
     Array.isArray(initialMessage) ? initialMessage : initialMessage ? [initialMessage] : []
   );
@@ -181,7 +183,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               <Textarea
                 className="flex-1"
                 aria-label="Message input"
-                placeholder="Send a message..."
+                placeholder={t('chat.sendMessage')}
                 value={input}
                 minRows={1}
                 maxRows={5}
@@ -214,7 +216,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                   disabled={loading || !input.trim()}
                   aria-label="Send message"
                 >
-                  Send
+                  {t('chat.send')}
                 </Button>
               </div>
             </div>

@@ -37,8 +37,12 @@
       "showLogFiles": "Show Log Files"
     }
   },
+  "chat": {
+    "send": "Send",
+    "sendMessage": "Send a message..."
+  },
   "common": {
-    "create":"Create",
+    "create": "Create",
     "save": "Save",
     "cancel": "Cancel",
     "edit": "Edit",

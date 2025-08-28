@@ -37,6 +37,10 @@
       "showLogFiles": "顯示日誌文件"
     }
   },
+    "chat": {
+    "send": "傳送",
+    "sendMessage": "傳送訊息..."
+  },
   "common": {
     "create": "創建",
     "save": "保存",
