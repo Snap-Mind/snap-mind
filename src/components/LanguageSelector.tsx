@@ -16,6 +16,7 @@ export const LanguageSelector = () => {
 
   return (
     <Select
+      aria-label='Select language'
       defaultSelectedKeys={[i18n.language]}
       onChange={handleLanguageChange}
       className="max-w-[8rem]"
