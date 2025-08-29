@@ -1,9 +1,11 @@
 /**
  * Represents a deeply partial version of a type T, where all nested properties are optional
  */
-type DeepPartial<T> = T extends object ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
 
 /**
  * Deep merge two objects while preserving the original properties if they exist
@@ -85,7 +87,5 @@ export function mergeDeep<T extends Record<string, any>>(target: T, source: Deep
  * Type guard to check if a value is a plain object (not null, not array, just a regular object)
  */
 function isPlainObject(value: unknown): value is Record<string, any> {
-  return value !== null &&
-    typeof value === 'object' &&
-    !Array.isArray(value);
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }

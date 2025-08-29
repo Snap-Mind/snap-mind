@@ -22,15 +22,13 @@ function SettingsGeneral({ settings, onSettingsChange }: SettingsGeneralProps) {
       </div>
       <div className="body overflow-y-auto">
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">
-            {t('settings.general.language')}
-          </label>
-          <LanguageSelector  />
+          <label className="block text-sm font-medium mb-2">{t('settings.general.language')}</label>
+          <LanguageSelector />
         </div>
         <BooleanInput
           id="clipboard"
-          label={t("settings.general.clipboardFallback")}
-          description={t("settings.general.clipboardFallbackDescription")}
+          label={t('settings.general.clipboardFallback')}
+          description={t('settings.general.clipboardFallbackDescription')}
           defaultSelected={settings.clipboardEnabled}
           onValueChange={(value) => onSettingsChange(['general', 'clipboardEnabled'], value)}
         />

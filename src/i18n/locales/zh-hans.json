@@ -39,7 +39,7 @@
       "showLogFiles": "显示日志文件"
     }
   },
-    "chat": {
+  "chat": {
     "send": "发送",
     "sendMessage": "发送消息..."
   },

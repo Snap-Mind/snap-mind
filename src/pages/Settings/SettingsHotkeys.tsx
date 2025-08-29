@@ -57,7 +57,11 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
         {hotkeys.map((hotkey, index) => (
           <Card key={index} className="w-full my-5 border-1 border-gray-100" shadow="none">
             <CardHeader className="flex gap-3 justify-between">
-              <h4>{hotkey.id === 0 ? t('common.default') : `${t('settings.hotkeys.shortcut')} ${index}`}</h4>
+              <h4>
+                {hotkey.id === 0
+                  ? t('common.default')
+                  : `${t('settings.hotkeys.shortcut')} ${index}`}
+              </h4>
               <Switch
                 size="sm"
                 defaultSelected={hotkey.enabled}

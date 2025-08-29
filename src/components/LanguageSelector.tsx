@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Select, SelectItem} from '@heroui/react';
+import { Select, SelectItem } from '@heroui/react';
 
 export const LanguageSelector = () => {
   const { i18n } = useTranslation();
@@ -16,15 +16,13 @@ export const LanguageSelector = () => {
 
   return (
     <Select
-      aria-label='Select language'
+      aria-label="Select language"
       defaultSelectedKeys={[i18n.language]}
       onChange={handleLanguageChange}
       className="max-w-[8rem]"
     >
       {languages.map((lang) => (
-        <SelectItem key={lang.key}>
-          {lang.label}
-        </SelectItem>
+        <SelectItem key={lang.key}>{lang.label}</SelectItem>
       ))}
     </Select>
   );

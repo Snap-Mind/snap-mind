@@ -15,7 +15,7 @@
     "isolatedModules": true,
     "noEmit": false,
     "baseUrl": ".",
-    "sourceMap": true,
+    "sourceMap": true
   },
   "include": ["electron", "main.ts", "preload.ts"],
   "exclude": ["node_modules"]

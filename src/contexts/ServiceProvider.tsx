@@ -10,7 +10,6 @@ interface ServiceProviderProps {
 }
 
 export const ServiceProvider = ({ children }: ServiceProviderProps) => {
-
   const loggerService = useMemo(() => new LoggerService(), []);
   const [settingsManager, setSettingsManager] = useState<SettingsManager | null>(null);
   const [loading, setLoading] = useState(true);

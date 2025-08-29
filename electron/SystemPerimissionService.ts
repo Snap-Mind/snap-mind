@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 
 class SystemPermissionService {
   private platform: string;
-  private resourcePath:string;
+  private resourcePath: string;
 
   constructor() {
     const __filename = fileURLToPath(import.meta.url);

@@ -61,7 +61,7 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
         <Slider
           className="max-w-full"
           defaultValue={settings.top_p}
-          label={t("settings.chat.topP")}
+          label={t('settings.chat.topP')}
           minValue={0.1}
           maxValue={1}
           step={0.01}
@@ -70,8 +70,8 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
 
         <BooleanInput
           id="streaming"
-          label={t("settings.chat.streaming")}
-          description={t("settings.chat.streamingDescription")}
+          label={t('settings.chat.streaming')}
+          description={t('settings.chat.streamingDescription')}
           defaultSelected={settings.streamingEnabled}
           onValueChange={(checked) => onSettingsChange(['chat', 'streamingEnabled'], checked)}
         />

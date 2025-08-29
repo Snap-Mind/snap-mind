@@ -17,7 +17,7 @@ interface ChatPopupProps {
 }
 
 export default function ChatPopup({ initialMessage }: ChatPopupProps) {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>(() =>
     Array.isArray(initialMessage) ? initialMessage : initialMessage ? [initialMessage] : []
   );
@@ -66,10 +66,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
       } catch (error) {
         if (error && error.name === 'AbortError') {
           // Keep unfinished message, add a new message for abort
-          setMessages((msgs) => [
-            ...msgs,
-            { role: 'system', content: 'Response is aborted.' },
-          ]);
+          setMessages((msgs) => [...msgs, { role: 'system', content: 'Response is aborted.' }]);
         } else {
           setMessages((msgs) => [
             ...msgs.slice(0, -1), // Remove the streaming message
@@ -238,7 +235,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                     }}
                     aria-label="Stop response"
                   >
-                    <Icon icon='square'></Icon>
+                    <Icon icon="square"></Icon>
                   </Button>
                 ) : (
                   <Button
