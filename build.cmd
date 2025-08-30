@@ -5,7 +5,7 @@ set NODE_ENV=production
 
 echo Cleaning build folders...
 if exist dist rmdir /s /q dist
-if exist build rmdir /s /q build
+if exist dist-electron rmdir /s /q dist-electron
 if exist build rmdir /s /q build
 
 echo Building helper binary...
