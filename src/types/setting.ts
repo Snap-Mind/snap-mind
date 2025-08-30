@@ -28,32 +28,34 @@ export interface Hotkey {
 export interface ModelSetting {
   id: string;
   name: string;
-  type: string;
+  type: ModelType;
   description: string;
-  capabilities?: Capability[];
+  capabilities: Capability[];
 }
 
-export type ModelType = 'chat';
-// | 'image'
-// | 'embedding'
-// | 'tool'
-// | 'code'
-// | 'vision';
+export type ModelType =
+  | 'chat'
+  | 'image'
+  | 'embedding'
+  | 'tool'
+  | 'code'
+  | 'vision';
 
-export type Capability = 'chat';
-// | 'image-generation'
-// | 'image-editing'
-// | 'vision'
-// | 'websearch'
-// | 'reasoning'
-// | 'code-generation'
-// | 'translation'
-// | 'embedding'
-// | 'summarization'
-// | 'classification'
-// | 'ocr'
-// | 'speech'
-// | 'tool-use'
-// | 'multi-modal';
+export type Capability =
+  | 'chat'
+  | 'image-generation'
+  | 'image-editing'
+  | 'vision'
+  | 'websearch'
+  | 'reasoning'
+  | 'code-generation'
+  | 'translation'
+  | 'embedding'
+  | 'summarization'
+  | 'classification'
+  | 'ocr'
+  | 'speech'
+  | 'tool-use'
+  | 'multi-modal';
 
 export type ProviderSetting = OpenAIConfig | AzureOpenAIConfig | AnthropicConfig | GoogleConfig;

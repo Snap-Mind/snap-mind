@@ -1,12 +1,13 @@
-import { ModelType } from '@/types/setting';
+import { Capability, ModelType } from '@/types/setting';
 import { Input, Select, SelectItem } from '@heroui/react';
 import { FormEvent, Ref } from 'react';
 
 interface FormData {
   id: string;
   name: string;
-  type: string;
+  type: ModelType;
   description: string;
+  capabilities: Capability[];
 }
 
 interface ModelCreateFormProps {
@@ -16,9 +17,31 @@ interface ModelCreateFormProps {
   errors?: Partial<Record<keyof FormData, string>>;
 }
 
-const MODEL_TYPE_OPTIONS: ModelType[] = ['chat'];
+const MODEL_TYPE_OPTIONS: ModelType[] = ['chat', 'image', 'embedding', 'tool', 'code', 'vision'];
+const CAPABILITY_OPTIONS: Capability[] = [
+  'chat',
+  'image-generation',
+  'image-editing',
+  'vision',
+  'websearch',
+  'reasoning',
+  'code-generation',
+  'translation',
+  'embedding',
+  'summarization',
+  'classification',
+  'ocr',
+  'speech',
+  'tool-use',
+  'multi-modal',
+];
 
-export function ModelCreateForm({ formRef, formData, setFormData, errors = {} }: ModelCreateFormProps) {
+export function ModelCreateForm({
+  formRef,
+  formData,
+  setFormData,
+  errors = {},
+}: ModelCreateFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -61,6 +84,21 @@ export function ModelCreateForm({ formRef, formData, setFormData, errors = {} }:
       >
         {MODEL_TYPE_OPTIONS.map((type: ModelType) => (
           <SelectItem key={type}>{type}</SelectItem>
+        ))}
+      </Select>
+      <Select
+        className="mb-4"
+        label="capabilities"
+        name="capabilities"
+        defaultSelectedKeys={['chat']}
+        onChange={handleChange}
+        isRequired
+        disallowEmptySelection
+        isInvalid={!!errors.capabilities}
+        errorMessage={errors.capabilities}
+      >
+        {CAPABILITY_OPTIONS.map((cap: Capability) => (
+          <SelectItem key={cap}>{cap}</SelectItem>
         ))}
       </Select>
       <Input
