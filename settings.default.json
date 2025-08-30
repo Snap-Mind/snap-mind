@@ -1,7 +1,7 @@
 {
   "general": {
     "language": "",
-    "clipboardEnabled": false
+    "clipboardEnabled": true
   },
   "chat": {
     "temperature": 0.7,
