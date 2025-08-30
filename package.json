@@ -1,7 +1,7 @@
 {
   "name": "snap-mind",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A quick prompt launcher.",
   "author": "Louis Liu",
   "type": "module",
