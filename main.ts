@@ -23,6 +23,23 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const resourcesPath = isDev() ? path.join(__dirname, '..') : process.resourcesPath;
 
+// ---- SINGLE INSTANCE LOCK ----
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, argv, workingDirectory) => {
+    // Show or focus the settings window when a second instance is launched
+    let win = settingsWindow || createSettingsWindow();
+    if (win.isVisible()) {
+      win.focus();
+    } else {
+      win.show();
+      win.focus();
+    }
+  });
+}
+
 const settingsService = new SettingsService();
 
 let tray = null;
