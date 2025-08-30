@@ -15,7 +15,7 @@ echo Building main process...
 call npm run build:main
 
 echo Building renderer process...
-call npm run build:renderer
+call npm run build:render
 
 if "%1"=="--ia32" (
   set PLATFORM=ia32

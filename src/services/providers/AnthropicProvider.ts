@@ -149,18 +149,21 @@ class AnthropicProvider implements Provider {
           id: 'claude-3-opus-20240229',
           name: 'Claude 3 Opus',
           type: 'chat',
+          capabilities: ['chat'],
           description: 'Most powerful Claude model for highly complex tasks',
         },
         {
           id: 'claude-3-sonnet-20240229',
           name: 'Claude 3 Sonnet',
           type: 'chat',
+          capabilities: ['chat'],
           description: 'Balanced Claude model for most tasks',
         },
         {
           id: 'claude-3-haiku-20240307',
           name: 'Claude 3 Haiku',
           type: 'chat',
+          capabilities: ['chat'],
           description: 'Fastest, most compact Claude model',
         },
       ]

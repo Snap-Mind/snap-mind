@@ -205,12 +205,14 @@ class GoogleProvider implements Provider {
             id: 'gemini-1.5-pro',
             name: 'Gemini 1.5 Pro',
             type: 'chat',
+            capabilities: ['chat'],
             description: 'Highly capable multimodal model',
           },
           {
             id: 'gemini-1.5-flash',
             name: 'Gemini 1.5 Flash',
             type: 'chat',
+            capabilities: ['chat'],
             description: 'Fast and efficient model for most tasks',
           },
         ]

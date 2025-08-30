@@ -8,9 +8,9 @@
   "scripts": {
     "dev": "vite",
     "dev:electron": "npm run copy:assets && concurrently -k -r \"tsc -p tsconfig.main.json -w\" \"vite\" \"wait-on http://localhost:5173 && electron dist-electron/main.js\"",
-    "build": "npm run build:main && npm run build:renderer",
+    "build": "npm run build:main && npm run build:render",
     "build:main": "tsc -p tsconfig.main.json && npm run copy:assets",
-    "build:renderer": "tsc & vite build",
+    "build:render": "tsc & vite build",
     "build:helper": "swiftc helper/SelectedText.swift -o helper/selectedtext && chmod +x helper/selectedtext",
     "build:win-helper": "cd helper/SelectedTextWin && dotnet build -c Release && copy /Y bin\\Release\\net8.0-windows\\SelectedTextWin.* ..\\",
     "build:prod": "./build.sh",
