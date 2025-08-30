@@ -50,7 +50,7 @@
       }
     ],
     "signAndEditExecutable": false,
-    "icon": "electron/assets/snap-mind.ico"
+    "icon": "electron/assets/snap-mind-icon-windows.ico"
   },
   "portable": {
     "artifactName": "${productName}-${version}-${arch}-portable.${ext}"
