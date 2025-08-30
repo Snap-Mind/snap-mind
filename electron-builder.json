@@ -38,7 +38,7 @@
     "gatekeeperAssess": false,
     "entitlements": "config/entitlements/mac.plist",
     "entitlementsInherit": "config/entitlements/mac.plist",
-    "icon": "electron/assets/snap-mind-icon-macOS.icns"
+    "icon": "electron/assets/snap-mind-app-icon-macOS.png"
   },
   "asar": true,
   "compression": "maximum"
