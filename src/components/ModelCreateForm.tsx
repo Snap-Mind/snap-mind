@@ -17,23 +17,25 @@ interface ModelCreateFormProps {
   errors?: Partial<Record<keyof FormData, string>>;
 }
 
-const MODEL_TYPE_OPTIONS: ModelType[] = ['chat', 'image', 'embedding', 'tool', 'code', 'vision'];
+const MODEL_TYPE_OPTIONS: ModelType[] = [
+  'chat' /* 'image', 'embedding', 'tool', 'code', 'vision'*/,
+];
 const CAPABILITY_OPTIONS: Capability[] = [
   'chat',
-  'image-generation',
-  'image-editing',
-  'vision',
-  'websearch',
-  'reasoning',
-  'code-generation',
-  'translation',
-  'embedding',
-  'summarization',
-  'classification',
-  'ocr',
-  'speech',
-  'tool-use',
-  'multi-modal',
+  // 'image-generation',
+  // 'image-editing',
+  // 'vision',
+  // 'websearch',
+  // 'reasoning',
+  // 'code-generation',
+  // 'translation',
+  // 'embedding',
+  // 'summarization',
+  // 'classification',
+  // 'ocr',
+  // 'speech',
+  // 'tool-use',
+  // 'multi-modal',
 ];
 
 export function ModelCreateForm({
@@ -75,7 +77,7 @@ export function ModelCreateForm({
         className="mb-4"
         label="type"
         name="type"
-        defaultSelectedKeys={['chat']}
+        selectedKeys={[formData.type]}
         onChange={handleChange}
         isRequired
         disallowEmptySelection
@@ -90,7 +92,7 @@ export function ModelCreateForm({
         className="mb-4"
         label="capabilities"
         name="capabilities"
-        defaultSelectedKeys={['chat']}
+        selectedKeys={formData.capabilities}
         onChange={handleChange}
         isRequired
         disallowEmptySelection

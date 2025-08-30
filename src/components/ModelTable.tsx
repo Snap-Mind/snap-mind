@@ -32,7 +32,8 @@ interface ModelTableProps {
 const initialFormData: ModelSetting = {
   id: '',
   name: '',
-  type: '',
+  type: 'chat',
+  capabilities: ['chat'],
   description: '',
 };
 

@@ -74,7 +74,7 @@ export function ModelEditForm({ formRef, formData, onEditModel, errors = {} }: M
         className="mb-4"
         label="type"
         name="type"
-        defaultSelectedKeys={['chat']}
+        selectedKeys={[formData.type]}
         onChange={handleChange}
         isRequired
         disallowEmptySelection
@@ -89,7 +89,7 @@ export function ModelEditForm({ formRef, formData, onEditModel, errors = {} }: M
         className="mb-4"
         label="capabilities"
         name="capabilities"
-        defaultSelectedKeys={['chat']}
+        selectedKeys={formData.capabilities}
         onChange={handleChange}
         isRequired
         disallowEmptySelection
