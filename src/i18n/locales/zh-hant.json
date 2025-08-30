@@ -21,8 +21,8 @@
     },
     "chat": {
       "title": "聊天",
-      "maxTokens": "最大令牌數",
-      "temperature": "溫度",
+      "maxTokens": "Max Tokens",
+      "temperature": "Temperature",
       "topP": "Top P",
       "streaming": "響應串流",
       "streamingDescription": "即時顯示生成的回應"
