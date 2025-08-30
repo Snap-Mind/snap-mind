@@ -440,6 +440,16 @@ app.whenReady().then(() => {
     trayIcon = nativeImage.createFromPath(trayIconPath);
     tray = new Tray(trayIcon);
     logService.info('Tray icon created (Windows):', trayIconPath);
+    // Add double-click handler to open settings window
+    tray.on('double-click', () => {
+      const win = settingsWindow || createSettingsWindow();
+      if (win.isVisible()) {
+        win.focus();
+      } else {
+        win.show();
+        win.focus();
+      }
+    });
   } else {
     const trayIconPath = isDev()
       ? path.join(__dirname, '..', 'electron/assets/mind_tray_macos_Template.png')
