@@ -30,6 +30,8 @@ interface ElectronAPI {
     path: (string | number)[],
     value: string | number | boolean | ModelSetting[]
   ) => Promise<{ setting: Setting; success: boolean }>;
+  onSettingsUpdated: (callback: (updatedSettings: Setting) => void) => void;
+  offSettingsUpdated: () => void;
 
   // Log management
   getLogPath: () => Promise<string>;

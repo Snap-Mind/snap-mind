@@ -112,4 +112,10 @@ export class SettingsManager {
       throw error;
     }
   };
+
+  replaceSettings(newSettings: Setting) {
+    this.settings = newSettings;
+    this._isInitialized = true;
+    this.loggerService.info('SettingsManager.replaceSettings called, settings replaced');
+  }
 }

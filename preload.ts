@@ -22,6 +22,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (newSettings) => ipcRenderer.invoke('settings:update', newSettings),
   updateSetting: (path, value) => ipcRenderer.invoke('settings:update-path', { path, value }),
+  onSettingsUpdated: (callback) => ipcRenderer.on('settings:updated', (_event, updatedSettings) => callback(updatedSettings)),
+  offSettingsUpdated: () => ipcRenderer.removeAllListeners('settings:updated'),
   // Log management
   getLogPath: () => ipcRenderer.invoke('logs:get-path'),
   openLogFile: () => ipcRenderer.invoke('logs:open-file'),

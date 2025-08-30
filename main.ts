@@ -182,8 +182,8 @@ function createSettingsWindow() {
 
   settingsWindow.webContents.setWindowOpenHandler(() => {
     // disallow any new windows open in the settings window
-    return { action: 'deny' }
-  })
+    return { action: 'deny' };
+  });
 
   return settingsWindow;
 }
@@ -349,6 +349,10 @@ ipcMain.handle('settings:update', async (event, newSettings) => {
   try {
     const updated = await settingsService.updateSettings(newSettings);
     logService.info('[main] Settings updated:', updated);
+
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send('settings:updated', updated);
+    });
     return { success: true, settings: updated };
   } catch (error) {
     logService.error('[main] Failed to update settings:', error);
@@ -359,6 +363,9 @@ ipcMain.handle('settings:update', async (event, newSettings) => {
 ipcMain.handle('settings:update-path', async (event, { path, value }) => {
   try {
     const updated = await settingsService.updateSetting(path, value);
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send('settings:updated', updated);
+    });
     return { success: true, setting: updated };
   } catch (error) {
     console.error('[main] Failed to update setting:', error);
