@@ -66,6 +66,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
   const editFormRef = useRef<HTMLFormElement>(null);
   const [deleteModelId, setDeleteModelId] = useState<string | null>(null);
   const [deleteModelName, setDeleteModelName] = useState<string>('');
+  const [addModelErrors, setAddModelErrors] = useState<Partial<Record<keyof ModelSetting, string>>>({});
 
   useEffect(() => {
     setLocalModels(models);
@@ -73,8 +74,15 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
 
   const handleAddModel = () => {
     if (addFormRef.current && addFormRef.current.checkValidity()) {
+      const errors: Partial<Record<keyof ModelSetting, string>> = {};
+      const isDuplicate = localModels.some(model => model.id === addFormData.id);
+      if (isDuplicate) {
+        errors.id = 'Model id already exists. Please use a unique id.';
+        setAddModelErrors(errors);
+        return;
+      }
+      setAddModelErrors({});
       const updatedModels = [...localModels, addFormData];
-
       setLocalModels(updatedModels);
       onModelsChange(updatedModels);
       setAddFormData(initialFormData);
@@ -137,6 +145,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
 
   const handleAddModelCancel = (onClose) => {
     setAddFormData(initialFormData);
+    setAddModelErrors({});
     onClose();
   };
 
@@ -212,7 +221,20 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
                 <ModelCreateForm
                   formRef={addFormRef}
                   formData={addFormData}
-                  setFormData={setAddFormData}
+                  setFormData={(newFormData) => {
+                    const changedKeys = Object.keys(newFormData) as (keyof typeof newFormData)[];
+                    setAddFormData(newFormData);
+                    setAddModelErrors(prevErrors => {
+                      const updatedErrors = { ...prevErrors };
+                      changedKeys.forEach(key => {
+                        if (addFormData[key] !== newFormData[key]) {
+                          updatedErrors[key] = undefined;
+                        }
+                      });
+                      return updatedErrors;
+                    });
+                  }}
+                  errors={addModelErrors}
                 />
               </ModalBody>
               <ModalFooter>

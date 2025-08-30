@@ -13,11 +13,12 @@ interface ModelCreateFormProps {
   formRef: Ref<HTMLFormElement>;
   formData: FormData;
   setFormData: (formData: FormData) => void;
+  errors?: Partial<Record<keyof FormData, string>>;
 }
 
 const MODEL_TYPE_OPTIONS: ModelType[] = ['chat'];
 
-export function ModelCreateForm({ formRef, formData, setFormData }: ModelCreateFormProps) {
+export function ModelCreateForm({ formRef, formData, setFormData, errors = {} }: ModelCreateFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -33,6 +34,8 @@ export function ModelCreateForm({ formRef, formData, setFormData }: ModelCreateF
         value={formData.id}
         onChange={handleChange}
         isRequired
+        isInvalid={!!errors.id}
+        errorMessage={errors.id}
       />
       <Input
         className="mb-4"
@@ -42,6 +45,8 @@ export function ModelCreateForm({ formRef, formData, setFormData }: ModelCreateF
         value={formData.name}
         onChange={handleChange}
         isRequired
+        isInvalid={!!errors.name}
+        errorMessage={errors.name}
       />
       <Select
         className="mb-4"
@@ -51,6 +56,8 @@ export function ModelCreateForm({ formRef, formData, setFormData }: ModelCreateF
         onChange={handleChange}
         isRequired
         disallowEmptySelection
+        isInvalid={!!errors.type}
+        errorMessage={errors.type}
       >
         {MODEL_TYPE_OPTIONS.map((type: ModelType) => (
           <SelectItem key={type}>{type}</SelectItem>
@@ -63,6 +70,8 @@ export function ModelCreateForm({ formRef, formData, setFormData }: ModelCreateF
         name="description"
         value={formData.description}
         onChange={handleChange}
+        isInvalid={!!errors.description}
+        errorMessage={errors.description}
       />
     </form>
   );
