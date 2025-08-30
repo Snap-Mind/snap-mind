@@ -1,4 +1,5 @@
-import { Input } from '@heroui/react';
+import { ModelType } from '@/types/setting';
+import { Input, Select, SelectItem } from '@heroui/react';
 import { FormEvent, Ref } from 'react';
 
 interface FormData {
@@ -14,8 +15,10 @@ interface ModelCreateFormProps {
   setFormData: (formData: FormData) => void;
 }
 
+const MODEL_TYPE_OPTIONS: ModelType[] = ['chat'];
+
 export function ModelCreateForm({ formRef, formData, setFormData }: ModelCreateFormProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -29,7 +32,7 @@ export function ModelCreateForm({ formRef, formData, setFormData }: ModelCreateF
         name="id"
         value={formData.id}
         onChange={handleChange}
-        required
+        isRequired
       />
       <Input
         className="mb-4"
@@ -38,17 +41,21 @@ export function ModelCreateForm({ formRef, formData, setFormData }: ModelCreateF
         name="name"
         value={formData.name}
         onChange={handleChange}
-        required
+        isRequired
       />
-      <Input
+      <Select
         className="mb-4"
         label="type"
-        placeholder="Model type"
         name="type"
-        value={formData.type}
+        defaultSelectedKeys={['chat']}
         onChange={handleChange}
-        required
-      />
+        isRequired
+        disallowEmptySelection
+      >
+        {MODEL_TYPE_OPTIONS.map((type: ModelType) => (
+          <SelectItem key={type}>{type}</SelectItem>
+        ))}
+      </Select>
       <Input
         className="mb-4"
         label="description"

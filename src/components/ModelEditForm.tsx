@@ -1,4 +1,5 @@
-import { Input } from '@heroui/react';
+import { ModelType } from '@/types/setting';
+import { Input, Select, SelectItem } from '@heroui/react';
 import { FormEvent, Ref } from 'react';
 
 interface FormData {
@@ -14,8 +15,10 @@ interface ModelEditFormProps {
   onEditModel: (formData: FormData) => void;
 }
 
+const MODEL_TYPE_OPTIONS: ModelType[] = ['chat'];
+
 export function ModelEditForm({ formRef, formData, onEditModel }: ModelEditFormProps) {
-  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     onEditModel({ ...formData, [name]: value });
   };
@@ -28,8 +31,10 @@ export function ModelEditForm({ formRef, formData, onEditModel }: ModelEditFormP
         placeholder="Model id"
         name="id"
         value={formData.id}
-        onChange={handleOnChange}
-        required
+        onChange={handleChange}
+        isRequired
+        isReadOnly
+        isDisabled
       />
       <Input
         className="mb-4"
@@ -37,25 +42,29 @@ export function ModelEditForm({ formRef, formData, onEditModel }: ModelEditFormP
         placeholder="Model name"
         name="name"
         value={formData.name}
-        onChange={handleOnChange}
-        required
+        onChange={handleChange}
+        isRequired
       />
-      <Input
+      <Select
         className="mb-4"
         label="type"
-        placeholder="Model type"
         name="type"
-        value={formData.type}
-        onChange={handleOnChange}
-        required
-      />
+        defaultSelectedKeys={['chat']}
+        onChange={handleChange}
+        isRequired
+        disallowEmptySelection
+      >
+        {MODEL_TYPE_OPTIONS.map((type: ModelType) => (
+          <SelectItem key={type}>{type}</SelectItem>
+        ))}
+      </Select>
       <Input
         className="mb-4"
         label="description"
         placeholder="Model description"
         name="description"
         value={formData.description}
-        onChange={handleOnChange}
+        onChange={handleChange}
       />
     </form>
   );

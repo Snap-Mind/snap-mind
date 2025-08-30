@@ -30,6 +30,30 @@ export interface ModelSetting {
   name: string;
   type: string;
   description: string;
+  capabilities?: Capability[];
 }
+
+export type ModelType = 'chat';
+// | 'image'
+// | 'embedding'
+// | 'tool'
+// | 'code'
+// | 'vision';
+
+export type Capability = 'chat';
+// | 'image-generation'
+// | 'image-editing'
+// | 'vision'
+// | 'websearch'
+// | 'reasoning'
+// | 'code-generation'
+// | 'translation'
+// | 'embedding'
+// | 'summarization'
+// | 'classification'
+// | 'ocr'
+// | 'speech'
+// | 'tool-use'
+// | 'multi-modal';
 
 export type ProviderSetting = OpenAIConfig | AzureOpenAIConfig | AnthropicConfig | GoogleConfig;
