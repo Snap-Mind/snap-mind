@@ -7,6 +7,7 @@ export interface ProviderOptions {
   stream?: boolean;
   temperature?: number;
   top_p?: number;
+  signal?: AbortSignal;
 }
 
 export interface BaseProviderConfig {

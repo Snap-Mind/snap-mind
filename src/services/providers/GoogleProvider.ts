@@ -94,38 +94,34 @@ class GoogleProvider implements Provider {
         ? `${endpoint}&alt=sse` // Server-Sent Events for streaming
         : endpoint;
 
-    try {
-      const res = await fetch(requestUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+    const fetchOptions: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    };
+    if (options && options.signal) {
+      fetchOptions.signal = options.signal;
+    }
+    const res = await fetch(requestUrl, fetchOptions);
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`API error: ${res.status} ${errText}`);
-      }
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`API error: ${res.status} ${errText}`);
+    }
 
-      // Handle streaming response
-      if (options?.stream !== false) {
-        return this._handleStreamingResponse(res, onToken);
-      } else {
-        // Handle non-streaming response
-        const data = await res.json();
-        const content = data.candidates[0]?.content?.parts[0]?.text || '';
-        if (typeof onToken === 'function') {
-          onToken(content);
-        }
-        return content;
-      }
-    } catch (err) {
-      loggerService.error('[Google]', 'Error:', err);
+    // Handle streaming response
+    if (options?.stream !== false) {
+      return this._handleStreamingResponse(res, onToken);
+    } else {
+      // Handle non-streaming response
+      const data = await res.json();
+      const content = data.candidates[0]?.content?.parts[0]?.text || '';
       if (typeof onToken === 'function') {
-        onToken(`\n[Error: ${err.message}]`);
+        onToken(content);
       }
-      return `Error: ${err.message}`;
+      return content;
     }
   }
 

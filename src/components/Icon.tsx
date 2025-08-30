@@ -1,6 +1,6 @@
-import { Eye, EyeOff, Trash2, SquarePen, Plus } from 'lucide-react';
+import { Eye, EyeOff, Trash2, SquarePen, Plus, Square } from 'lucide-react';
 
-type IconType = 'eye' | 'eye-off' | 'trash-2' | 'square-pen' | 'plus';
+type IconType = 'eye' | 'eye-off' | 'trash-2' | 'square-pen' | 'plus' | 'square';
 
 interface IconProps {
   className?: string;
@@ -68,6 +68,16 @@ function Icon({
       case 'plus':
         return (
           <Plus
+            className={svgClassName}
+            color={color}
+            size={size}
+            strokeWidth={strokeWidth}
+            absoluteStrokeWidth={absoluteStrokeWidth}
+          />
+        );
+      case 'square':
+        return (
+          <Square
             className={svgClassName}
             color={color}
             size={size}

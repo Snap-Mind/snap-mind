@@ -10,6 +10,7 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 
 import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
+import Icon from '../../components/Icon';
 
 interface ChatPopupProps {
   initialMessage?: Message | Message[];
@@ -24,11 +25,19 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const [loading, setLoading] = useState(false);
   const { settings, setSettings } = useSettings();
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Helper function to handle sending messages to AI and processing responses
   const processAIMessage = useCallback(
     async (messagesToSend: Message[]) => {
       setLoading(true);
+
+      // Abort any previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
 
       // Add an empty assistant message that will be filled with streaming content
       setMessages((msgs) => [...msgs, { role: 'assistant', content: '' }]);
@@ -36,28 +45,37 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
       try {
         const aiService = new AIService(settings);
         // Use the streaming capability with onToken callback
-        await aiService.sendMessageToAI(messagesToSend, (token) => {
-          // Update the last message (assistant) with the new token
-          setMessages((currentMsgs) => {
-            const updatedMsgs = [...currentMsgs];
-            const lastIndex = updatedMsgs.length - 1;
-
-            if (lastIndex >= 0 && updatedMsgs[lastIndex].role === 'assistant') {
-              updatedMsgs[lastIndex] = {
-                ...updatedMsgs[lastIndex],
-                content: updatedMsgs[lastIndex].content + token,
-              };
-            }
-
-            return updatedMsgs;
-          });
-        });
+        await aiService.sendMessageToAI(
+          messagesToSend,
+          (token) => {
+            // Update the last message (assistant) with the new token
+            setMessages((currentMsgs) => {
+              const updatedMsgs = [...currentMsgs];
+              const lastIndex = updatedMsgs.length - 1;
+              if (lastIndex >= 0 && updatedMsgs[lastIndex].role === 'assistant') {
+                updatedMsgs[lastIndex] = {
+                  ...updatedMsgs[lastIndex],
+                  content: updatedMsgs[lastIndex].content + token,
+                };
+              }
+              return updatedMsgs;
+            });
+          },
+          { signal }
+        );
       } catch (error) {
-        loggerService.error(`[renderer] ${this.providerConfig.id} error:`, error);
-        setMessages((msgs) => [
-          ...msgs.slice(0, -1), // Remove the streaming message
-          { role: 'assistant', content: 'Error: Unable to get response.' },
-        ]);
+        if (error && error.name === 'AbortError') {
+          // Keep unfinished message, add a new message for abort
+          setMessages((msgs) => [
+            ...msgs,
+            { role: 'system', content: 'Response is aborted.' },
+          ]);
+        } else {
+          setMessages((msgs) => [
+            ...msgs.slice(0, -1), // Remove the streaming message
+            { role: 'assistant', content: 'Error: Unable to get response.' },
+          ]);
+        }
       } finally {
         setLoading(false);
       }
@@ -209,15 +227,30 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                   {renderAvailableModels()}
                 </Select>
 
-                <Button
-                  className="bg-foreground text-default"
-                  color="primary"
-                  onPress={handleSend}
-                  disabled={loading || !input.trim()}
-                  aria-label="Send message"
-                >
-                  {t('chat.send')}
-                </Button>
+                {loading ? (
+                  <Button
+                    className="bg-default text-foreground"
+                    color="danger"
+                    onPress={() => {
+                      if (abortControllerRef.current) {
+                        abortControllerRef.current.abort();
+                      }
+                    }}
+                    aria-label="Stop response"
+                  >
+                    <Icon icon='square'></Icon>
+                  </Button>
+                ) : (
+                  <Button
+                    className="bg-foreground text-default"
+                    color="primary"
+                    onPress={handleSend}
+                    disabled={loading || !input.trim()}
+                    aria-label="Send message"
+                  >
+                    {t('chat.send')}
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>

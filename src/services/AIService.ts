@@ -63,6 +63,7 @@ export class AIService {
       modelSetting?: ModelSetting;
       providerSetting?: ProviderSetting;
       streamingEnabled?: boolean;
+      signal?: AbortSignal;
     }
   ): Promise<Message> {
     let modelSetting = options?.modelSetting || this.modelSetting;
@@ -73,9 +74,6 @@ export class AIService {
     if (!this.activeProvider) {
       const error = new Error('No active provider available');
       loggerService.error(error.message, error);
-      if (typeof onToken === 'function') {
-        onToken(`\n[Error: ${error}]`);
-      }
       throw error;
     }
 
@@ -90,6 +88,9 @@ export class AIService {
         ...this.settings.chat,
         ...options,
       };
+      if (options?.signal) {
+        providerOptions.signal = options.signal;
+      }
 
       return {
         role: 'assistant',
@@ -97,9 +98,6 @@ export class AIService {
       };
     } catch (err) {
       loggerService.error(`[renderer] ${this.providerSetting.id} error:`, err);
-      if (typeof onToken === 'function') {
-        onToken(`\n[Error: ${err.message}]`);
-      }
       throw err;
     }
   }
