@@ -6,12 +6,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Ensure target directory exists
 const targetDir = path.join(__dirname, '../dist-electron/electron/assets');
+
 fs.mkdirSync(targetDir, { recursive: true });
 
-// Copy all files from electron/assets to dist-electron/electron/assets
 const sourceDir = path.join(__dirname, '../electron/assets');
-fs.readdirSync(sourceDir).forEach((file) => {
-  fs.copyFileSync(path.join(sourceDir, file), path.join(targetDir, file));
+
+function copyRecursive(src, dest) {
+  const stat = fs.statSync(src);
+  if (stat.isDirectory()) {
+    fs.mkdirSync(dest, { recursive: true });
+    fs.readdirSync(src).forEach((item) => {
+      copyRecursive(path.join(src, item), path.join(dest, item));
+    });
+  } else {
+    fs.copyFileSync(src, dest);
+  }
+}
+
+fs.readdirSync(sourceDir).forEach((item) => {
+  copyRecursive(path.join(sourceDir, item), path.join(targetDir, item));
 });
 
 console.log('✓ Assets copied successfully!');
