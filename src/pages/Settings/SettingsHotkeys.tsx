@@ -29,7 +29,15 @@ const renderHotkeyKey = (key: string) => {
   });
   const mainKey = keys[keys.length - 1];
 
-  return <Kbd keys={modifiers}> {mainKey}</Kbd>;
+  if (isMac) {
+    return <Kbd keys={modifiers}> {mainKey}</Kbd>;
+  } else {
+    return (
+      <div className='font-bold'>
+        {modifiers.map((k) => k.charAt(0).toUpperCase() + k.slice(1)).join(' + ') + ' + ' + mainKey}
+      </div>
+    );
+  }
 };
 
 function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
