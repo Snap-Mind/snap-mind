@@ -415,13 +415,32 @@ app.whenReady().then(() => {
 
   createSettingsWindow();
 
-  // Use a PNG file as the tray icon
-  const trayIconPath = isDev()
-    ? path.join(__dirname, '..', 'electron/assets/cat-white.png')
-    : path.join(__dirname, 'electron/assets/cat-white.png');
-  const trayIcon = nativeImage.createFromPath(trayIconPath).resize({ width: 24, height: 24 });
-  tray = new Tray(trayIcon);
-  logService.info('Tray icon created:', trayIconPath);
+  // Use platform-specific tray icons with template and retina support
+  let trayIcon;
+  if (process.platform === 'darwin') {
+    // Use template icon for macOS, Electron will pick @2x for retina automatically
+    const trayIconPath = isDev()
+      ? path.join(__dirname, '..', 'electron/assets/mind_tray_macos_Template.png')
+      : path.join(__dirname, 'electron/assets/mind_tray_macos_Template.png');
+    trayIcon = nativeImage.createFromPath(trayIconPath);
+    trayIcon.setTemplateImage(true);
+    tray = new Tray(trayIcon);
+    logService.info('Tray icon created (macOS template):', trayIconPath);
+  } else if (process.platform === 'win32') {
+    const trayIconPath = isDev()
+      ? path.join(__dirname, '..', 'electron/assets/mind_tray_windows.ico')
+      : path.join(__dirname, 'electron/assets/mind_tray_windows.ico');
+    trayIcon = nativeImage.createFromPath(trayIconPath);
+    tray = new Tray(trayIcon);
+    logService.info('Tray icon created (Windows):', trayIconPath);
+  } else {
+    const trayIconPath = isDev()
+      ? path.join(__dirname, '..', 'electron/assets/mind_tray_macos_Template.png')
+      : path.join(__dirname, 'electron/assets/mind_tray_macos_Template.png');
+    trayIcon = nativeImage.createFromPath(trayIconPath);
+    tray = new Tray(trayIcon);
+    logService.info('Tray icon created (other):', trayIconPath);
+  }
 
   // Create context menu for tray
   const contextMenu = Menu.buildFromTemplate([
