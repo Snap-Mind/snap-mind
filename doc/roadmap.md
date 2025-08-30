@@ -1,5 +1,11 @@
-- [ ] settings can't sync in different window
-- [ ] no confirm when click on delete button in the model table
-- [ ] mode list not updated while edit model list in the settings window
-- [ ] app icon not set
+- [x] no confirm when click on delete button in the model table
+- [x] settings can't sync in different window
+- [x] mode list not updated while edit model list in the settings window
+- [x] a stop button
+- [x] model duplication detect when creating
+- [x] edit model, add model form upgrade, figure out mode type's meaning
+- [x] app icon not set
+- [ ] windows font rendering issue
 - [ ] app not signed
+- [ ] disallow user select text on the UI
+- [ ] auto upgrade
