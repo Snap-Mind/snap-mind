@@ -8,12 +8,14 @@
       "clipboardFallbackDescription": "當無法通過 API 獲取所選文本時使用剪貼簿備用"
     },
     "providers": {
-      "title": "供應商",
+      "title": "AI模型",
       "searchModels": "搜尋模型...",
       "models": "模型列表",
       "newModel": "新增模型",
       "addModel": "添加模型",
       "editModel": "編輯模型",
+      "deleteModel": "刪除模型",
+      "deleteModelConfirm": "您確認要刪除<b>{{modelName}}</b>嗎？",
       "name": "名稱",
       "actions": "操作"
     },
@@ -37,7 +39,7 @@
       "showLogFiles": "顯示日誌文件"
     }
   },
-    "chat": {
+  "chat": {
     "send": "傳送",
     "sendMessage": "傳送訊息..."
   },

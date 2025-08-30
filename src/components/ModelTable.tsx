@@ -53,12 +53,19 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
     onOpen: onEditModelOpen,
     onOpenChange: onEditModelOpenChange,
   } = useDisclosure();
+  const {
+    isOpen: isDeleteModelOpen,
+    onOpen: onDeleteModelOpen,
+    onOpenChange: onDeleteModelOpenChange,
+  } = useDisclosure();
   const [localModels, setLocalModels] = useState<ModelSetting[]>(models);
   const [addFormData, setAddFormData] = useState<ModelSetting>(initialFormData);
   const [editFormData, setEditFormData] = useState<ModelSetting>();
   const [searchQuery, setSearchQuery] = useState('');
   const addFormRef = useRef<HTMLFormElement>(null);
   const editFormRef = useRef<HTMLFormElement>(null);
+  const [deleteModelId, setDeleteModelId] = useState<string | null>(null);
+  const [deleteModelName, setDeleteModelName] = useState<string>('');
 
   useEffect(() => {
     setLocalModels(models);
@@ -91,16 +98,34 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
     }
   };
 
-  const handleDeleteModel = useCallback(
-    (id: string) => {
+  const handleDeleteModelRequest = useCallback(
+    (id: string, name: string) => {
+      setDeleteModelId(id);
+      setDeleteModelName(name);
+      onDeleteModelOpen();
+    },
+    [onDeleteModelOpen]
+  );
+
+  const handleDeleteModelConfirm = useCallback(() => {
+    if (deleteModelId) {
       setLocalModels((prevModels) => {
-        const updatedModels = prevModels.filter((model) => model.id !== id);
+        const updatedModels = prevModels.filter((model) => model.id !== deleteModelId);
         onModelsChange(updatedModels);
         return updatedModels;
       });
-    },
-    [onModelsChange]
-  );
+      setDeleteModelId(null);
+      setDeleteModelName('');
+      onDeleteModelOpenChange();
+    }
+  }, [deleteModelId, onModelsChange, onDeleteModelOpenChange]);
+
+  // Cancel deletion
+  const handleDeleteModelCancel = useCallback((onClose) => {
+    setDeleteModelId(null);
+    setDeleteModelName('');
+    onClose();
+  }, []);
 
   const openEditModel = useCallback(
     (model: ModelSetting) => {
@@ -149,7 +174,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
               className={className}
               svgClassName="inline-block"
               color={theme === 'light' ? dangerColor.DEFAULT : dangerColor.DEFAULT}
-              onClick={() => handleDeleteModel(model.id)}
+              onClick={() => handleDeleteModelRequest(model.id, model.name)}
             />
           </span>
         );
@@ -157,7 +182,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
         return columnKey;
       }
     },
-    [theme, handleDeleteModel]
+    [theme, handleDeleteModelRequest]
   );
 
   return (
@@ -180,7 +205,9 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">{t('settings.providers.addModel')}</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">
+                {t('settings.providers.addModel')}
+              </ModalHeader>
               <ModalBody>
                 <ModelCreateForm
                   formRef={addFormRef}
@@ -208,7 +235,9 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">{t('settings.providers.editModel')}</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">
+                {t('settings.providers.editModel')}
+              </ModalHeader>
               <ModalBody>
                 <ModelEditForm
                   formRef={editFormRef}
@@ -226,6 +255,38 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
                 </Button>
                 <Button color="primary" onPress={handleEditModel}>
                   {t('common.confirm')}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      <Modal isOpen={isDeleteModelOpen} onOpenChange={onDeleteModelOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                {t('settings.providers.deleteModel')}
+              </ModalHeader>
+              <ModalBody>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: t('settings.providers.deleteModelConfirm', {
+                      modelName: deleteModelName,
+                    }),
+                  }}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="default"
+                  variant="light"
+                  onPress={() => handleDeleteModelCancel(onClose)}
+                >
+                  {t('common.cancel')}
+                </Button>
+                <Button color="danger" onPress={handleDeleteModelConfirm}>
+                  {t('common.delete')}
                 </Button>
               </ModalFooter>
             </>
