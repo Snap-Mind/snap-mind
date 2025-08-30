@@ -67,6 +67,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
   const [deleteModelId, setDeleteModelId] = useState<string | null>(null);
   const [deleteModelName, setDeleteModelName] = useState<string>('');
   const [addModelErrors, setAddModelErrors] = useState<Partial<Record<keyof ModelSetting, string>>>({});
+  const [editModelErrors, setEditModelErrors] = useState<Partial<Record<keyof ModelSetting, string>>>({});
 
   useEffect(() => {
     setLocalModels(models);
@@ -94,6 +95,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
 
   const handleEditModel = () => {
     if (editFormRef.current && editFormRef.current.checkValidity()) {
+      setEditModelErrors({});
       const updatedModels = localModels.map((model) =>
         model.id === editFormData.id ? editFormData : model
       );
@@ -102,7 +104,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
       setEditFormData(undefined);
       onEditModelOpenChange();
     } else {
-      addFormRef.current?.reportValidity();
+      editFormRef.current?.reportValidity();
     }
   };
 
@@ -151,6 +153,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
 
   const handleEditModelCancel = (onClose) => {
     setEditFormData(undefined);
+    setEditModelErrors({});
     onClose();
   };
 
@@ -265,6 +268,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
                   formRef={editFormRef}
                   formData={editFormData}
                   onEditModel={setEditFormData}
+                  errors={editModelErrors}
                 />
               </ModalBody>
               <ModalFooter>

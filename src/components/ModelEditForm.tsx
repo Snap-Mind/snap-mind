@@ -13,11 +13,12 @@ interface ModelEditFormProps {
   formRef: Ref<HTMLFormElement>;
   formData: FormData;
   onEditModel: (formData: FormData) => void;
+  errors?: Partial<Record<keyof FormData, string>>;
 }
 
 const MODEL_TYPE_OPTIONS: ModelType[] = ['chat'];
 
-export function ModelEditForm({ formRef, formData, onEditModel }: ModelEditFormProps) {
+export function ModelEditForm({ formRef, formData, onEditModel, errors = {} }: ModelEditFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     onEditModel({ ...formData, [name]: value });
@@ -35,6 +36,8 @@ export function ModelEditForm({ formRef, formData, onEditModel }: ModelEditFormP
         isRequired
         isReadOnly
         isDisabled
+        isInvalid={!!errors.id}
+        errorMessage={errors.id}
       />
       <Input
         className="mb-4"
@@ -44,6 +47,8 @@ export function ModelEditForm({ formRef, formData, onEditModel }: ModelEditFormP
         value={formData.name}
         onChange={handleChange}
         isRequired
+        isInvalid={!!errors.name}
+        errorMessage={errors.name}
       />
       <Select
         className="mb-4"
@@ -53,6 +58,8 @@ export function ModelEditForm({ formRef, formData, onEditModel }: ModelEditFormP
         onChange={handleChange}
         isRequired
         disallowEmptySelection
+        isInvalid={!!errors.type}
+        errorMessage={errors.type}
       >
         {MODEL_TYPE_OPTIONS.map((type: ModelType) => (
           <SelectItem key={type}>{type}</SelectItem>
@@ -65,6 +72,8 @@ export function ModelEditForm({ formRef, formData, onEditModel }: ModelEditFormP
         name="description"
         value={formData.description}
         onChange={handleChange}
+        isInvalid={!!errors.description}
+        errorMessage={errors.description}
       />
     </form>
   );
