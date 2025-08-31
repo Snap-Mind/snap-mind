@@ -4,6 +4,16 @@
 <img src='./electron/assets/snap-mind-app-icon-macOS.png' width="150" height="150" alt="snapmind icon"/>
 </p>
 <h1 align='center'>AI at the Speed of Thought</h1>
+<p align="center">
+  <a href="./README.md">English</a> | <a href="./README.zh.md">简体中文</a>
+</p>
+<p align="center">
+<a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue.svg" alt="License"></a>
+  <a href="https://github.com/Snap-Mind/snap-mind/stargazers"><img src="https://img.shields.io/github/stars/Snap-Mind/snap-mind?style=social" alt="GitHub stars"></a>
+  <a href="https://github.com/Snap-Mind/snap-mind/releases"><img src="https://img.shields.io/github/v/release/Snap-Mind/snap-mind" alt="Release"></a>
+</p>
+
+
 
 SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs** from anywhere in your system. Select text + hit a hotkey, and get translations, rewrites, summaries, explanations, and more — all without switching apps, keeping your workflow smooth and uninterrupted.
 
@@ -29,17 +39,26 @@ SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs*
 
 ---
 
+## Demo
+
+<p align="center">
+  <img src="./assets/demo.gif" width="600" alt="SnapMind demo (coming soon)"/>
+</p>
+
+---
+
 ## Installation
 
-Go to snapmind.github.io and download the installer. Or just go to release page and download the artifact.
+### For Users
+Download the latest installer from
+👉 [snap-mind.github.io](https://snap-mind.github.io) or [Releases](https://github.com/Snap-Mind/snap-mind/releases).
 
-SnapMind currently supports macOS and Windows platforms.
+Currently supports **macOS** and **Windows**.
 
-## Development
+### For Developers
 
 Clone this repository:
-
-```
+```bash
 git clone git@github.com:Snap-Mind/snap-mind.git
 ```
 
@@ -55,15 +74,13 @@ Start the dev server:
 npm run dev:electron
 ```
 
-### Build
-
-on macOS:
+Build on macOS:
 
 ```
 npm run build:prod
 ```
 
-on Windows:
+Build on Windows:
 
 ```
 npm run build:win-prod

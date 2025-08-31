@@ -1,0 +1,88 @@
+# SnapMind
+
+<p align='center'>
+<img src='./electron/assets/snap-mind-app-icon-macOS.png' width="150" height="150" alt="snapmind icon"/>
+</p>
+<h1 align='center'>思维的速度，AI 的力量</h1>
+<p align="center">
+  <a href="./README.md">English</a> | <a href="./README.zh.md">简体中文</a>
+</p>
+<p align="center">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue.svg" alt="License"></a>
+  <a href="https://github.com/Snap-Mind/snap-mind/stargazers"><img src="https://img.shields.io/github/stars/Snap-Mind/snap-mind?style=social" alt="GitHub stars"></a>
+  <a href="https://github.com/Snap-Mind/snap-mind/releases"><img src="https://img.shields.io/github/v/release/Snap-Mind/snap-mind" alt="Release"></a>
+</p>
+SnapMind 是一款桌面 AI 助手，让你可以在系统的任意位置 **即时调用 LLM**。
+只需选中文本 + 按下快捷键，即可完成翻译、改写、总结、解释等任务 —— 无需切换应用，让工作流保持专注和顺畅。
+
+---
+
+## 功能特性
+
+- ⚡ **极速响应** — 一键触发 AI，瞬间完成任务
+- 🎯 **无缝体验** — 在任意应用中使用，不打断你的工作流
+- 🛠 **高度定制** — 可为常用任务配置专属快捷指令
+
+---
+
+## 使用场景
+
+- **即时翻译** — 快速翻译选中文本，支持多语言
+- **润色与改写** — 让文字更简洁、更专业、更流畅
+- **秒级总结** — 将长文、报告快速提炼成要点
+- **快速解释** — 高亮概念、术语或代码，立刻得到简单说明
+- **智能起草** — 生成邮件、回复或文本片段
+- **学习助手** — 检查语法、简化复杂表达，辅助理解
+- **即时头脑风暴** — 将笔记或想法转化为结构化的思路和行动方案
+
+---
+
+## 演示
+
+<p align="center">
+  <img src="./assets/demo.gif" width="600" alt="SnapMind 演示 (即将上线)"/>
+</p>
+
+---
+
+## 安装
+
+### 普通用户
+前往 👉 [snap-mind.github.io](https://snap-mind.github.io) 或 [Releases](https://github.com/Snap-Mind/snap-mind/releases) 下载最新安装包。
+
+目前支持 **macOS** 和 **Windows**。
+
+### 开发者
+
+克隆仓库:
+```bash
+git clone git@github.com:Snap-Mind/snap-mind.git
+```
+
+安装依赖:
+
+```
+npm install
+```
+
+启动开发环境:
+
+```
+npm run dev:electron
+```
+
+macOS打包:
+
+```
+npm run build:prod
+```
+
+Windows打包:
+
+```
+npm run build:win-prod
+```
+
+## 开源协议
+
+[Apache 2.0](./LICENSE)
