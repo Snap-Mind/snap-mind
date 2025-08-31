@@ -4,6 +4,12 @@
   "version": "0.1.0",
   "description": "A quick prompt launcher.",
   "author": "Louis Liu",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Snap-Mind/snap-mind.git"
+  },
+  "homepage": "https://snap-mind.github.io/",
   "type": "module",
   "scripts": {
     "dev": "vite",
