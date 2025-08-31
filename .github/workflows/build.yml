@@ -2,11 +2,9 @@ name: Build Electron App
 on:
   push:
     tags: ['v*']
-  workflow_dispatch:
 permissions:
   contents: write
   packages: write
-  releases: write
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
