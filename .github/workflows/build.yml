@@ -2,6 +2,7 @@ name: Build Electron App
 on:
   push:
     tags: ['v*']
+  workflow_dispatch: {}
 permissions:
   contents: write
   packages: write
@@ -9,7 +10,18 @@ env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-15
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+        include:
+          - arch: x64
+            platform: mac-x64
+          - arch: arm64
+            platform: mac-arm64
+    env:
+      CSC_LINK: ${{ secrets.SNAPMIND_CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.SNAPMIND_CSC_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -28,16 +40,18 @@ jobs:
       - name: Build app
         run: npm run build
 
-      - name: Build electron app - arm64
-        run: npx electron-builder --mac --arm64
-
-      - name: Build electron app - x64
-        run: npx electron-builder --mac --x64
+      - name: Build electron app (per-arch)
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            npx electron-builder --mac --arm64
+          else
+            npx electron-builder --mac --x64
+          fi
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-artifacts
+          name: macos-artifacts-${{ matrix.arch }}
           path: |
             build/*.dmg
             build/*.zip
@@ -96,8 +110,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            macos-artifacts/*.dmg
-            macos-artifacts/*.zip
+            macos-artifacts-*/**/*.dmg
+            macos-artifacts-*/**/*.zip
             windows-artifacts/*.exe
             windows-artifacts/*.zip
             windows-artifacts/*.7z
