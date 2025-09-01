@@ -40,7 +40,7 @@ SnapMind 是一款桌面 AI 助手，让你可以在系统的任意位置 **即�
 ## 演示
 
 <p align="center">
-  <img src="./assets/demo.gif" width="600" alt="SnapMind 演示 (即将上线)"/>
+  <img src="./electron/assets/snapmind-demo-cn.gif" width="800" alt="SnapMind demo"/>
 </p>
 
 ---
@@ -50,7 +50,17 @@ SnapMind 是一款桌面 AI 助手，让你可以在系统的任意位置 **即�
 ### 普通用户
 前往 👉 [snap-mind.github.io](https://snap-mind.github.io) 或 [Releases](https://github.com/Snap-Mind/snap-mind/releases) 下载最新安装包。
 
-目前支持 **macOS** 和 **Windows**。
+> <u>目前支持 **macOS** 和 **Windows**</u>
+
+在**Windows**上运行之前, 您需要以管理员权限运行此应用程序(右键以管理员身份运行)。
+在**MacOS**上安装应用程序后, 您需要在系统偏好设置中允许应用程序的权限。
+
+- 从dmg文件中移除quarantine以便绕过Gatekeeper。
+  ```shell
+  xattr -cr /Applications/SnapMind.app
+  ```
+- 允许辅助功能权限，以便应用程序可以读取您选中的文本。
+- 允许钥匙串访问，以便应用程序可以存储您的 API 密钥。
 
 ### 开发者
 

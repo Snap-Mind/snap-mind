@@ -42,7 +42,7 @@ SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs*
 ## Demo
 
 <p align="center">
-  <img src="./assets/demo.gif" width="600" alt="SnapMind demo (coming soon)"/>
+  <img src="./electron/assets/snapmind-demo-en.gif" width="800" alt="SnapMind demo"/>
 </p>
 
 ---
@@ -50,10 +50,20 @@ SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs*
 ## Installation
 
 ### For Users
-Download the latest installer from
-👉 [snap-mind.github.io](https://snap-mind.github.io) or [Releases](https://github.com/Snap-Mind/snap-mind/releases).
+Download the latest installer from 👉 [snap-mind.github.io](https://snap-mind.github.io) or [Releases](https://github.com/Snap-Mind/snap-mind/releases).
 
-Currently supports **macOS** and **Windows**.
+> <u>Currently supports **macOS** and **Windows**.</u>
+
+**On Windows**, you need to run this app with Administrator privileges (Run as Administrator).
+
+**On MacOS**, after install the app
+
+- Remove quarantine to bypass Gatekeeper. (or build the app by yourself)
+  ```shell
+  xattr -cr /Applications/SnapMind.app
+  ```
+- You need to allow accessibility permissions, so the app can read your selected texts.
+- You need to grant keychain access for the app to store your api keys.
 
 ### For Developers
 
