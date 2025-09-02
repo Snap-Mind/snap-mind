@@ -5,7 +5,7 @@
       "title": "通用",
       "language": "語言",
       "clipboardFallback": "啟用剪貼簿備用",
-      "clipboardFallbackDescription": "當無法通過 API 獲取所選文本時使用剪貼簿備用"
+      "clipboardFallbackDescription": "不開啟此選項將無法在 Chrome 等應用中使用本軟件"
     },
     "providers": {
       "title": "AI模型",

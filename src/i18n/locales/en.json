@@ -5,7 +5,7 @@
       "title": "General",
       "language": "Language",
       "clipboardFallback": "Enable Clipboard Fallback",
-      "clipboardFallbackDescription": "Use Clipboard fallback when selected text is not able to be get by API"
+      "clipboardFallbackDescription": "If this option is not enabled, you will not be able to use this app in applications such as Chrome."
     },
     "providers": {
       "title": "Providers",
