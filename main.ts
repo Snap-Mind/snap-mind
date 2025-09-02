@@ -360,6 +360,7 @@ ipcMain.handle('hotkeys:update', async (event, newHotkeys) => {
 ipcMain.handle('hotkeys:update-path', async (event, { path, value }) => {
   try {
     const updated = await settingsService.updateHotkey(path, value);
+    registerHotkeys();
     return { success: true, hotkeys: updated };
   } catch (error) {
     console.error('[main] Failed to update hotkey:', error);
