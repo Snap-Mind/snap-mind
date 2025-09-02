@@ -115,6 +115,46 @@ class SettingsService {
   }
 
   /**
+   * Get all settings
+   */
+  getSettings() {
+    return this.settings;
+  }
+
+  /**
+   * Get setting by path
+   * @param {string[]} path - Path to setting
+   */
+  getSetting(path) {
+    let current = this.settings;
+    for (const key of path) {
+      if (current === undefined) return undefined;
+      current = current[key];
+    }
+    return current;
+  }
+
+  /**
+   * Update settings
+   * @param {Object} newSettings
+   */
+  async updateSettings(newSettings) {
+    await this.saveSettings(newSettings);
+    return this.settings;
+  }
+
+  /**
+   * Update specific setting by path
+   * @param {string[]} path - Path to setting
+   * @param {any} value - New value
+   */
+  async updateSetting(path, value) {
+    const newSettings = this.updateObjectByPath(this.settings, path, value);
+    await this.saveSettings(newSettings);
+    return this.settings;
+  }
+
+  /**
    * Save settings to file
    * @private
    */
@@ -141,6 +181,33 @@ class SettingsService {
     } catch {
       logService.info('No stored hotkeys found, using defaults');
     }
+  }
+
+  /**
+   * Get all hotkeys
+   */
+  getHotkeys() {
+    return this.hotkeys;
+  }
+
+  /**
+   * Update hotkeys
+   * @param {Array} newHotkeys
+   */
+  async updateHotkeys(newHotkeys) {
+    await this.saveHotkeys(newHotkeys);
+    return this.hotkeys;
+  }
+
+  /**
+   * Update a single hotkey field by path. Reuses the same update logic as updateSetting.
+   * @param {Array<string|number>} path
+   * @param {any} value
+   */
+  async updateHotkey(path, value) {
+    const newHotkeys = this.updateObjectByPath(this.hotkeys, path, value);
+    await this.saveHotkeys(newHotkeys);
+    return this.hotkeys;
   }
 
   /**
@@ -202,89 +269,6 @@ class SettingsService {
   }
 
   /**
-   * Get all settings
-   */
-  getSettings() {
-    return this.settings;
-  }
-
-  /**
-   * Get setting by path
-   * @param {string[]} path - Path to setting
-   */
-  getSetting(path) {
-    let current = this.settings;
-    for (const key of path) {
-      if (current === undefined) return undefined;
-      current = current[key];
-    }
-    return current;
-  }
-
-  /**
-   * Update settings
-   * @param {Object} newSettings
-   */
-  async updateSettings(newSettings) {
-    await this.saveSettings(newSettings);
-    return this.settings;
-  }
-
-  /**
-   * Update specific setting by path
-   * @param {string[]} path - Path to setting
-   * @param {any} value - New value
-   */
-  async updateSetting(path, value) {
-    const newSettings = { ...this.settings };
-    let current = newSettings;
-
-    for (let i = 0; i < path.length - 1; i++) {
-      const key = path[i];
-      if (typeof key === 'number') {
-        if (!Array.isArray(current)) {
-          current = [];
-        }
-        if (!current[key]) {
-          current[key] = {};
-        }
-        current = current[key];
-      } else {
-        if (!(key in current)) {
-          current[key] = {};
-        }
-        current = current[key];
-      }
-    }
-
-    const lastKey = path[path.length - 1];
-    if (typeof lastKey === 'number' && Array.isArray(current)) {
-      current[lastKey] = value;
-    } else {
-      current[lastKey] = value;
-    }
-
-    await this.saveSettings(newSettings);
-    return this.settings;
-  }
-
-  /**
-   * Get all hotkeys
-   */
-  getHotkeys() {
-    return this.hotkeys;
-  }
-
-  /**
-   * Update hotkeys
-   * @param {Array} newHotkeys
-   */
-  async updateHotkeys(newHotkeys) {
-    await this.saveHotkeys(newHotkeys);
-    return this.hotkeys;
-  }
-
-  /**
    * Get the log directory path
    * @returns {string} The path to the log directory
    */
@@ -298,6 +282,40 @@ class SettingsService {
    */
   getCurrentLogFile() {
     return logService.getCurrentLogFile();
+  }
+
+  /**
+   * Generic immutable updater for objects/arrays by path.
+   * path is an array of keys (string) or indices (number).
+   * Returns a new object/array with the value applied.
+   */
+  updateObjectByPath(original: any, path: Array<string | number>, value: any): any {
+    // Pure function: never mutate `original`, always return a new object/array structure
+    if (!Array.isArray(path)) throw new Error('path must be an array');
+
+    // Empty path replaces the whole object
+    if (path.length === 0) return value;
+    const setAt = (obj: any, index: number): any => {
+      const key = path[index];
+      const isLast = index === path.length - 1;
+
+      // compute the value for this key: either the provided value (last) or recurse
+      const nextValue = isLast ? value : setAt(obj && obj[key], index + 1);
+
+      if (typeof key === 'number') {
+        const arr = Array.isArray(obj) ? obj.slice() : [];
+        const idx = key;
+        while (arr.length <= idx) arr.push(undefined);
+        arr[idx] = nextValue;
+        return arr;
+      }
+
+      const base = obj && typeof obj === 'object' && !Array.isArray(obj) ? { ...obj } : {};
+      base[key] = nextValue;
+      return base;
+    };
+
+    return setAt(original, 0);
   }
 }
 

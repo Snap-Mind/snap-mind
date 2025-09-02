@@ -22,6 +22,10 @@ interface ElectronAPI {
   // Hotkey management
   getHotkeys: () => Promise<any[]>;
   updateHotkeys: (newHotkeys: Hotkey[]) => Promise<{ hotkeys: Hotkey[]; success: boolean }>;
+  updateHotkey: (
+    path: (string | number)[],
+    value: string | number | boolean | ModelSetting[]
+  ) => Promise<{ hotkeys: Hotkey[]; success: boolean }>;
 
   // Settings management
   getSettings: () => Promise<any>;
@@ -49,7 +53,11 @@ export type SettingsChangeHandler = (
   path: (string | number)[],
   value: string | number | boolean | ModelSetting[]
 ) => Promise<Setting>;
-export type HotKeysChangeHandler = (newHotkeys: Hotkey[]) => Promise<Hotkey[]>;
+
+export type HotkeysChangeHandler = (
+  path: (string | number)[],
+  value: string | number | boolean | ModelSetting[]
+) => Promise<Hotkey[]>;
 
 declare global {
   interface Window {

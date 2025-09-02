@@ -357,6 +357,17 @@ ipcMain.handle('hotkeys:update', async (event, newHotkeys) => {
   return { success: true, hotkeys: updated };
 });
 
+ipcMain.handle('hotkeys:update-path', async (event, { path, value }) => {
+  try {
+    const updated = await settingsService.updateHotkey(path, value);
+    return { success: true, hotkeys: updated };
+  } catch (error) {
+    console.error('[main] Failed to update hotkey:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+
 // IPC handlers for settings management
 ipcMain.handle('settings:get', () => {
   return settingsService.getSettings();

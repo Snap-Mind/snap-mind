@@ -1,6 +1,6 @@
 import { useContext, useCallback } from 'react';
 import { SettingsManagerContext } from '../contexts/ServiceProvider';
-import { SettingsChangeHandler, HotKeysChangeHandler } from '@/types';
+import { SettingsChangeHandler, HotkeysChangeHandler } from '@/types';
 import { Setting, Hotkey } from '@/types/setting';
 
 interface UseSettingsReturn {
@@ -8,7 +8,7 @@ interface UseSettingsReturn {
   settings: Setting;
   hotkeys: Hotkey[];
   setSettings: SettingsChangeHandler;
-  setHotkeys: HotKeysChangeHandler;
+  setHotkeys: HotkeysChangeHandler;
 }
 
 export const useSettings = (): UseSettingsReturn => {
@@ -25,9 +25,9 @@ export const useSettings = (): UseSettingsReturn => {
     [context]
   );
 
-  const updateHotkeys: HotKeysChangeHandler = useCallback(
-    async (newHotkeys: Hotkey[]) => {
-      return await context.updateHotkeys(newHotkeys);
+  const updateHotkeys: HotkeysChangeHandler = useCallback(
+    async (path, value) => {
+      return await context.updateHotkey(path, value);
     },
     [context]
   );

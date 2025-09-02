@@ -101,14 +101,14 @@ export class SettingsManager {
     }
   };
 
-  updateHotkeys: HotKeysChangeHandler = async (newHotkeys) => {
+  updateHotkey: HotkeysChangeHandler = async (path, value) => {
     try {
-      const { hotkeys: updatedHotkeys } = await window.electronAPI.updateHotkeys(newHotkeys);
+      const { hotkeys: updatedHotkeys } = await window.electronAPI.updateHotkey(path, value);
 
       this.hotkeys = updatedHotkeys;
       return updatedHotkeys;
     } catch (error) {
-      this.loggerService.error('Failed to update hotkeys:', error);
+      this.loggerService.error('Failed to update hotkey:', error);
       throw error;
     }
   };

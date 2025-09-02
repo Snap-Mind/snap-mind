@@ -1,4 +1,4 @@
-import { HotKeysChangeHandler } from '@/types';
+import { HotkeysChangeHandler } from '@/types';
 import { Hotkey } from '@/types/setting';
 import {
   Alert,
@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 
 interface SettingsHotkeysProps {
   hotkeys: Hotkey[];
-  onHotkeysChange: HotKeysChangeHandler;
+  onHotkeysChange: HotkeysChangeHandler;
 }
 
 const renderHotkeyKey = (key: string) => {
@@ -33,7 +33,7 @@ const renderHotkeyKey = (key: string) => {
     return <Kbd keys={modifiers}> {mainKey}</Kbd>;
   } else {
     return (
-      <div className='font-bold'>
+      <div className="font-bold">
         {modifiers.map((k) => k.charAt(0).toUpperCase() + k.slice(1)).join(' + ') + ' + ' + mainKey}
       </div>
     );
@@ -42,16 +42,9 @@ const renderHotkeyKey = (key: string) => {
 
 function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
   const { t } = useTranslation();
-  const handleHotkeyChange = (index, key, value) => {
-    const newHotkeys = [...hotkeys];
-    newHotkeys[index] = {
-      ...newHotkeys[index],
-      [key]: value,
-    };
-    onHotkeysChange(newHotkeys);
-  };
   const title = t('settings.hotkeys.custom');
   const description = t('settings.hotkeys.customDescription');
+
   return (
     <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
       <div className="header">
@@ -73,7 +66,7 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
               <Switch
                 size="sm"
                 defaultSelected={hotkey.enabled}
-                onValueChange={(value) => handleHotkeyChange(index, 'enabled', value)}
+                onValueChange={(value) => onHotkeysChange([index, 'enabled'], value)}
               >
                 {t('common.enabled')}
               </Switch>
@@ -91,7 +84,7 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
                   label="Prompt"
                   placeholder="Enter your prompt"
                   defaultValue={hotkey.prompt}
-                  onValueChange={(value) => handleHotkeyChange(index, 'prompt', value)}
+                  onValueChange={(value) => onHotkeysChange([index, 'prompt'], value)}
                 />
               )}
             </CardBody>

@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Hotkey management
   getHotkeys: () => ipcRenderer.invoke('hotkeys:get'),
   updateHotkeys: (newHotkeys) => ipcRenderer.invoke('hotkeys:update', newHotkeys),
+  updateHotkey: (path, value) => ipcRenderer.invoke('hotkeys:update-path', { path, value }),
   // Settings management
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (newSettings) => ipcRenderer.invoke('settings:update', newSettings),
