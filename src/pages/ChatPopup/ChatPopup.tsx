@@ -226,7 +226,6 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
 
                 {loading ? (
                   <Button
-                    className="bg-default text-foreground"
                     color="danger"
                     onPress={() => {
                       if (abortControllerRef.current) {
@@ -239,7 +238,6 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                   </Button>
                 ) : (
                   <Button
-                    className="bg-foreground text-default"
                     color="primary"
                     onPress={handleSend}
                     disabled={loading || !input.trim()}

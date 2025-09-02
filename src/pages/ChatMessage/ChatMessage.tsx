@@ -18,7 +18,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
   // Specific styles for each role
   const userBubbleClasses =
-    'max-w-[80%] rounded-2xl shadow-sm bg-foreground text-default rounded-br-sm';
+    'max-w-[80%] rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
   const aiBubbleClasses = 'w-full markdown-body bg-background'; // Added markdown-body class for GitHub styling
 
   return (

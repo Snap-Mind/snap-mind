@@ -40,7 +40,7 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
 
   const activeStyle = (provider) => {
     return activeProvider != null && provider.id === activeProvider.id
-      ? 'text-default-foreground bg-default text-default-foreground'
+      ? 'bg-default'
       : '';
   };
 

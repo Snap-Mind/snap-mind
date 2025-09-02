@@ -33,7 +33,7 @@ function SettingsCategory({
 
   const activeStyle = (category) => {
     return category.id === activeCategory.id
-      ? 'text-default-foreground bg-default text-default-foreground'
+      ? 'bg-default'
       : '';
   };
 
