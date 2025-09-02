@@ -22,7 +22,10 @@ class TextSelectionService {
     const prompt = customPrompt || '';
 
     // Create the chat message
-    const initialMessages = [{ role: 'user', content: `${prompt}${text}` }];
+    const initialMessages = [
+      { role: 'system', content: `${prompt}` },
+      { role: 'user', content: `${text}` },
+    ];
 
     // Show chat popup and send the message
     this.showChatPopupWithMessage(initialMessages);
