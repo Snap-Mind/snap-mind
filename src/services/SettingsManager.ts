@@ -1,6 +1,11 @@
 import { LoggerService } from './LoggerService';
-import { HotKeysChangeHandler, SettingsChangeHandler } from '@/types';
+import { HotkeysChangeHandler, SettingsChangeHandler } from '@/types';
 import { Setting, Hotkey } from '@/types/setting';
+
+interface SettingsManagerOptions {
+  settings?: Setting;
+  hotkeys?: Hotkey[];
+}
 
 export class SettingsManager {
   private loggerService: LoggerService;
@@ -21,7 +26,7 @@ export class SettingsManager {
     this.initPromise = null;
   }
 
-  async initialize() {
+  async initialize(options: SettingsManagerOptions = null): Promise<boolean> {
     if (this.initPromise) {
       return this.initPromise;
     }
@@ -30,8 +35,10 @@ export class SettingsManager {
       const loadSettings = async () => {
         try {
           const [loadedSettings, loadedHotkeys] = await Promise.all([
-            window.electronAPI.getSettings(),
-            window.electronAPI.getHotkeys(),
+            options?.settings
+              ? Promise.resolve(options.settings)
+              : window.electronAPI.getSettings(),
+            options?.hotkeys ? Promise.resolve(options.hotkeys) : window.electronAPI.getHotkeys(),
           ]);
 
           // Remove sensitive data from the cached copy

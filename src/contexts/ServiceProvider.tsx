@@ -14,30 +14,27 @@ export const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const [settingsManager, setSettingsManager] = useState<SettingsManager | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper to initialize or refresh SettingsManager
-  const initializeSettingsManager = async (newSettings?: any) => {
-    const manager = new SettingsManager(loggerService);
-    if (newSettings) {
-      manager.replaceSettings(newSettings); // Use new settings directly
-      setSettingsManager(manager);
-      setLoading(false);
-    } else {
-      await manager.initialize();
-      setSettingsManager(manager);
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    initializeSettingsManager();
+    const initializeManager = async () => {
+      const manager = new SettingsManager(loggerService);
+      await manager.initialize();
 
-    // Listen for settings:updated event from main process
-    if (window.electronAPI && window.electronAPI.onSettingsUpdated) {
-      window.electronAPI.onSettingsUpdated((updatedSettings) => {
-        loggerService.info('ServiceProvider received settings:updated event, refreshing context');
-        initializeSettingsManager(updatedSettings); // Refresh context with new settings
-      });
-    }
+      setSettingsManager(manager);
+      setLoading(false);
+
+      // Listen for settings:updated event from main process
+      if (window.electronAPI && window.electronAPI.onSettingsUpdated) {
+        window.electronAPI.onSettingsUpdated((updatedSettings) => {
+          loggerService.info('ServiceProvider received settings:updated event, refreshing context');
+          const newManager = new SettingsManager(loggerService);
+          newManager.initialize({ settings: updatedSettings, hotkeys: manager.getHotkeys() });
+          setSettingsManager(newManager);
+          setLoading(false);
+        });
+      }
+    };
+
+    initializeManager();
 
     // Cleanup listener on unmount
     return () => {

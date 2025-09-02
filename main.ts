@@ -378,8 +378,11 @@ ipcMain.handle('settings:update', async (event, newSettings) => {
     const updated = await settingsService.updateSettings(newSettings);
     logService.info('[main] Settings updated:', updated);
 
+    const senderId = event.sender.id;
     BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send('settings:updated', updated);
+      if (win.webContents.id !== senderId) {
+        win.webContents.send('settings:updated', updated);
+      }
     });
     return { success: true, settings: updated };
   } catch (error) {
@@ -391,8 +394,13 @@ ipcMain.handle('settings:update', async (event, newSettings) => {
 ipcMain.handle('settings:update-path', async (event, { path, value }) => {
   try {
     const updated = await settingsService.updateSetting(path, value);
+    logService.info('[main] Settings updated:', updated);
+
+    const senderId = event.sender.id;
     BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send('settings:updated', updated);
+      if (win.webContents.id !== senderId) {
+        win.webContents.send('settings:updated', updated);
+      }
     });
     return { success: true, setting: updated };
   } catch (error) {
