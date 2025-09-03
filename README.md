@@ -76,6 +76,16 @@ Install dependencies:
 npm install
 ```
 
+Build helper:
+
+```
+# on macOS:
+npm run build:helper
+
+# on Windows:
+npm run build:win-helper
+```
+
 Start the dev server:
 
 ```
