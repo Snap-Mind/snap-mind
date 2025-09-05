@@ -52,14 +52,12 @@ class SystemPermissionService {
   async checkWindowsPermissions() {
     // Check for admin rights and UI automation access
     const isAdmin = await this.checkWindowsAdminRights();
-    const hasUIAutomation = await this.checkUIAutomationAccess();
 
     const missingPermissions = [];
     if (!isAdmin) missingPermissions.push('administrator');
-    if (!hasUIAutomation) missingPermissions.push('uiAutomation');
 
     return {
-      isGranted: isAdmin && hasUIAutomation,
+      isGranted: isAdmin,
       missingPermissions,
       hasManifest: true, // Indicate that we have an app manifest
     };
@@ -70,38 +68,6 @@ class SystemPermissionService {
       execSync('net session', { stdio: 'ignore' });
       return true;
     } catch {
-      return false;
-    }
-  }
-
-  async checkUIAutomationAccess() {
-    try {
-      // Check if we can access a basic system UI element instead of trying to use the helper
-      // This is a more reliable way to check UI Automation access without needing a foreground window
-      const helperPath = join(this.resourcePath, 'helper', 'SelectedTextWin.exe');
-
-      // We'll use a special test flag that tells the helper to just check permissions
-      // without trying to get selected text from a foreground window
-      return new Promise((resolve) => {
-        execFile(helperPath, ['test-permissions'], (error, stdout) => {
-          if (error) {
-            console.error('UI Automation test error:', error);
-            resolve(false);
-            return;
-          }
-
-          try {
-            const result = JSON.parse(stdout.trim());
-            // The helper will return a success status specifically about permissions
-            resolve(result.hasUIAutomationAccess === true);
-          } catch (e) {
-            console.error('Failed to parse helper output:', e, stdout);
-            resolve(false);
-          }
-        });
-      });
-    } catch (err) {
-      console.error('UI Automation check exception:', err);
       return false;
     }
   }

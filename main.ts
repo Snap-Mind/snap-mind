@@ -16,7 +16,6 @@ import { execFile } from 'child_process';
 
 import TextSelectionService from './electron/TextSelectionService.js';
 import SettingsService from './electron/SettingsService.js';
-import SystemPermissionService from './electron/SystemPerimissionService.js';
 import logService from './electron/LogService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -302,16 +301,6 @@ function updateActivationPolicy() {
   }
 }
 
-async function checkPermissions() {
-  const permissionService = new SystemPermissionService();
-
-  const status = await permissionService.checkPermissions();
-
-  if (!status.isGranted) {
-    await permissionService.requestPermissions(status.missingPermissions);
-  }
-}
-
 // Create text selection service instance with callbacks
 const textSelectionService = new TextSelectionService({
   showChatPopup: showChatPopup,
@@ -454,8 +443,6 @@ app.whenReady().then(() => {
   logService.logSystemInfo();
 
   settingsService.initializeConfigs();
-
-  checkPermissions();
 
   createSettingsWindow();
 
