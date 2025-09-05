@@ -363,8 +363,6 @@ class Program
             bool ctrlPressed = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
             bool altPressed = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
 
-            Console.Error.WriteLine($"Modifier keys - Shift: {shiftPressed}, Ctrl: {ctrlPressed}, Alt: {altPressed}");
-
             // Simulate Ctrl+C - try multiple times in case of timing issues
             int retries = 3;
             string copiedText = null;
