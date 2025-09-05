@@ -322,7 +322,6 @@ function listenToSystemAccessibilityPermissionChange() {
     const watcher = permissionService.startAccessibilityPolling(
       (perm) => {
         try {
-          logService.info('[main] Accessibility permission changed (poll):', perm);
           broadcastPermissionChange(perm);
         } catch (e) {
           logService.error('[main] Error broadcasting accessibility change from poll:', e);
