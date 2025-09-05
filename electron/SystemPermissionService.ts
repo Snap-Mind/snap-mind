@@ -1,6 +1,6 @@
 import { platform } from 'os';
 import { systemPreferences } from 'electron';
-import { execSync } from 'child_process';
+import isElevated from 'is-elevated';
 
 class SystemPermissionService {
   private platform: string;
@@ -105,8 +105,7 @@ class SystemPermissionService {
 
   async checkWindowsAdminRights() {
     try {
-      execSync('net session', { stdio: 'ignore' });
-      return true;
+      return await isElevated();
     } catch {
       return false;
     }
