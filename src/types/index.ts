@@ -9,6 +9,12 @@ export interface LoggerService {
   openLogFile: () => Promise<boolean>;
 }
 
+export interface SystemPermission {
+  id: 'macAccessibility' | 'winAdministrator' | 'none';
+  name: 'Accessibility' | 'Administrator' | 'none';
+  isGranted: boolean;
+}
+
 interface ElectronAPI {
   // Chat popup events
   showChatPopup: (position: { x: number; y: number }) => void;
@@ -44,6 +50,11 @@ interface ElectronAPI {
 
   // Manual text selection trigger
   triggerTextSelection: (text: string, prompt: string) => Promise<any>;
+
+  // System permission
+  checkPermission: () => Promise<SystemPermission[]>;
+  onPermissionChanged: (callback: (permissions: SystemPermission[]) => void) => void;
+  offPermissionChanged: () => void;
 
   // General app events
   quitApp: () => void;

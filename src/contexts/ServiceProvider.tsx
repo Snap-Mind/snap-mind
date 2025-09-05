@@ -2,8 +2,11 @@ import { createContext, useEffect, useState, useMemo, ReactNode } from 'react';
 import { LoggerService } from '../services/LoggerService';
 import { SettingsManager } from '../services/SettingsManager';
 
+import { SystemPermission } from '@/types';
+
 export const LoggerServiceContext = createContext<LoggerService | null>(null);
 export const SettingsManagerContext = createContext<SettingsManager | null>(null);
+export const SystemPermissionsContext = createContext<SystemPermission[] | null>(null);
 
 interface ServiceProviderProps {
   children: ReactNode;
@@ -12,6 +15,7 @@ interface ServiceProviderProps {
 export const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const loggerService = useMemo(() => new LoggerService(), []);
   const [settingsManager, setSettingsManager] = useState<SettingsManager | null>(null);
+  const [systemPermissions, setSystemPermissions] = useState<SystemPermission[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +24,6 @@ export const ServiceProvider = ({ children }: ServiceProviderProps) => {
       await manager.initialize();
 
       setSettingsManager(manager);
-      setLoading(false);
 
       // Listen for settings:updated event from main process
       if (window.electronAPI && window.electronAPI.onSettingsUpdated) {
@@ -34,12 +37,30 @@ export const ServiceProvider = ({ children }: ServiceProviderProps) => {
       }
     };
 
-    initializeManager();
+    const initializeSystemPermissions = async () => {
+      const permissions: SystemPermission[] = await window.electronAPI.checkPermission();
+      setSystemPermissions(permissions);
+
+      if (window.electronAPI && window.electronAPI.onPermissionChanged) {
+        window.electronAPI.onPermissionChanged((changedPermissions) => {
+          setSystemPermissions(changedPermissions);
+        });
+      }
+    };
+
+    Promise.all([initializeManager(), initializeSystemPermissions()]).finally(() => {
+      setLoading(false);
+    });
 
     // Cleanup listener on unmount
     return () => {
-      if (window.electronAPI && window.electronAPI.offSettingsUpdated) {
-        window.electronAPI.offSettingsUpdated();
+      if (window.electronAPI) {
+        if (window.electronAPI.offSettingsUpdated) {
+          window.electronAPI.offSettingsUpdated();
+        }
+        if (window.electronAPI.offPermissionChanged) {
+          window.electronAPI.offPermissionChanged();
+        }
       }
     };
   }, [loggerService]);
@@ -51,7 +72,9 @@ export const ServiceProvider = ({ children }: ServiceProviderProps) => {
       ) : (
         <LoggerServiceContext.Provider value={loggerService}>
           <SettingsManagerContext.Provider value={settingsManager}>
-            {children}
+            <SystemPermissionsContext.Provider value={systemPermissions}>
+              {children}
+            </SystemPermissionsContext.Provider>
           </SettingsManagerContext.Provider>
         </LoggerServiceContext.Provider>
       )}

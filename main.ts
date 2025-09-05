@@ -8,6 +8,7 @@ import {
   nativeImage,
   screen,
   shell,
+  systemPreferences,
 } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,6 +17,7 @@ import { execFile } from 'child_process';
 
 import TextSelectionService from './electron/TextSelectionService.js';
 import SettingsService from './electron/SettingsService.js';
+import SystemPermissionService from './electron/SystemPermissionService.js';
 import logService from './electron/LogService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -301,6 +303,49 @@ function updateActivationPolicy() {
   }
 }
 
+function listenToSystemAccessibilityPermissionChange() {
+  if (process.platform !== 'darwin') return;
+  // Helper to broadcast permission change to all windows
+  const broadcastPermissionChange = (permission: {
+    id: string;
+    name: string;
+    isGranted: boolean;
+  }) => {
+    if (settingsWindow) {
+      settingsWindow.webContents.send('permission:changed', [permission]);
+    }
+  };
+
+  // Use SystemPermissionService polling API
+  try {
+    const permissionService = new SystemPermissionService();
+    const watcher = permissionService.startAccessibilityPolling(
+      (perm) => {
+        try {
+          logService.info('[main] Accessibility permission changed (poll):', perm);
+          broadcastPermissionChange(perm);
+        } catch (e) {
+          logService.error('[main] Error broadcasting accessibility change from poll:', e);
+        }
+      },
+      isDev() ? 2000 : 5000
+    );
+
+    app.on('will-quit', () => {
+      try {
+        watcher.stop();
+      } catch (e) {
+        // ignore
+      }
+    });
+  } catch (err) {
+    logService.error(
+      '[main] Failed to start accessibility polling via SystemPermissionService:',
+      err
+    );
+  }
+}
+
 // Create text selection service instance with callbacks
 const textSelectionService = new TextSelectionService({
   showChatPopup: showChatPopup,
@@ -356,7 +401,6 @@ ipcMain.handle('hotkeys:update-path', async (event, { path, value }) => {
     return { success: false, error: error.message };
   }
 });
-
 
 // IPC handlers for settings management
 ipcMain.handle('settings:get', () => {
@@ -427,6 +471,18 @@ ipcMain.handle('logs:log', (event, level, message, ...args) => {
     logService.error(message, null, ...args);
   }
   return { success: true };
+});
+
+ipcMain.handle('permission:check', async (event) => {
+  try {
+    const permissionService = new SystemPermissionService();
+    const result = await permissionService.checkPermissions();
+    return result;
+  } catch (error) {
+    logService.error('[main] permission:check handler error:', error);
+    // propagate error to renderer
+    throw error;
+  }
 });
 
 app.on('window-all-closed', function () {
@@ -517,7 +573,6 @@ app.whenReady().then(() => {
   // Register hotkeys
   registerHotkeys();
 
-  // app.on('activate', function () {
-  //   if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  // });
+  // Listen for changes to Accessibility/trust state
+  listenToSystemAccessibilityPermissionChange();
 });

@@ -26,7 +26,7 @@ function Settings() {
   }, [location.pathname]);
 
   const [activeCategory, setActiveCategory] = useState(getCurrentCategory());
-  const { settings, hotkeys, setSettings, setHotkeys } = useSettings();
+  const { settings, hotkeys, permissions, setSettings, setHotkeys } = useSettings();
 
   const logger = useLogService();
   const navigate = useNavigate();
@@ -65,7 +65,13 @@ function Settings() {
         <Routes>
           <Route
             path="general"
-            element={<SettingsGeneral settings={settings.general} onSettingsChange={setSettings} />}
+            element={
+              <SettingsGeneral
+                settings={settings.general}
+                permissions={permissions}
+                onSettingsChange={setSettings}
+              />
+            }
           />
           <Route
             path="models/*"

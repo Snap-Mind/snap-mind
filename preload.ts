@@ -33,6 +33,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Manual text selection trigger (for testing)
   triggerTextSelection: (text, prompt) =>
     ipcRenderer.invoke('text-selection:trigger', text, prompt),
+  // System permission
+  checkPermission: () => ipcRenderer.invoke('permission:check'),
+  onPermissionChanged: (callback) =>
+    ipcRenderer.on('permission:changed', (_event, permissions) => callback(permissions)),
+  offPermissionChanged: () =>
+    ipcRenderer.removeAllListeners('permission:changed'),
   // General app events
   quitApp: () => ipcRenderer.send('app:quit'),
 });

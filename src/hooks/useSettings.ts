@@ -1,41 +1,48 @@
 import { useContext, useCallback } from 'react';
-import { SettingsManagerContext } from '../contexts/ServiceProvider';
-import { SettingsChangeHandler, HotkeysChangeHandler } from '@/types';
+import { SettingsManagerContext, SystemPermissionsContext } from '../contexts/ServiceProvider';
+import { SettingsChangeHandler, HotkeysChangeHandler, SystemPermission } from '@/types';
 import { Setting, Hotkey } from '@/types/setting';
 
 interface UseSettingsReturn {
   isLoading: boolean;
   settings: Setting;
   hotkeys: Hotkey[];
+  permissions: SystemPermission[];
   setSettings: SettingsChangeHandler;
   setHotkeys: HotkeysChangeHandler;
 }
 
 export const useSettings = (): UseSettingsReturn => {
-  const context = useContext(SettingsManagerContext);
+  const settingsContext = useContext(SettingsManagerContext);
+  const systemPermissionsContext = useContext(SystemPermissionsContext);
 
-  if (!context) {
+  if (!settingsContext) {
     throw new Error('useSettings must be used within a SettingsManagerContext');
+  }
+
+  if (!systemPermissionsContext) {
+    throw new Error('useSettings must be used within a SystemPermissionsContext');
   }
 
   const updateSettings: SettingsChangeHandler = useCallback(
     async (path, value) => {
-      return await context.updateSetting(path, value);
+      return await settingsContext.updateSetting(path, value);
     },
-    [context]
+    [settingsContext]
   );
 
   const updateHotkeys: HotkeysChangeHandler = useCallback(
     async (path, value) => {
-      return await context.updateHotkey(path, value);
+      return await settingsContext.updateHotkey(path, value);
     },
-    [context]
+    [settingsContext]
   );
 
   return {
-    isLoading: !context.isInitialized,
-    settings: context.getSettings(),
-    hotkeys: context.getHotkeys(),
+    isLoading: !settingsContext.isInitialized,
+    settings: settingsContext.getSettings(),
+    hotkeys: settingsContext.getHotkeys(),
+    permissions: systemPermissionsContext,
     setSettings: updateSettings,
     setHotkeys: updateHotkeys,
   };
