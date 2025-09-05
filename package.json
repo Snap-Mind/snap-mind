@@ -36,6 +36,7 @@
     "github-markdown-css": "^5.8.1",
     "i18next": "^25.4.2",
     "i18next-browser-languagedetector": "^8.2.0",
+    "is-elevated": "^4.0.0",
     "lucide-react": "^0.536.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
