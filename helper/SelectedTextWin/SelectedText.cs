@@ -219,7 +219,6 @@ class Program
                 result.error = "No foreground window found";
                 return result;
             }
-
             // Verify window is still valid and accessible
             if (!IsWindow(foregroundWindowHandle) || !IsWindowEnabled(foregroundWindowHandle))
             {
@@ -229,22 +228,9 @@ class Program
                 return result;
             }
 
-            // Ensure window has focus (might help with permission issues)
-            SetForegroundWindow(foregroundWindowHandle);
-            Thread.Sleep(20);
-
-            AutomationElement element = null;
-            try {
-                element = AutomationElement.FromHandle(foregroundWindowHandle);
-            }
-            catch (Exception automationEx) {
-                result.success = false;
-                result.selectedText = null;
-                result.error = $"UI Automation access denied: {automationEx.Message}. " +
-                              $"Elevated permissions: {IsElevated()}. Try running with administrator privileges.";
-                return result;
-            }
-
+            // Ensure focus and get element
+            EnsureWindowFocused(foregroundWindowHandle);
+            AutomationElement element = GetAutomationElementFromHandle(foregroundWindowHandle);
             if (element == null)
             {
                 result.success = false;
@@ -253,55 +239,74 @@ class Program
                 return result;
             }
 
-            // Try TextPattern
-            object patternObj = null;
-            try
+            // 1) Try focused element first
+            var focused = GetFocusedElementSafe();
+            if (focused != null)
             {
-                if (element.TryGetCurrentPattern(TextPattern.Pattern, out patternObj))
+                var info = GetElementInfoSafe(focused);
+                Console.Error.WriteLine($"Attempting focused element: {info}");
+                if (TryExtractTextFromElement(focused, out string ftext))
                 {
-                    var textPattern = (TextPattern)patternObj;
-                    var selection = textPattern.GetSelection();
-                    if (selection != null && selection.Length > 0)
-                    {
-                        var text = selection[0].GetText(-1);
-                        if (!string.IsNullOrEmpty(text))
-                        {
-                            result.success = true;
-                            result.selectedText = text;
-                            result.error = null;
-                            return result;
-                        }
-                    }
+                    result.success = true;
+                    result.selectedText = ftext;
+                    result.error = null;
+                    return result;
                 }
             }
-            catch (Exception patternEx)
-            {
-                // Log pattern access error but continue trying other patterns
-                Console.Error.WriteLine($"TextPattern access error: {patternEx.Message}");
-            }
 
-            // Try ValuePattern (for editable controls)
+            // 2) Try the window element
             try
             {
-                if (element.TryGetCurrentPattern(ValuePattern.Pattern, out patternObj))
+                if (TryExtractTextFromElement(element, out string eltext))
                 {
-                    var valuePattern = (ValuePattern)patternObj;
-                    var text = valuePattern.Current.Value;
-                    if (!string.IsNullOrEmpty(text))
+                    result.success = true;
+                    result.selectedText = eltext;
+                    result.error = null;
+                    return result;
+                }
+            }
+            catch (Exception ee)
+            {
+                Console.Error.WriteLine($"Window element extraction failed: {ee.Message}");
+            }
+
+            // 3) Search descendants
+            try
+            {
+                var textCond = new PropertyCondition(AutomationElement.IsTextPatternAvailableProperty, true);
+                var candidate = element.FindFirst(TreeScope.Descendants, textCond);
+                if (candidate != null)
+                {
+                    Console.Error.WriteLine($"Found descendant with TextPattern: {GetElementInfoSafe(candidate)}");
+                    if (TryExtractTextFromElement(candidate, out string ctext))
                     {
                         result.success = true;
-                        result.selectedText = text;
+                        result.selectedText = ctext;
+                        result.error = null;
+                        return result;
+                    }
+                }
+
+                var valueCond = new PropertyCondition(AutomationElement.IsValuePatternAvailableProperty, true);
+                candidate = element.FindFirst(TreeScope.Descendants, valueCond);
+                if (candidate != null)
+                {
+                    Console.Error.WriteLine($"Found descendant with ValuePattern: {GetElementInfoSafe(candidate)}");
+                    if (TryExtractTextFromElement(candidate, out string vtext))
+                    {
+                        result.success = true;
+                        result.selectedText = vtext;
                         result.error = null;
                         return result;
                     }
                 }
             }
-            catch (Exception patternEx)
+            catch (Exception searchEx)
             {
-                // Log pattern access error but continue
-                Console.Error.WriteLine($"ValuePattern access error: {patternEx.Message}");
+                Console.Error.WriteLine($"Descendant search error: {searchEx.Message}");
             }
 
+            // No text found
             result.success = false;
             result.selectedText = null;
             result.error = "No text selected or attribute not available";
@@ -316,6 +321,126 @@ class Program
             Console.Error.WriteLine($"UI Automation exception: {ex}");
             return result;
         }
+    }
+
+    // ------------------- Helper methods (kept in this file) -------------------
+    private const int FOCUS_SETTLE_MS = 120;
+
+    static void EnsureWindowFocused(IntPtr hwnd)
+    {
+        try
+        {
+            SetForegroundWindow(hwnd);
+            Thread.Sleep(FOCUS_SETTLE_MS);
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine($"EnsureWindowFocused error: {e.Message}");
+        }
+    }
+
+    static AutomationElement GetAutomationElementFromHandle(IntPtr hwnd)
+    {
+        try
+        {
+            return AutomationElement.FromHandle(hwnd);
+        }
+        catch (Exception automationEx)
+        {
+            Console.Error.WriteLine($"UI Automation access denied: {automationEx.Message}. Elevated permissions: {IsElevated()}.");
+            return null;
+        }
+    }
+
+    static AutomationElement GetFocusedElementSafe()
+    {
+        try
+        {
+            return AutomationElement.FocusedElement;
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine($"GetFocusedElementSafe error: {e.Message}");
+            return null;
+        }
+    }
+
+    static string GetElementInfoSafe(AutomationElement el)
+    {
+        if (el == null) return "<null>";
+        try
+        {
+            var id = el.Current.AutomationId;
+            var cls = el.Current.ClassName;
+            return $"{cls} / {id}";
+        }
+        catch { return "<info-unavailable>"; }
+    }
+
+    static bool TryExtractTextFromElement(AutomationElement el, out string outText)
+    {
+        outText = null;
+        if (el == null) return false;
+        try
+        {
+            object patObj;
+
+            if (el.TryGetCurrentPattern(TextPattern.Pattern, out patObj))
+            {
+                var tp = (TextPattern)patObj;
+                try
+                {
+                    var sel = tp.GetSelection();
+                    if (sel != null && sel.Length > 0)
+                    {
+                        var t = sel[0].GetText(-1);
+                        if (!string.IsNullOrEmpty(t))
+                        {
+                            outText = t;
+                            Console.Error.WriteLine($"TextPattern selection captured from element: {t.Length} chars");
+                            return true;
+                        }
+                    }
+                }
+                catch (Exception tex)
+                {
+                    Console.Error.WriteLine($"TextPattern selection read error: {tex.Message}");
+                }
+
+                try
+                {
+                    var docRange = tp.DocumentRange;
+                    if (docRange != null)
+                    {
+                        var full = docRange.GetText(-1);
+                        if (!string.IsNullOrEmpty(full))
+                        {
+                            outText = full;
+                            Console.Error.WriteLine($"TextPattern document captured: {full.Length} chars");
+                            return true;
+                        }
+                    }
+                }
+                catch { /* ignore */ }
+            }
+
+            if (el.TryGetCurrentPattern(ValuePattern.Pattern, out patObj))
+            {
+                var vp = (ValuePattern)patObj;
+                var val = vp.Current.Value;
+                if (!string.IsNullOrEmpty(val))
+                {
+                    outText = val;
+                    Console.Error.WriteLine($"ValuePattern captured: {val.Length} chars");
+                    return true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"TryExtractTextFromElement exception: {ex.Message}");
+        }
+        return false;
     }
 
     // Simulate Ctrl+C, read clipboard, and restore clipboard, return SelectionResult
