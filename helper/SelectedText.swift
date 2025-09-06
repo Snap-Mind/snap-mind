@@ -3,6 +3,15 @@ import ApplicationServices
 import Foundation
 import CoreGraphics
 
+// NOTE: This helper prints exactly one JSON object to STDOUT and nothing else.
+
+// Configuration constants
+private enum SelectionConfig {
+    static let clipboardTimeout: TimeInterval = 0.5
+    static let clipboardPollInterval: TimeInterval = 0.01
+    static let clipboardMicroDelay: TimeInterval = 0.005
+}
+
 struct SelectionResult: Codable {
     let success: Bool
     let selectedText: String?
@@ -75,7 +84,20 @@ func getSelectedTextClipboard() -> SelectionResult {
     let appName = frontApp.localizedName ?? "Unknown"
 
     let pasteboard = NSPasteboard.general
-    let oldContents = pasteboard.string(forType: .string) ?? ""
+    // Preserve full pasteboard contents by snapshotting data for each item & type.
+    // We cannot re-use NSPasteboardItem instances (exception: already associated with another pasteboard),
+    // so we clone their data later.
+    let originalItemsData: [[NSPasteboard.PasteboardType: Data]]? = pasteboard.pasteboardItems?.map { item in
+        var dict: [NSPasteboard.PasteboardType: Data] = [:]
+        for type in item.types {
+            if let data = item.data(forType: type) {
+                dict[type] = data
+            }
+        }
+        return dict
+    }
+    // Additionally keep a plain-string fallback (in case we cannot restore rich content)
+    let oldStringFallback = pasteboard.string(forType: .string)
 
     let source = CGEventSource(stateID: .hidSystemState)
     let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x08, keyDown: true)
@@ -87,14 +109,35 @@ func getSelectedTextClipboard() -> SelectionResult {
     keyDown?.post(tap: .cghidEventTap)
     keyUp?.post(tap: .cghidEventTap)
 
-    Thread.sleep(forTimeInterval: 0.1)
+    // Poll for pasteboard change (up to 500ms) instead of fixed sleep
+    let beforeChangeCount = pasteboard.changeCount
+    let timeout = SelectionConfig.clipboardTimeout
+    let pollInterval = SelectionConfig.clipboardPollInterval
+    let startTime = Date()
+    while Date().timeIntervalSince(startTime) < timeout {
+        // If changeCount advanced, break
+        if pasteboard.changeCount != beforeChangeCount { break }
+        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(pollInterval))
+    }
+    // One final tiny delay to allow the data to materialize if changeCount bumped very recently
+    if pasteboard.changeCount != beforeChangeCount {
+        Thread.sleep(forTimeInterval: SelectionConfig.clipboardMicroDelay)
+    }
 
     let copiedText = pasteboard.string(forType: .string) ?? ""
 
-    // Restore clipboard
+    // Restore clipboard (attempt to restore original rich content if any) safely by cloning items
     pasteboard.clearContents()
-    if !oldContents.isEmpty {
-        pasteboard.setString(oldContents, forType: .string)
+    if let itemsData = originalItemsData, !itemsData.isEmpty {
+        for itemData in itemsData {
+            let newItem = NSPasteboardItem()
+            for (type, data) in itemData {
+                newItem.setData(data, forType: type)
+            }
+            pasteboard.writeObjects([newItem])
+        }
+    } else if let oldStr = oldStringFallback, !oldStr.isEmpty {
+        pasteboard.setString(oldStr, forType: .string)
     }
 
     // Only return success if clipboard changed and is non-empty
@@ -107,8 +150,7 @@ func getSelectedTextClipboard() -> SelectionResult {
                           error: "No text selected or clipboard unchanged", type: "text", source: nil)
 }
 
-// Default behavior: clipboard fallback enabled unless explicitly disabled (match SelectedText.cs)
-var clipboardEnabled = true
+var clipboardEnabled = false
 if CommandLine.arguments.count > 1 {
     clipboardEnabled = CommandLine.arguments[1].lowercased() == "true"
 }
