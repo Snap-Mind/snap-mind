@@ -501,11 +501,7 @@ ipcMain.handle('system:open-accessibility', async () => {
 // IPC to open the folder where the app is installed or resources live
 ipcMain.handle('system:open-install-folder', async () => {
   try {
-    // If packaged, resourcesPath points to the resources dir inside the app
-    // Otherwise use project directory (__dirname/..)
-    const targetPath = isDev() ? path.join(__dirname, '..') : resourcesPath;
-    // On Windows, show the folder in Explorer. On macOS/Linux this will open the folder.
-    // Prefer showItemInFolder on a specific file if possible; here we just open the folder.
+    const targetPath = isDev() ? path.join(__dirname, '..') : path.dirname(process.execPath);
     shell.openPath(targetPath);
     return { success: true };
   } catch (error) {
