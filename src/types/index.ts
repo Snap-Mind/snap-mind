@@ -55,6 +55,8 @@ interface ElectronAPI {
   checkPermission: () => Promise<SystemPermission[]>;
   onPermissionChanged: (callback: (permissions: SystemPermission[]) => void) => void;
   offPermissionChanged: () => void;
+  // Open macOS System Settings > Accessibility
+  openSystemAccessibility?: () => Promise<{ success: boolean, error?: string }>;
 
   // General app events
   quitApp: () => void;

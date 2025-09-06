@@ -35,6 +35,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('text-selection:trigger', text, prompt),
   // System permission
   checkPermission: () => ipcRenderer.invoke('permission:check'),
+  // Open macOS System Settings > Accessibility
+  openSystemAccessibility: () => ipcRenderer.invoke('system:open-accessibility'),
   onPermissionChanged: (callback) =>
     ipcRenderer.on('permission:changed', (_event, permissions) => callback(permissions)),
   offPermissionChanged: () =>

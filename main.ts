@@ -484,6 +484,20 @@ ipcMain.handle('permission:check', async (event) => {
   }
 });
 
+// IPC to open system Accessibility settings on macOS
+ipcMain.handle('system:open-accessibility', async () => {
+  try {
+    if (process.platform === 'darwin') {
+      // Open the macOS System Settings Accessibility pane
+      shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility');
+    }
+    return { success: true };
+  } catch (error) {
+    logService.error('[main] Failed to open system accessibility settings:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 app.on('window-all-closed', function () {
   // do nothing, so app stays active in tray
 });

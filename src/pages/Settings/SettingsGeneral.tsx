@@ -1,4 +1,4 @@
-import { Divider, Card, CardBody, CardHeader, Switch } from '@heroui/react';
+import { Divider, Card, CardBody, CardHeader, Switch, Link } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import Icon from '../../components/Icon';
@@ -15,6 +15,12 @@ export interface SettingsGeneralProps {
 function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGeneralProps) {
   const { t } = useTranslation();
 
+  const onOpenSystemAccessibility = () => {
+    if (window.electronAPI.openSystemAccessibility) {
+      window.electronAPI.openSystemAccessibility();
+    }
+  };
+
   return (
     <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
       <div className="header">
@@ -27,12 +33,12 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
           <LanguageSelector />
         </div>
         <Divider className="my-4" />
-        <h2 className="font-bold text-xl">App Permissions</h2>
+        <h2 className="font-bold text-xl">Permissions</h2>
         {permissions.map((permission) => (
           <Card key={permission.id} className="w-full my-5 border-1 border-gray-100" shadow="none">
             <CardHeader className="flex gap-3 justify-between">
               <h4 className="font-bold">{permission.name}</h4>
-              <div className="mr-2">
+              <div className="mr-1">
                 {permission.isGranted ? (
                   <Icon className="text-success" icon="circle-check-big" />
                 ) : (
@@ -44,14 +50,22 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
               <div className="text-xs text-gray-500">
                 {permission.isGranted ? (
                   <p>
-                    With {permission.name} permission, the app can read your selected text from the
-                    screen.
+                    Enabling {permission.name} permission allows the app to read text you select on
+                    the screen.
                   </p>
                 ) : (
                   <p>
-                    This app needs {permission.name} permission to read your selected text from the
-                    screen. For best use experience, grant this permission in{' '}
-                    <a href="#">System Settings</a>. Or enable Clipboard Fallback instead.
+                    For optimal text selection, please enable {permission.name} permission in{' '}
+                    <Link
+                      className="text-xs text-primary cursor-pointer"
+                      isExternal
+                      showAnchorIcon
+                      onClick={onOpenSystemAccessibility}
+                    >
+                      System Settings
+                    </Link>
+                    {'. '}
+                    Or activate Clipboard Fallback.
                   </p>
                 )}
               </div>
