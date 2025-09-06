@@ -4,7 +4,16 @@
     "general": {
       "title": "General",
       "language": "Language",
-      "clipboardFallback": "Enable Clipboard Fallback",
+      "permission": {
+        "title": "Permissions",
+        "macAccessibility": "Accessibility",
+        "accessibilityGranted": " Enabling Accessibility permission allows the app to read text you select on the screen.",
+        "accessibilityNotGranted": "For optimal text selection, please enable Accessibility permission in <0>System Settings</0>. Or activate <1>Clipboard Fallback</1>.",
+        "winAdministrator": "Administrator",
+        "administratorGranted": "Enabling Administrator permission allows the app to read text you select on the screen.",
+        "administratorNotGranted": "For optimal text selection, please run this app with Administrator permission. To do this, <0>Open installation folder</0>. Or enable <1>Clipboard Fallback</1>."
+      },
+      "clipboardFallback": "Clipboard Fallback",
       "clipboardFallbackDescription": "If this option is not enabled, you will not be able to use this app in applications such as Chrome."
     },
     "providers": {

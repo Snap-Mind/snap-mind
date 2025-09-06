@@ -4,7 +4,16 @@
     "general": {
       "title": "通用",
       "language": "語言",
-      "clipboardFallback": "啟用剪貼簿備用",
+      "permission": {
+        "title": "權限",
+        "macAccessibility": "輔助使用",
+        "accessibilityGranted": "啟用輔助使用權限可讓應用讀取你在螢幕上選取的文字。",
+        "accessibilityNotGranted": "為獲得最佳的文字選取體驗，請在<0>系統設定</0>中啟用輔助使用權限。或啟用<1>剪貼簿備用</1>功能。",
+        "winAdministrator": "管理員",
+        "administratorGranted": "啟用管理員權限可讓應用讀取你在螢幕上選取的文字。",
+        "administratorNotGranted": "為獲得最佳的文字選取體驗，請以管理員權限執行此應用。要執行此操作，<0>打開安裝資料夾</0>。或啟用<1>剪貼簿備用</1>功能。"
+      },
+      "clipboardFallback": "剪貼簿備用",
       "clipboardFallbackDescription": "不開啟此選項將無法在 Chrome 等應用中使用本軟件"
     },
     "providers": {

@@ -4,7 +4,16 @@
     "general": {
       "title": "通用",
       "language": "语言",
-      "clipboardFallback": "启用剪贴板备用",
+      "permission": {
+        "title": "权限",
+        "macAccessibility": "辅助功能权限",
+        "accessibilityGranted": "启用辅助功能权限可让应用读取你在屏幕上选中的文本。",
+        "accessibilityNotGranted": "为获得最佳的文本选择体验，请在<0>系统设置</0>中启用辅助功能权限。或启用<1>剪贴板备用</1>功能。",
+        "winAdministrator": "管理员权限",
+        "administratorGranted": "启用管理员权限可让应用读取你在屏幕上选中的文本。",
+        "administratorNotGranted": "为获得最佳的文本选择体验，请以管理员权限运行此应用。要执行此操作, <0>打开安装文件夹</0>。或启用<1>剪贴板备用</1>功能。"
+      },
+      "clipboardFallback": "剪贴板备用",
       "clipboardFallbackDescription": "不开启此选项将无法在Chrome等应用中使用本软件"
     },
     "providers": {

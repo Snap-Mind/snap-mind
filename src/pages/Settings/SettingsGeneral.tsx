@@ -1,5 +1,5 @@
 import { Divider, Card, CardBody, CardHeader, Switch, Link } from '@heroui/react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import Icon from '../../components/Icon';
 
@@ -15,9 +15,67 @@ export interface SettingsGeneralProps {
 function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGeneralProps) {
   const { t } = useTranslation();
 
+  const renderPermissionCard = (permission: SystemPermission) => {
+    const accessibilityInfo = () => (
+      <div>
+        {permission.isGranted ? (
+          t('settings.general.permission.accessibilityGranted')
+        ) : (
+          <Trans
+            i18nKey="settings.general.permission.accessibilityNotGranted"
+            components={[
+              <Link
+                className="text-xs text-primary cursor-pointer"
+                isExternal
+                showAnchorIcon
+                onClick={onOpenSystemAccessibility}
+              />,
+              <strong className='text-primary' />
+            ]}
+          />
+        )}
+      </div>
+    );
+
+    const administratorInfo = () => (
+      <div>
+        {permission.isGranted ? (
+          t('settings.general.permission.administratorGranted')
+        ) : (
+          <Trans
+            i18nKey="settings.general.permission.administratorNotGranted"
+            values={{ permissionName: permission.name }}
+            components={[
+              <Link
+                className="text-xs text-primary cursor-pointer"
+                isExternal
+                showAnchorIcon
+                onClick={onOpenInstallationFolder}
+              />,
+               <strong className='text-primary' />
+            ]}
+          />
+        )}
+      </div>
+    );
+
+    return (
+      <div className="text-xs text-gray-500">
+        {permission.id === 'macAccessibility' && accessibilityInfo()}
+        {permission.id === 'winAdministrator' && administratorInfo()}
+      </div>
+    );
+  };
+
   const onOpenSystemAccessibility = () => {
     if (window.electronAPI.openSystemAccessibility) {
       window.electronAPI.openSystemAccessibility();
+    }
+  };
+
+  const onOpenInstallationFolder = () => {
+    if (window.electronAPI.openInstallFolder) {
+      window.electronAPI.openInstallFolder();
     }
   };
 
@@ -33,11 +91,11 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
           <LanguageSelector />
         </div>
         <Divider className="my-4" />
-        <h2 className="font-bold text-xl">Permissions</h2>
+        <h2 className="font-bold text-xl">{t('settings.general.permission.title')}</h2>
         {permissions.map((permission) => (
           <Card key={permission.id} className="w-full my-5 border-1 border-gray-100" shadow="none">
             <CardHeader className="flex gap-3 justify-between">
-              <h4 className="font-bold">{permission.name}</h4>
+              <h4 className="font-bold">{t(`settings.general.permission.${permission.id}`)}</h4>
               <div className="mr-1">
                 {permission.isGranted ? (
                   <Icon className="text-success" icon="circle-check-big" />
@@ -46,30 +104,7 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
                 )}
               </div>
             </CardHeader>
-            <CardBody className="flex flex-col gap-5">
-              <div className="text-xs text-gray-500">
-                {permission.isGranted ? (
-                  <p>
-                    Enabling {permission.name} permission allows the app to read text you select on
-                    the screen.
-                  </p>
-                ) : (
-                  <p>
-                    For optimal text selection, please enable {permission.name} permission in{' '}
-                    <Link
-                      className="text-xs text-primary cursor-pointer"
-                      isExternal
-                      showAnchorIcon
-                      onClick={onOpenSystemAccessibility}
-                    >
-                      System Settings
-                    </Link>
-                    {'. '}
-                    Or activate Clipboard Fallback.
-                  </p>
-                )}
-              </div>
-            </CardBody>
+            <CardBody className="flex flex-col gap-5">{renderPermissionCard(permission)}</CardBody>
           </Card>
         ))}
         <Card className="w-full my-5 border-1 border-gray-100" shadow="none">

@@ -37,6 +37,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkPermission: () => ipcRenderer.invoke('permission:check'),
   // Open macOS System Settings > Accessibility
   openSystemAccessibility: () => ipcRenderer.invoke('system:open-accessibility'),
+  // Open the folder where the app is installed (show in file explorer)
+  openInstallFolder: () => ipcRenderer.invoke('system:open-install-folder'),
   onPermissionChanged: (callback) =>
     ipcRenderer.on('permission:changed', (_event, permissions) => callback(permissions)),
   offPermissionChanged: () =>

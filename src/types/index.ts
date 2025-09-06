@@ -57,6 +57,8 @@ interface ElectronAPI {
   offPermissionChanged: () => void;
   // Open macOS System Settings > Accessibility
   openSystemAccessibility?: () => Promise<{ success: boolean, error?: string }>;
+  // Open the installed application folder in the OS file explorer
+  openInstallFolder?: () => Promise<{ success: boolean, error?: string }>;
 
   // General app events
   quitApp: () => void;
