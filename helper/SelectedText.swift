@@ -9,6 +9,7 @@ struct SelectionResult: Codable {
     let appName: String?
     let error: String?
     let type: String // For future extensibility: "text", "file", "image", etc.
+    let source: String?
 }
 
 func getSelectedTextAXUI() -> SelectionResult {
@@ -18,7 +19,8 @@ func getSelectedTextAXUI() -> SelectionResult {
             selectedText: nil,
             appName: nil,
             error: "No frontmost application found",
-            type: "text"
+            type: "text",
+            source: nil
         )
     }
 
@@ -35,7 +37,8 @@ func getSelectedTextAXUI() -> SelectionResult {
             selectedText: nil,
             appName: appName,
             error: "No focused UI element found",
-            type: "text"
+            type: "text",
+            source: nil
         )
     }
 
@@ -48,7 +51,8 @@ func getSelectedTextAXUI() -> SelectionResult {
             selectedText: text,
             appName: appName,
             error: nil,
-            type: "text"
+            type: "text",
+            source: "uia"
         )
     }
 
@@ -56,15 +60,16 @@ func getSelectedTextAXUI() -> SelectionResult {
         success: false,
         selectedText: nil,
         appName: appName,
-        error: "No text selected or attribute not available",
-        type: "text"
+    error: "No text selected or attribute not available",
+    type: "text",
+    source: nil
     )
 }
 
 func getSelectedTextClipboard() -> SelectionResult {
     guard let frontApp = NSWorkspace.shared.frontmostApplication else {
-        return SelectionResult(success: false, selectedText: nil, appName: nil,
-                             error: "No frontmost application found", type: "text")
+    return SelectionResult(success: false, selectedText: nil, appName: nil,
+                 error: "No frontmost application found", type: "text", source: nil)
     }
 
     let appName = frontApp.localizedName ?? "Unknown"
@@ -95,15 +100,18 @@ func getSelectedTextClipboard() -> SelectionResult {
     // Only return success if clipboard changed and is non-empty
     if !copiedText.isEmpty {
         return SelectionResult(success: true, selectedText: copiedText, appName: appName,
-                             error: nil, type: "text")
+                             error: nil, type: "text", source: "clipboard")
     }
 
     return SelectionResult(success: false, selectedText: nil, appName: appName,
-                          error: "No text selected or clipboard unchanged", type: "text")
+                          error: "No text selected or clipboard unchanged", type: "text", source: nil)
 }
 
-// Get clipboard enabled setting from command line arguments
-let clipboardEnabled = CommandLine.arguments.count > 1 && CommandLine.arguments[1].lowercased() == "true"
+// Default behavior: clipboard fallback enabled unless explicitly disabled (match SelectedText.cs)
+var clipboardEnabled = true
+if CommandLine.arguments.count > 1 {
+    clipboardEnabled = CommandLine.arguments[1].lowercased() == "true"
+}
 
 // Try methods based on settings
 let result = {
@@ -118,7 +126,7 @@ let result = {
     }
 
     return SelectionResult(success: false, selectedText: nil, appName: axuiResult.appName,
-                          error: "No text selected and clipboard fallback disabled", type: "text")
+                          error: "No text selected and clipboard fallback disabled", type: "text", source: "disabled")
 }()
 
 do {
@@ -129,13 +137,11 @@ do {
         print(jsonString)
     }
 } catch {
-    print("""
-    {
-      "success": false,
-      "selectedText": null,
-      "appName": null,
-      "error": "JSON encoding failed: \(error.localizedDescription)",
-      "type": "text"
+    let errMsg = "JSON encoding failed: \(error.localizedDescription)"
+    let fallback = SelectionResult(success: false, selectedText: nil, appName: nil, error: errMsg, type: "text", source: nil)
+    if let data = try? JSONEncoder().encode(fallback), let s = String(data: data, encoding: .utf8) {
+        print(s)
+    } else {
+        print("{\"success\": false, \"selectedText\": null, \"appName\": null, \"error\": \"Unknown error\"}")
     }
-    """)
 }
