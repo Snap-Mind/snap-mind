@@ -95,7 +95,7 @@ class SettingsService {
       const data = fs.readFileSync(defaultSettingsPath, 'utf8');
       return JSON.parse(data);
     } catch (error) {
-      logService.info('Failed to load default settings:', error);
+      logService.error('Failed to load default settings:', error);
       return {};
     }
   }
@@ -109,7 +109,7 @@ class SettingsService {
       const data = fs.readFileSync(this.settingsPath, 'utf8');
       return JSON.parse(data);
     } catch (error) {
-      logService.info('No stored settings found, using defaults');
+      logService.error('No stored settings found, using defaults', error);
       return {};
     }
   }

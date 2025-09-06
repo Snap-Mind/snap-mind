@@ -16,7 +16,7 @@ class TextSelectionService {
 
   // Handle text selection from hotkeys or clipboard
   handleTextSelection(text, customPrompt = null, source = 'hotkey') {
-    logService.info(`Processing text from ${source}:`, text);
+    logService.debug(`Processing text from ${source}:`, text);
 
     // Use custom prompt if provided, otherwise use default
     const prompt = customPrompt || '';

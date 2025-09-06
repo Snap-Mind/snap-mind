@@ -260,7 +260,7 @@ function executeHotkey(prompt) {
       logService.debug('Helper output as JSON:', result);
 
       if (result.success && result.selectedText) {
-        logService.info('Selected text from helper:', result.selectedText);
+        logService.debug('Selected text from helper:', result.selectedText);
         // Use text selection service instead of directly sending to settings window
         textSelectionService.handleTextSelection(result.selectedText, prompt, 'hotkey');
       } else {
@@ -409,7 +409,7 @@ ipcMain.handle('settings:get', () => {
 ipcMain.handle('settings:update', async (event, newSettings) => {
   try {
     const updated = await settingsService.updateSettings(newSettings);
-    logService.info('[main] Settings updated:', updated);
+    logService.debug('[main] Settings updated:', updated);
 
     const senderId = event.sender.id;
     BrowserWindow.getAllWindows().forEach((win) => {
@@ -427,7 +427,7 @@ ipcMain.handle('settings:update', async (event, newSettings) => {
 ipcMain.handle('settings:update-path', async (event, { path, value }) => {
   try {
     const updated = await settingsService.updateSetting(path, value);
-    logService.info('[main] Settings updated:', updated);
+    logService.debug('[main] Settings updated:', updated);
 
     const senderId = event.sender.id;
     BrowserWindow.getAllWindows().forEach((win) => {
