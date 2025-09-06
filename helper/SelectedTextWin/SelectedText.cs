@@ -1,12 +1,11 @@
 using System;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows.Forms;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Automation;
-using System.Security.Principal;
+using System.Windows.Forms;
+using System.Threading;
 
 class SelectionResult
 {
@@ -15,6 +14,7 @@ class SelectionResult
     public string appName { get; set; }
     public string error { get; set; }
     public string type { get; set; } = "text";
+    public string source { get; set; }
 }
 
 class Program
@@ -25,592 +25,247 @@ class Program
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-    [STAThread]
-    static void Main(string[] args)
-    {
-        // Set higher thread priority for more reliable execution
-        Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
-
-        // Log permission status for debugging
-        bool isElevated = IsElevated();
-        Console.Error.WriteLine($"Running with elevated permissions: {isElevated}");
-
-        // Special mode to test UI Automation permissions without needing a foreground window
-        if (args.Length > 0 && args[0] == "test-permissions")
-        {
-            TestUIAutomationPermissions();
-            return;
-        }
-
-        bool clipboardEnabled = false;
-        if (args.Length > 0 && bool.TryParse(args[0], out bool argVal))
-            clipboardEnabled = argVal;
-
-        IntPtr foregroundWindowHandle = GetForegroundWindow();
-        string appName = "Unknown";
-        if (foregroundWindowHandle != IntPtr.Zero)
-        {
-            uint pid;
-            GetWindowThreadProcessId(foregroundWindowHandle, out pid);
-            try
-            {
-                var proc = Process.GetProcessById((int)pid);
-                appName = proc.MainModule?.ModuleName ?? "Unknown";
-            }
-            catch (Exception procEx)
-            {
-                Console.Error.WriteLine($"Could not get process info: {procEx.Message}");
-                // Continue with default app name
-            }
-        }
-        else
-        {
-            Console.Error.WriteLine("Warning: No foreground window detected");
-        }
-
-        // Try UI Automation first
-        var axuiResult = TryGetSelectedTextFromUIAutomation(foregroundWindowHandle, appName);
-        if (axuiResult.success)
-        {
-            PrintResult(axuiResult);
-            return;
-        }
-        else
-        {
-            Console.Error.WriteLine($"UI Automation failed: {axuiResult.error}");
-        }
-
-        // Only try clipboard method if enabled
-        if (clipboardEnabled)
-        {
-            Console.Error.WriteLine("Falling back to clipboard method");
-            var clipboardResult = GetSelectedTextClipboard(foregroundWindowHandle, appName);
-            if (clipboardResult.success)
-            {
-                PrintResult(clipboardResult);
-                return;
-            }
-
-            // If clipboard fallback fails, return its error
-            Console.Error.WriteLine($"Clipboard method failed: {clipboardResult.error}");
-            PrintResult(clipboardResult);
-            Environment.Exit(1);
-        }
-        else
-        {
-            Console.Error.WriteLine("Clipboard fallback is disabled by settings");
-        }
-
-        // If both fail, return error with last appName
-        var failResult = new SelectionResult
-        {
-            success = false,
-            selectedText = null,
-            appName = appName,
-            error = "No text selected and clipboard fallback disabled",
-            type = "text"
-        };
-        PrintResult(failResult);
-        Environment.Exit(1);
-    }
-
-    // Additional Win32 API declarations for window focus handling
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-    [DllImport("user32.dll")]
-    private static extern bool IsWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    private static extern bool IsWindowEnabled(IntPtr hWnd);
-
-    // Keyboard state handling for modifier keys
-    [DllImport("user32.dll")]
-    private static extern short GetAsyncKeyState(int vKey);
-
+    // For precise key simulation and modifier control
     [DllImport("user32.dll")]
     private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
-    // Constants for keyboard events and virtual key codes
-    private const int VK_SHIFT = 0x10;
-    private const int VK_CONTROL = 0x11;
-    private const int VK_MENU = 0x12;   // Alt key
-    private const uint KEYEVENTF_KEYUP = 0x0002;
-    private const uint KEYEVENTF_KEYDOWN = 0x0000;
+    // Detect clipboard updates reliably
+    [DllImport("user32.dll")]
+    private static extern uint GetClipboardSequenceNumber();
 
-    // Special method to test UI Automation permissions without needing a foreground window
-    static void TestUIAutomationPermissions()
+    private const int VK_CONTROL = 0x11;
+    private const int VK_SHIFT = 0x10;
+    private const int VK_MENU = 0x12; // Alt
+    private const int VK_C = 0x43;    // 'C'
+    private const uint KEYEVENTF_KEYDOWN = 0x0000;
+    private const uint KEYEVENTF_KEYUP = 0x0002;
+
+    [STAThread]
+    static void Main(string[] args)
     {
+        // Default behavior: clipboard fallback enabled unless explicitly disabled
+        bool clipboardEnabled = true;
+        if (args != null && args.Length > 0)
+        {
+            if (bool.TryParse(args[0], out bool parsed))
+            {
+                clipboardEnabled = parsed;
+            }
+        }
+
+        IntPtr hwnd = GetForegroundWindow();
+        string appName = GetAppName(hwnd);
+
+        string selected = TryGetSelectedTextFromUIAutomation();
+        string error = null;
+        string source = null;
+
+        if (string.IsNullOrEmpty(selected))
+        {
+            if (clipboardEnabled)
+            {
+                selected = TryGetSelectedTextViaClipboard(hwnd, out error);
+                if (!string.IsNullOrEmpty(selected)) source = "clipboard";
+            }
+            else
+            {
+                error = "Clipboard fallback disabled";
+                source = "disabled";
+            }
+        }
+        else
+        {
+            source = "uia";
+        }
+
+        var result = new SelectionResult
+        {
+            success = !string.IsNullOrEmpty(selected),
+            selectedText = string.IsNullOrEmpty(selected) ? null : selected,
+            appName = appName,
+            error = string.IsNullOrEmpty(selected) ? (error ?? "No selection detected") : null,
+            type = "text",
+            source = source
+        };
+
+        PrintResult(result);
+    }
+
+    static string GetAppName(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero) return "Unknown";
         try
         {
-            // Try to access desktop element - this is a reliable way to test UI Automation permissions
-            AutomationElement desktopElement = AutomationElement.RootElement;
-
-            // If we can get some basic property from the desktop element, we have UI Automation access
-            bool hasAccess = desktopElement != null && desktopElement.Current.Name != null;
-
-            // Create a simple result object just for permission testing
-            var result = new
-            {
-                success = true,
-                hasUIAutomationAccess = hasAccess,
-                isElevated = IsElevated(),
-                error = hasAccess ? null : "Failed to access UI Automation"
-            };
-
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            Console.WriteLine(JsonSerializer.Serialize(result, options));
+            GetWindowThreadProcessId(hwnd, out uint pid);
+            var proc = Process.GetProcessById((int)pid);
+            return proc.MainModule?.ModuleName ?? proc.ProcessName ?? "Unknown";
         }
-        catch (Exception ex)
+        catch
         {
-            // Handle any errors
-            var errorResult = new
-            {
-                success = false,
-                hasUIAutomationAccess = false,
-                isElevated = IsElevated(),
-                error = $"UI Automation test failed: {ex.GetType().Name}: {ex.Message}"
-            };
-
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            Console.WriteLine(JsonSerializer.Serialize(errorResult, options));
+            return "Unknown";
         }
     }
 
-    // Check if the application is running with elevated permissions
-    private static bool IsElevated()
+    // UI Automation: read selected text from the focused element only.
+    static string TryGetSelectedTextFromUIAutomation()
     {
         try
         {
-            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            AutomationElement focused = AutomationElement.FocusedElement;
+            if (focused == null) return null;
+
+            if (focused.TryGetCurrentPattern(TextPattern.Pattern, out object patObj))
             {
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
-                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+                var tp = (TextPattern)patObj;
+                var ranges = tp.GetSelection();
+                if (ranges != null && ranges.Length > 0)
+                {
+                    string text = ranges[0]?.GetText(-1);
+                    return string.IsNullOrEmpty(text) ? null : text;
+                }
             }
         }
         catch
         {
-            return false;
+            // Ignore and fall back
         }
+        return null;
     }
 
-    // Try to get selected text using UI Automation, return SelectionResult
-    static SelectionResult TryGetSelectedTextFromUIAutomation(IntPtr foregroundWindowHandle, string appName)
+    // Clipboard fallback: send a single Ctrl+C and read clipboard once; restore previous content.
+    static string TryGetSelectedTextViaClipboard(IntPtr hwnd, out string error)
     {
-        var result = new SelectionResult();
-        result.appName = appName;
-        result.type = "text";
+        error = null;
         try
         {
-            if (foregroundWindowHandle == IntPtr.Zero)
-            {
-                result.success = false;
-                result.selectedText = null;
-                result.error = "No foreground window found";
-                return result;
-            }
-            // Verify window is still valid and accessible
-            if (!IsWindow(foregroundWindowHandle) || !IsWindowEnabled(foregroundWindowHandle))
-            {
-                result.success = false;
-                result.selectedText = null;
-                result.error = "Window is no longer valid or accessible";
-                return result;
-            }
+            // Do not change foreground window here to avoid stealing focus from the caller.
 
-            // Ensure focus and get element
-            EnsureWindowFocused(foregroundWindowHandle);
-            AutomationElement element = GetAutomationElementFromHandle(foregroundWindowHandle);
-            if (element == null)
-            {
-                result.success = false;
-                result.selectedText = null;
-                result.error = "No AutomationElement found for window";
-                return result;
-            }
-
-            // 1) Try focused element first
-            var focused = GetFocusedElementSafe();
-            if (focused != null)
-            {
-                var info = GetElementInfoSafe(focused);
-                Console.Error.WriteLine($"Attempting focused element: {info}");
-                if (TryExtractTextFromElement(focused, out string ftext))
-                {
-                    result.success = true;
-                    result.selectedText = ftext;
-                    result.error = null;
-                    return result;
-                }
-            }
-
-            // 2) Try the window element
-            try
-            {
-                if (TryExtractTextFromElement(element, out string eltext))
-                {
-                    result.success = true;
-                    result.selectedText = eltext;
-                    result.error = null;
-                    return result;
-                }
-            }
-            catch (Exception ee)
-            {
-                Console.Error.WriteLine($"Window element extraction failed: {ee.Message}");
-            }
-
-            // 3) Search descendants
-            try
-            {
-                var textCond = new PropertyCondition(AutomationElement.IsTextPatternAvailableProperty, true);
-                var candidate = element.FindFirst(TreeScope.Descendants, textCond);
-                if (candidate != null)
-                {
-                    Console.Error.WriteLine($"Found descendant with TextPattern: {GetElementInfoSafe(candidate)}");
-                    if (TryExtractTextFromElement(candidate, out string ctext))
-                    {
-                        result.success = true;
-                        result.selectedText = ctext;
-                        result.error = null;
-                        return result;
-                    }
-                }
-
-                var valueCond = new PropertyCondition(AutomationElement.IsValuePatternAvailableProperty, true);
-                candidate = element.FindFirst(TreeScope.Descendants, valueCond);
-                if (candidate != null)
-                {
-                    Console.Error.WriteLine($"Found descendant with ValuePattern: {GetElementInfoSafe(candidate)}");
-                    if (TryExtractTextFromElement(candidate, out string vtext))
-                    {
-                        result.success = true;
-                        result.selectedText = vtext;
-                        result.error = null;
-                        return result;
-                    }
-                }
-            }
-            catch (Exception searchEx)
-            {
-                Console.Error.WriteLine($"Descendant search error: {searchEx.Message}");
-            }
-
-            // No text found
-            result.success = false;
-            result.selectedText = null;
-            result.error = "No text selected or attribute not available";
-            return result;
-        }
-        catch (Exception ex)
-        {
-            result.success = false;
-            result.selectedText = null;
-            // More detailed error information
-            result.error = $"UI Automation error: {ex.GetType().Name}: {ex.Message}";
-            Console.Error.WriteLine($"UI Automation exception: {ex}");
-            return result;
-        }
-    }
-
-    // ------------------- Helper methods (kept in this file) -------------------
-    private const int FOCUS_SETTLE_MS = 120;
-
-    static void EnsureWindowFocused(IntPtr hwnd)
-    {
-        try
-        {
-            SetForegroundWindow(hwnd);
-            Thread.Sleep(FOCUS_SETTLE_MS);
-        }
-        catch (Exception e)
-        {
-            Console.Error.WriteLine($"EnsureWindowFocused error: {e.Message}");
-        }
-    }
-
-    static AutomationElement GetAutomationElementFromHandle(IntPtr hwnd)
-    {
-        try
-        {
-            return AutomationElement.FromHandle(hwnd);
-        }
-        catch (Exception automationEx)
-        {
-            Console.Error.WriteLine($"UI Automation access denied: {automationEx.Message}. Elevated permissions: {IsElevated()}.");
-            return null;
-        }
-    }
-
-    static AutomationElement GetFocusedElementSafe()
-    {
-        try
-        {
-            return AutomationElement.FocusedElement;
-        }
-        catch (Exception e)
-        {
-            Console.Error.WriteLine($"GetFocusedElementSafe error: {e.Message}");
-            return null;
-        }
-    }
-
-    static string GetElementInfoSafe(AutomationElement el)
-    {
-        if (el == null) return "<null>";
-        try
-        {
-            var id = el.Current.AutomationId;
-            var cls = el.Current.ClassName;
-            return $"{cls} / {id}";
-        }
-        catch { return "<info-unavailable>"; }
-    }
-
-    static bool TryExtractTextFromElement(AutomationElement el, out string outText)
-    {
-        outText = null;
-        if (el == null) return false;
-        try
-        {
-            object patObj;
-
-            if (el.TryGetCurrentPattern(TextPattern.Pattern, out patObj))
-            {
-                var tp = (TextPattern)patObj;
-                try
-                {
-                    var sel = tp.GetSelection();
-                    if (sel != null && sel.Length > 0)
-                    {
-                        var t = sel[0].GetText(-1);
-                        if (!string.IsNullOrEmpty(t))
-                        {
-                            outText = t;
-                            Console.Error.WriteLine($"TextPattern selection captured from element: {t.Length} chars");
-                            return true;
-                        }
-                    }
-                }
-                catch (Exception tex)
-                {
-                    Console.Error.WriteLine($"TextPattern selection read error: {tex.Message}");
-                }
-
-                try
-                {
-                    var docRange = tp.DocumentRange;
-                    if (docRange != null)
-                    {
-                        var full = docRange.GetText(-1);
-                        if (!string.IsNullOrEmpty(full))
-                        {
-                            outText = full;
-                            Console.Error.WriteLine($"TextPattern document captured: {full.Length} chars");
-                            return true;
-                        }
-                    }
-                }
-                catch { /* ignore */ }
-            }
-
-            if (el.TryGetCurrentPattern(ValuePattern.Pattern, out patObj))
-            {
-                var vp = (ValuePattern)patObj;
-                var val = vp.Current.Value;
-                if (!string.IsNullOrEmpty(val))
-                {
-                    outText = val;
-                    Console.Error.WriteLine($"ValuePattern captured: {val.Length} chars");
-                    return true;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"TryExtractTextFromElement exception: {ex.Message}");
-        }
-        return false;
-    }
-
-    // Simulate Ctrl+C, read clipboard, and restore clipboard, return SelectionResult
-    static SelectionResult GetSelectedTextClipboard(IntPtr foregroundWindowHandle, string appName)
-    {
-        var result = new SelectionResult();
-        result.appName = appName;
-        result.type = "text";
-        try
-        {
-            if (foregroundWindowHandle == IntPtr.Zero)
-            {
-                result.success = false;
-                result.selectedText = null;
-                result.error = "No foreground window found";
-                return result;
-            }
-
-            // Ensure the window has focus before attempting to send keys
-            if (!SetForegroundWindow(foregroundWindowHandle))
-            {
-                result.success = false;
-                result.selectedText = null;
-                result.error = "Failed to set focus to target window";
-                return result;
-            }
-
-            Thread.Sleep(30);
-
-            // Save old clipboard content
-            string oldClipboard = null;
+            string original = null;
+            bool hadOriginal = false;
+            uint originalSeq = 0;
             try
             {
                 if (Clipboard.ContainsText())
-                    oldClipboard = Clipboard.GetText();
-            }
-            catch (Exception clipEx)
-            {
-                Console.Error.WriteLine($"Failed to access initial clipboard: {clipEx.Message}");
-                // Continue anyway - we'll try to restore later if possible
-            }
-
-            // Check which modifier keys are currently pressed
-            bool shiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
-            bool ctrlPressed = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
-            bool altPressed = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
-
-            // Simulate Ctrl+C - try multiple times in case of timing issues
-            int retries = 3;
-            string copiedText = null;
-
-            while (retries > 0)
-            {
-                try
                 {
-                    // Temporarily reset modifier key states to avoid triggering other shortcuts
-                    if (shiftPressed)
-                        keybd_event(VK_SHIFT, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
-
-                    if (ctrlPressed)
-                        keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
-
-                    if (altPressed)
-                        keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
-
-                    // Small delay to allow the key state changes to take effect
-                    Thread.Sleep(30);
-
-                    // Send our own clean Ctrl+C without other modifiers interfering
-                    SendKeys.SendWait("^c");
-                    Thread.Sleep(150);
-
-                    // Restore original modifier key states
-                    if (shiftPressed)
-                        keybd_event(VK_SHIFT, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
-
-                    if (ctrlPressed)
-                        keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
-
-                    if (altPressed)
-                        keybd_event(VK_MENU, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
-
-                    if (Clipboard.ContainsText())
-                    {
-                        copiedText = Clipboard.GetText();
-                        if (!string.IsNullOrEmpty(copiedText))
-                            break; // Successfully got text
-                    }
+                    original = Clipboard.GetText();
+                    hadOriginal = true;
                 }
-                catch (Exception sendKeysEx)
-                {
-                    Console.Error.WriteLine($"SendKeys or clipboard read error: {sendKeysEx.Message}");
-                }
+                // Track clipboard change via global sequence number
+                originalSeq = GetClipboardSequenceNumber();
+            }
+            catch { /* ignore */ }
 
-                retries--;
-                if (retries > 0)
-                    Thread.Sleep(25); // Minimal delay before retry
+            // Ensure keystrokes go to the original app with the selection
+            if (hwnd != IntPtr.Zero)
+            {
+                try { SetForegroundWindow(hwnd); } catch { /* ignore */ }
             }
 
-            // Restore clipboard with better error handling
+            // Send Ctrl+C using keybd_event to avoid interacting with external modifier states
             try
             {
-                Clipboard.Clear();
-                if (!string.IsNullOrEmpty(oldClipboard))
+                // Ensure modifiers like Shift/Alt do not affect the copy combination
+                keybd_event((byte)VK_SHIFT, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+                keybd_event((byte)VK_MENU, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+
+                // Press Ctrl down, send 'C', then release Ctrl
+                keybd_event((byte)VK_CONTROL, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+                Thread.Sleep(10);
+                keybd_event((byte)VK_C, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+                keybd_event((byte)VK_C, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+                Thread.Sleep(10);
+                keybd_event((byte)VK_CONTROL, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+
+                // As a final guard, force-release Shift/Alt to avoid stuck modifier states
+                keybd_event((byte)VK_SHIFT, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+                keybd_event((byte)VK_MENU, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+            }
+            catch (Exception e)
+            {
+                error = $"Failed to send copy: {e.Message}";
+            }
+
+            string copied = null;
+            try
+            {
+                // Wait for clipboard to change (apps update asynchronously)
+                var sw = Stopwatch.StartNew();
+                bool changed = false;
+                uint timeoutMs = 700; // generous but snappy
+                uint lastSeq = originalSeq;
+
+                while (sw.ElapsedMilliseconds < timeoutMs)
                 {
-                    Clipboard.SetText(oldClipboard);
-                    // Minimal verification delay
-                    Thread.Sleep(20);
-                    if (!Clipboard.ContainsText() || Clipboard.GetText() != oldClipboard)
+                    uint currentSeq = GetClipboardSequenceNumber();
+                    if (currentSeq != lastSeq)
                     {
-                        Console.Error.WriteLine("Warning: Failed to restore original clipboard content");
+                        changed = true;
+                        break;
+                    }
+                    Thread.Sleep(15);
+                }
+
+                // If we saw a change (or even if we didn't, try once), read clipboard
+                // A short extra delay can help apps that post on the UI thread
+                if (!changed)
+                {
+                    Thread.Sleep(50);
+                }
+
+                if (Clipboard.ContainsText())
+                {
+                    // Prefer Unicode text if available
+                    copied = Clipboard.GetText(TextDataFormat.UnicodeText);
+                    if (string.IsNullOrEmpty(copied))
+                    {
+                        copied = Clipboard.GetText();
                     }
                 }
             }
-            catch (Exception restoreEx)
+            catch (Exception e)
             {
-                Console.Error.WriteLine($"Failed to restore clipboard: {restoreEx.Message}");
-                // Continue with result processing even if restore fails
+                error = $"Failed to read clipboard: {e.Message}";
             }
 
-            // Only return success if clipboard changed and is non-empty
-            if (!string.IsNullOrEmpty(copiedText) && copiedText != oldClipboard)
+            // Restore clipboard to original state
+            try
             {
-                result.success = true;
-                result.selectedText = copiedText;
-                result.error = null;
-                return result;
+                if (hadOriginal)
+                {
+                    Clipboard.SetText(original);
+                }
+                else
+                {
+                    Clipboard.Clear();
+                }
             }
+            catch { /* ignore restore errors */ }
 
-            result.success = false;
-            result.selectedText = null;
-            result.error = "No text selected or clipboard unchanged";
-            return result;
+            if (string.IsNullOrEmpty(copied))
+            {
+                error ??= "Clipboard empty";
+                return null;
+            }
+            // Return whatever was copied; do not treat equality with original as failure.
+            return copied;
         }
         catch (Exception ex)
         {
-            result.success = false;
-            result.selectedText = null;
-            // More detailed error information
-            result.error = $"Clipboard error: {ex.GetType().Name}: {ex.Message}";
-            Console.Error.WriteLine($"Clipboard exception: {ex}");
-            return result;
+            error = ex.Message;
+            return null;
         }
     }
 
     static void PrintResult(SelectionResult result)
     {
-        try
+        var options = new JsonSerializerOptions
         {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-            var json = JsonSerializer.Serialize(result, options);
-            Console.WriteLine(json);
-        }
-        catch (Exception jsonEx)
-        {
-            // Fallback to manual JSON in case of serialization error
-            Console.Error.WriteLine($"Error serializing result: {jsonEx.Message}");
-
-            string manualJson = $@"{{
-                ""success"": {result.success.ToString().ToLower()},
-                ""selectedText"": {(result.selectedText != null ? $@"""{result.selectedText.Replace("\"", "\\\"").Replace("\n", "\\n")}""" : "null")},
-                ""appName"": {(result.appName != null ? $@"""{result.appName.Replace("\"", "\\\"")}"" " : "null")},
-                ""error"": {(result.error != null ? $@"""{result.error.Replace("\"", "\\\"").Replace("\n", "\\n")}""" : "null")},
-                ""type"": ""text""
-            }}";
-            Console.WriteLine(manualJson);
-        }
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+        Console.WriteLine(JsonSerializer.Serialize(result, options));
     }
 }
