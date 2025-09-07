@@ -5,6 +5,7 @@
 - [x] model duplication detect when creating
 - [x] edit model, add model form upgrade, figure out mode type's meaning
 - [x] app icon not set
-- [ ] app not signed
+- [x] app not signed
+- [ ] weird scroll bar on chat and hotkeys page. scroll bar should auto disappear
 - [ ] disallow user select text on the UI
 - [ ] auto upgrade
