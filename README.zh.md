@@ -8,9 +8,13 @@
   <a href="./README.md">English</a> | <a href="./README.zh.md">简体中文</a>
 </p>
 <p align="center">
+  <a href="https://discord.gg/5SBqDHxU"><img src="https://img.shields.io/badge/Discord-加入-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="https://x.com/louisgh_7"><img src="https://img.shields.io/badge/X-关注-000000?logo=x&logoColor=white" alt="X"></a>
+  <br />
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue.svg" alt="License"></a>
   <a href="https://github.com/Snap-Mind/snap-mind/stargazers"><img src="https://img.shields.io/github/stars/Snap-Mind/snap-mind?style=social" alt="GitHub stars"></a>
   <a href="https://github.com/Snap-Mind/snap-mind/releases"><img src="https://img.shields.io/github/v/release/Snap-Mind/snap-mind" alt="Release"></a>
+  
 </p>
 
 SnapMind 是一款桌面 AI 助手，让你可以在系统的任意位置**即时调用LLM**。只需选中文本 + 按下快捷键，即可完成翻译、改写、总结、解释等任务 —— 无需切换应用，让工作流保持专注和顺畅。
