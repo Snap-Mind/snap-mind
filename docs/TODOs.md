@@ -5,7 +5,6 @@
 - [x] model duplication detect when creating
 - [x] edit model, add model form upgrade, figure out mode type's meaning
 - [x] app icon not set
-- [ ] windows font rendering issue
 - [ ] app not signed
 - [ ] disallow user select text on the UI
 - [ ] auto upgrade
