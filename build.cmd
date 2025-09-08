@@ -14,6 +14,9 @@ call npm run build:win-helper
 echo Building main process...
 call npm run build:main
 
+echo Building preload script...
+call npm run build:preload
+
 echo Building renderer process...
 call npm run build:render
 

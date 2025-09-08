@@ -15,10 +15,10 @@ import { fileURLToPath } from 'url';
 import process from 'process';
 import { execFile } from 'child_process';
 
-import TextSelectionService from './electron/TextSelectionService.js';
-import SettingsService from './electron/SettingsService.js';
-import SystemPermissionService from './electron/SystemPermissionService.js';
-import logService from './electron/LogService.js';
+import TextSelectionService from './electron/TextSelectionService';
+import SettingsService from './electron/SettingsService';
+import SystemPermissionService from './electron/SystemPermissionService';
+import logService from './electron/LogService';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

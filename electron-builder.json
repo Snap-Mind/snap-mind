@@ -9,11 +9,13 @@
   "files": [
     "dist-electron/**/*",
     "dist/**/*",
-    "src/assets/**/*",
-    "node_modules/**/*",
-    "electron/**/*"
+    "node_modules/electron-log/**",
+    "!dist-electron/**/*.map",
+    "!dist/**/*.map"
   ],
-  "asarUnpack": ["helper/**"],
+  "asarUnpack": [
+    "helper/**"
+  ],
   "extraResources": [
     {
       "from": "helper/selectedtext",

@@ -7,11 +7,13 @@
   "files": [
     "dist-electron/**/*",
     "dist/**/*",
-    "src/assets/**/*",
-    "node_modules/**/*",
-    "electron/**/*"
+    "node_modules/electron-log/**",
+    "!dist-electron/**/*.map",
+    "!dist/**/*.map"
   ],
-  "asarUnpack": ["helper/**"],
+  "asarUnpack": [
+    "helper/**"
+  ],
   "extraResources": [
     {
       "from": "helper/SelectedTextWin.exe",
@@ -42,11 +44,15 @@
     "target": [
       {
         "target": "nsis",
-        "arch": ["x64"]
+        "arch": [
+          "x64"
+        ]
       },
       {
         "target": "portable",
-        "arch": ["x64"]
+        "arch": [
+          "x64"
+        ]
       }
     ],
     "signAndEditExecutable": false,

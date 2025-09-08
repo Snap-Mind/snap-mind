@@ -12,6 +12,7 @@ npm run build:helper
 
 echo "Building TypeScript and Vite app..."
 npm run build:main
+npm run build:preload
 npm run build:render
 
 if [ "$1" = "--arm64" ]; then

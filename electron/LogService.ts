@@ -1,6 +1,6 @@
 // LogService.js
 // Centralized logging service using electron-log
-import log from 'electron-log';
+import mainLog from 'electron-log/main.js';
 import path from 'path';
 import { app } from 'electron';
 import os from 'os';
@@ -13,13 +13,13 @@ import process from 'process';
  * depending on the platform.
  */
 class LogService {
-  private log: typeof log;
+  private log: typeof mainLog;
 
   constructor() {
-    this.log = log;
+  this.log = mainLog;
 
-    log.initialize({ preload: true });
-    Object.assign(console, log.functions);
+  this.log.initialize({ preload: true });
+  Object.assign(console, this.log.functions);
     this.configureLogger();
   }
 
