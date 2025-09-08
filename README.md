@@ -43,7 +43,7 @@ SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs*
 ## Demo
 
 <p align="center">
-  <img src="./electron/assets/snapmind-demo-en.gif" width="800" alt="SnapMind demo"/>
+  <img src="./resources/snapmind-demo-en.gif" width="800" alt="SnapMind demo"/>
 </p>
 
 ---

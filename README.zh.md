@@ -44,7 +44,7 @@ SnapMind 是一款桌面 AI 助手，让你可以在系统的任意位置**即�
 ## 演示
 
 <p align="center">
-  <img src="./electron/assets/snapmind-demo-cn.gif" width="800" alt="SnapMind demo"/>
+  <img src="./resources/snapmind-demo-cn.gif" width="800" alt="SnapMind demo"/>
 </p>
 
 ---
