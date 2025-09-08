@@ -97,6 +97,22 @@ Windows打包:
 npm run build:win-prod
 ```
 
+### macOS 公证（可选）
+
+打包时可自动提交 Apple 公证，并在产物上绑定（staple）公证票据。
+
+在执行 `npm run build:prod` 之前，设置以下环境变量：
+
+- `NOTARIZE=true`
+- `APPLE_ID` — 你的 Apple ID 邮箱
+- `APPLE_APP_SPECIFIC_PASSWORD` — 在 appleid.apple.com 生成的应用专用密码
+- `APPLE_TEAM_ID` — Apple 开发者 Team ID（推荐）
+
+说明：
+- 需要安装 Xcode 命令行工具，并使用「Developer ID Application」证书签名且开启 Hardened Runtime（已在 `electron-builder.json` 配置）。
+- afterSign 钩子（`scripts/notarize.cjs`）使用 `@electron/notarize` 的 notarytool 提交公证。
+- 产物生成后，`scripts/staple.cjs` 会对 `.app` 与 `.dmg` 进行票据绑定（staple）。
+
 ## 开源协议
 
 [Apache 2.0](./LICENSE)

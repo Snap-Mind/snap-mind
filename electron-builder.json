@@ -4,6 +4,8 @@
   "directories": {
     "output": "build"
   },
+  "afterSign": "scripts/notarize.cjs",
+  "afterAllArtifactBuild": "scripts/staple.cjs",
   "files": [
     "dist-electron/**/*",
     "dist/**/*",
