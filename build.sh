@@ -5,7 +5,7 @@ set -e
 export NODE_ENV=production
 
 echo "Cleaning build folders..."
-rm -rf dist build
+rm -rf dist dist-electron build
 
 echo "Building helper binary..."
 npm run build:helper
