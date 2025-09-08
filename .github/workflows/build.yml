@@ -6,8 +6,6 @@ on:
 permissions:
   contents: write
   packages: write
-env:
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build-macos:
     runs-on: macos-15
@@ -126,3 +124,4 @@ jobs:
             windows-artifacts/*.7z
           draft: true
           generate_release_notes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
