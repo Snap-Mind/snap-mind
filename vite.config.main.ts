@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import path from 'node:path';
+import { builtinModules } from 'node:module';
 
 // Vite config for Electron main process bundling
 export default defineConfig({
@@ -13,26 +14,14 @@ export default defineConfig({
       fileName: () => 'main.js',
     },
     rollupOptions: {
+      // Externalize Electron and all Node built-ins (including both 'assert' and 'node:assert')
       external: [
         'electron',
         'electron-log',
         'electron-log/main',
         'electron-log/renderer',
-        // keep node built-ins external
-        'path',
-        'fs',
-        'url',
-        'os',
-        'child_process',
-        'stream',
-        'events',
-        'util',
-        'buffer',
-        'http',
-        'https',
-        'zlib',
-        'process',
-        'node:process',
+        ...builtinModules,
+        ...builtinModules.map((m) => `node:${m}`),
       ],
       output: {
         entryFileNames: 'main.js',
