@@ -22,6 +22,10 @@ jobs:
     env:
       CSC_LINK: ${{ secrets.SNAPMIND_CSC_LINK }}
       CSC_KEY_PASSWORD: ${{ secrets.SNAPMIND_CSC_KEY_PASSWORD }}
+      APPLE_ID: ${{ secrets.SNAPMIND_APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.SNAPMIND_APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.SNAPMIND_APPLE_TEAM_ID }}
+      NOTARIZE: true
     steps:
       - uses: actions/checkout@v4
 
