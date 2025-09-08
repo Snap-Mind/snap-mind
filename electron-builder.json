@@ -49,6 +49,5 @@
       "Contents/Resources/helper/selectedtext"
     ]
   },
-  "asar": true,
-  "compression": "maximum"
+  "asar": true
 }

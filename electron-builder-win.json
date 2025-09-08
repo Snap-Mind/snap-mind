@@ -68,6 +68,5 @@
     "createStartMenuShortcut": true,
     "artifactName": "${productName}-${version}-${arch}-setup.${ext}"
   },
-  "asar": true,
-  "compression": "maximum"
+  "asar": true
 }
