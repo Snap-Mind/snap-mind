@@ -55,6 +55,12 @@ jobs:
             npx electron-builder --mac --x64 --publish never
           fi
 
+      - name: Rename latest-mac.yml to arch-specific name
+        run: |
+          if [ -f build/latest-mac.yml ]; then
+            mv build/latest-mac.yml build/latest-mac-${{ matrix.arch }}.yml
+          fi
+
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -62,7 +68,7 @@ jobs:
           path: |
             build/*.dmg
             build/*.zip
-            build/*.yml
+            build/latest-mac-${{ matrix.arch }}.yml
             build/*.blockmap
             build/*.sha512
           retention-days: 1
