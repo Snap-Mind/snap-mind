@@ -48,7 +48,7 @@ class SystemPermissionService {
    * Returns an object with a stop() method to cancel polling.
    */
   startAccessibilityPolling(
-    callback: (perm: { id: string; name: string; isGranted: boolean }) => void,
+    callback: (_perm: { id: string; name: string; isGranted: boolean }) => void,
     intervalMs = 15000
   ) {
     // ensure any previous poll is cleared

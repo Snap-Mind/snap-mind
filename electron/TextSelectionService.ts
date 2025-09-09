@@ -3,7 +3,7 @@
 import logService from './LogService.js';
 
 interface TextSelectionCallbacks {
-  showChatPopup?: (position: any, initialMessages: any) => void;
+  showChatPopup?: (_position: any, _initialMessages: any) => void;
   getPopupPosition?: () => any;
 }
 

@@ -5,7 +5,6 @@ import { Button, Select, SelectSection, SelectItem, Textarea } from '@heroui/rea
 import { useSettings } from '../../hooks/useSettings';
 
 import { AIService } from '../../services/AIService';
-import loggerService from '../../services/LoggerService';
 import ChatMessage from '../ChatMessage/ChatMessage';
 
 import { Message } from '@/types/chat';

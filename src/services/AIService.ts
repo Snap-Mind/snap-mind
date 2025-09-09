@@ -66,10 +66,10 @@ export class AIService {
       signal?: AbortSignal;
     }
   ): Promise<Message> {
-    let modelSetting = options?.modelSetting || this.modelSetting;
-    let providerSetting = options?.providerSetting || this.providerSetting;
-    let activeProvider = ProviderFactory.createProvider(providerSetting.id, providerSetting);
-    let streamingEnabled = options?.streamingEnabled || this.streamingEnabled;
+    const modelSetting = options?.modelSetting || this.modelSetting;
+    const providerSetting = options?.providerSetting || this.providerSetting;
+    const activeProvider = ProviderFactory.createProvider(providerSetting.id, providerSetting);
+    const streamingEnabled = options?.streamingEnabled || this.streamingEnabled;
 
     if (!this.activeProvider) {
       const error = new Error('No active provider available');

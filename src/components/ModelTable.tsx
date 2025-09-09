@@ -199,7 +199,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
         return columnKey;
       }
     },
-    [theme, handleDeleteModelRequest]
+    [theme, handleDeleteModelRequest, openEditModel]
   );
 
   return (

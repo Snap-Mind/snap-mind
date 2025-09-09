@@ -35,11 +35,11 @@ class SettingsService {
    * @param {string} defaultFileName
    */
   ensureDefaultConfig(fileName, defaultFileName) {
-    let targetPath = path.join(this.userDataPath, fileName);
+    const targetPath = path.join(this.userDataPath, fileName);
 
     if (!fs.existsSync(targetPath)) {
       // Find default file in packaged resources
-      let defaultPath = path.join(this.resourcesPath, defaultFileName);
+      const defaultPath = path.join(this.resourcesPath, defaultFileName);
 
       if (fs.existsSync(defaultPath)) {
         fs.copyFileSync(defaultPath, targetPath);

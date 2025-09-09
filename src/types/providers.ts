@@ -18,12 +18,14 @@ export interface BaseProviderConfig {
   models?: ModelSetting[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional placeholder for future OpenAI-specific fields
 export interface OpenAIConfig extends BaseProviderConfig {}
 
 export interface AzureOpenAIConfig extends BaseProviderConfig {
   apiVersion: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional placeholder for future Anthropic-specific fields
 export interface AnthropicConfig extends BaseProviderConfig {}
 
 export interface GoogleConfig extends BaseProviderConfig {

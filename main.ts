@@ -8,7 +8,6 @@ import {
   nativeImage,
   screen,
   shell,
-  systemPreferences,
 } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,9 +28,9 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', (event, argv, workingDirectory) => {
+  app.on('second-instance', (_event, _argv, _workingDirectory) => {
     // Show or focus the settings window when a second instance is launched
-    let win = settingsWindow || createSettingsWindow();
+    const win = settingsWindow || createSettingsWindow();
     if (win.isVisible()) {
       win.focus();
     } else {
@@ -472,7 +471,7 @@ ipcMain.handle('logs:log', (event, level, message, ...args) => {
   return { success: true };
 });
 
-ipcMain.handle('permission:check', async (event) => {
+ipcMain.handle('permission:check', async (_event) => {
   try {
     const permissionService = new SystemPermissionService();
     const result = await permissionService.checkPermissions();

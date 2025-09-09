@@ -4,15 +4,15 @@ import { SettingsManager } from '../services/SettingsManager';
 
 import { SystemPermission } from '@/types';
 
-export const LoggerServiceContext = createContext<LoggerService | null>(null);
-export const SettingsManagerContext = createContext<SettingsManager | null>(null);
-export const SystemPermissionsContext = createContext<SystemPermission[] | null>(null);
+const LoggerServiceContext = createContext<LoggerService | null>(null);
+const SettingsManagerContext = createContext<SettingsManager | null>(null);
+const SystemPermissionsContext = createContext<SystemPermission[] | null>(null);
 
 interface ServiceProviderProps {
   children: ReactNode;
 }
 
-export const ServiceProvider = ({ children }: ServiceProviderProps) => {
+const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const loggerService = useMemo(() => new LoggerService(), []);
   const [settingsManager, setSettingsManager] = useState<SettingsManager | null>(null);
   const [systemPermissions, setSystemPermissions] = useState<SystemPermission[] | null>(null);
@@ -81,3 +81,5 @@ export const ServiceProvider = ({ children }: ServiceProviderProps) => {
     </>
   );
 };
+
+export { ServiceProvider, LoggerServiceContext, SettingsManagerContext, SystemPermissionsContext };
