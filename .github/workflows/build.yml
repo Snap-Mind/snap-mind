@@ -62,6 +62,9 @@ jobs:
           path: |
             build/*.dmg
             build/*.zip
+            build/*.yml
+            build/*.blockmap
+            build/*.sha512
           retention-days: 1
 
   build-windows:
@@ -103,6 +106,9 @@ jobs:
             build/*.exe
             build/*.zip
             build/*.7z
+            build/*.yml
+            build/*.blockmap
+            build/*.sha512
           retention-days: 1
 
   create-release:
@@ -117,13 +123,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            macos-artifacts-*/**/*.dmg
-            macos-artifacts-*/**/*.zip
-            windows-artifacts/*.exe
-            windows-artifacts/*.zip
-            windows-artifacts/*.7z
+            macos-artifacts-*/**/*
+            windows-artifacts/**/*
           draft: true
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
