@@ -59,11 +59,6 @@ Download the latest installer from 👉 [snap-mind.github.io](https://snap-mind.
 **On Windows**, you need to run this app with Administrator privileges (Run as Administrator).
 
 **On MacOS**, after install the app
-
-- Remove quarantine to bypass Gatekeeper. (or build the app by yourself)
-  ```shell
-  xattr -cr /Applications/SnapMind.app
-  ```
 - You need to allow accessibility permissions, so the app can read your selected texts.
 - You need to grant keychain access for the app to store your api keys.
 
