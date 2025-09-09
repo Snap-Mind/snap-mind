@@ -50,9 +50,9 @@ jobs:
       - name: Build electron app (per-arch)
         run: |
           if [ "${{ matrix.arch }}" = "arm64" ]; then
-            npx electron-builder --mac --arm64
+            npx electron-builder --mac --arm64 --publish never
           else
-            npx electron-builder --mac --x64
+            npx electron-builder --mac --x64 --publish never
           fi
 
       - name: Upload macOS artifacts
@@ -90,7 +90,7 @@ jobs:
         run: npm run build
 
       - name: Build electron app
-        run: npx electron-builder --win --x64 --config electron-builder-win.json
+        run: npx electron-builder --win --x64 --config electron-builder-win.json --publish never
 
       - name: List build contents
         run: Get-ChildItem -Path build | Format-Table Name, Length
@@ -125,3 +125,5 @@ jobs:
           draft: true
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
