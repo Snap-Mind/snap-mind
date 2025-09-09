@@ -68,7 +68,7 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
         </div>
       </div>
       <Divider orientation="vertical" />
-      <div className="setting-details bg-background px-3 py-3">
+      <div className="setting-details h-[100vh] overflow-y-auto bg-background px-3 py-3">
         <Routes>
           <Route
             path="openai"

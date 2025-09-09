@@ -13,7 +13,7 @@ interface ProviderAzureOpenAIProps {
 function ProviderAzureOpenAI({ settings, onSettingsChange }: ProviderAzureOpenAIProps) {
   const { t } = useTranslation();
   return (
-    <div className=" overflow-y-auto p-1 flex flex-col gap-5">
+    <div className="p-1 flex flex-col gap-5">
       <h1 className="font-bold text-2xl">{settings.name}</h1>
       <Form className="w-full flex flex-col gap-5">
         <Input
