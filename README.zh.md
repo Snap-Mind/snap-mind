@@ -52,6 +52,7 @@ SnapMind 是一款桌面 AI 助手，让你可以在系统的任意位置**即�
 ## 安装
 
 ### 普通用户
+
 前往 👉 [snap-mind.github.io](https://snap-mind.github.io) 或 [Releases](https://github.com/Snap-Mind/snap-mind/releases) 下载最新安装包。
 
 > <u>目前支持 **macOS** 和 **Windows**</u>
@@ -69,6 +70,7 @@ SnapMind 是一款桌面 AI 助手，让你可以在系统的任意位置**即�
 ### 开发者
 
 克隆仓库:
+
 ```bash
 git clone git@github.com:Snap-Mind/snap-mind.git
 ```

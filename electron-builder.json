@@ -13,9 +13,7 @@
     "!dist-electron/**/*.map",
     "!dist/**/*.map"
   ],
-  "asarUnpack": [
-    "helper/**"
-  ],
+  "asarUnpack": ["helper/**"],
   "extraResources": [
     {
       "from": "helper/selectedtext",
@@ -45,9 +43,7 @@
     "entitlements": "config/entitlements/mac.plist",
     "entitlementsInherit": "config/entitlements/mac.plist",
     "icon": "electron/assets/snap-mind-app-icon-macOS.png",
-    "binaries": [
-      "Contents/Resources/helper/selectedtext"
-    ]
+    "binaries": ["Contents/Resources/helper/selectedtext"]
   },
   "asar": true
 }

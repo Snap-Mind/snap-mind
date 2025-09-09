@@ -51,6 +51,7 @@ SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs*
 ## Installation
 
 ### For Users
+
 Download the latest installer from 👉 [snap-mind.github.io](https://snap-mind.github.io) or [Releases](https://github.com/Snap-Mind/snap-mind/releases).
 
 > <u>Currently supports **macOS** and **Windows**.</u>
@@ -69,6 +70,7 @@ Download the latest installer from 👉 [snap-mind.github.io](https://snap-mind.
 ### For Developers
 
 Clone this repository:
+
 ```bash
 git clone git@github.com:Snap-Mind/snap-mind.git
 ```
@@ -110,4 +112,3 @@ npm run build:win-prod
 ## License
 
 [Apache 2.0](./LICENSE)
-

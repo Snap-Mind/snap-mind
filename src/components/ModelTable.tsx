@@ -67,8 +67,12 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
   const editFormRef = useRef<HTMLFormElement>(null);
   const [deleteModelId, setDeleteModelId] = useState<string | null>(null);
   const [deleteModelName, setDeleteModelName] = useState<string>('');
-  const [addModelErrors, setAddModelErrors] = useState<Partial<Record<keyof ModelSetting, string>>>({});
-  const [editModelErrors, setEditModelErrors] = useState<Partial<Record<keyof ModelSetting, string>>>({});
+  const [addModelErrors, setAddModelErrors] = useState<Partial<Record<keyof ModelSetting, string>>>(
+    {}
+  );
+  const [editModelErrors, setEditModelErrors] = useState<
+    Partial<Record<keyof ModelSetting, string>>
+  >({});
 
   useEffect(() => {
     setLocalModels(models);
@@ -77,7 +81,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
   const handleAddModel = () => {
     if (addFormRef.current && addFormRef.current.checkValidity()) {
       const errors: Partial<Record<keyof ModelSetting, string>> = {};
-      const isDuplicate = localModels.some(model => model.id === addFormData.id);
+      const isDuplicate = localModels.some((model) => model.id === addFormData.id);
       if (isDuplicate) {
         errors.id = 'Model id already exists. Please use a unique id.';
         setAddModelErrors(errors);
@@ -228,9 +232,9 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
                   setFormData={(newFormData) => {
                     const changedKeys = Object.keys(newFormData) as (keyof typeof newFormData)[];
                     setAddFormData(newFormData);
-                    setAddModelErrors(prevErrors => {
+                    setAddModelErrors((prevErrors) => {
                       const updatedErrors = { ...prevErrors };
-                      changedKeys.forEach(key => {
+                      changedKeys.forEach((key) => {
                         if (addFormData[key] !== newFormData[key]) {
                           updatedErrors[key] = undefined;
                         }

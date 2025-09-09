@@ -9,6 +9,7 @@ Please describe your changes and the motivation behind them.
 Closes # (issue number)
 
 ## Type of Change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Documentation update
@@ -16,6 +17,7 @@ Closes # (issue number)
 - [ ] Other
 
 ## Checklist
+
 - [ ] My code follows the style guidelines of this project
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas

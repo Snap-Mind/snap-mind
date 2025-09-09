@@ -489,7 +489,9 @@ ipcMain.handle('system:open-accessibility', async () => {
   try {
     if (process.platform === 'darwin') {
       // Open the macOS System Settings Accessibility pane
-      shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility');
+      shell.openExternal(
+        'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
+      );
     }
     return { success: true };
   } catch (error) {

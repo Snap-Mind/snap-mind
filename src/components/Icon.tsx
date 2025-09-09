@@ -1,6 +1,23 @@
-import { Eye, EyeOff, Trash2, SquarePen, Plus, Square, CircleCheckBig, CircleX } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  Trash2,
+  SquarePen,
+  Plus,
+  Square,
+  CircleCheckBig,
+  CircleX,
+} from 'lucide-react';
 
-type IconType = 'eye' | 'eye-off' | 'trash-2' | 'square-pen' | 'plus' | 'square' | 'circle-check-big' | 'circle-x';
+type IconType =
+  | 'eye'
+  | 'eye-off'
+  | 'trash-2'
+  | 'square-pen'
+  | 'plus'
+  | 'square'
+  | 'circle-check-big'
+  | 'circle-x';
 
 interface IconProps {
   className?: string;

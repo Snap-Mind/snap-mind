@@ -32,9 +32,7 @@ function SettingsCategory({
   };
 
   const activeStyle = (category) => {
-    return category.id === activeCategory.id
-      ? 'bg-default'
-      : '';
+    return category.id === activeCategory.id ? 'bg-default' : '';
   };
 
   return (

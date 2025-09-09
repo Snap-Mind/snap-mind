@@ -33,13 +33,7 @@ export interface ModelSetting {
   capabilities: Capability[];
 }
 
-export type ModelType =
-  | 'chat'
-  | 'image'
-  | 'embedding'
-  | 'tool'
-  | 'code'
-  | 'vision';
+export type ModelType = 'chat' | 'image' | 'embedding' | 'tool' | 'code' | 'vision';
 
 export type Capability =
   | 'chat'

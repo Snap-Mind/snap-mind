@@ -39,9 +39,7 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
   });
 
   const activeStyle = (provider) => {
-    return activeProvider != null && provider.id === activeProvider.id
-      ? 'bg-default'
-      : '';
+    return activeProvider != null && provider.id === activeProvider.id ? 'bg-default' : '';
   };
 
   return (

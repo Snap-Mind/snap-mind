@@ -30,7 +30,7 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
                 showAnchorIcon
                 onClick={onOpenSystemAccessibility}
               />,
-              <strong className='text-primary' />
+              <strong className="text-primary" />,
             ]}
           />
         )}
@@ -52,7 +52,7 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
                 showAnchorIcon
                 onClick={onOpenInstallationFolder}
               />,
-               <strong className='text-primary' />
+              <strong className="text-primary" />,
             ]}
           />
         )}

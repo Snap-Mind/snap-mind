@@ -1,6 +1,7 @@
 # Issue Template
 
 ## Type of issue
+
 - [ ] Bug
 - [ ] Feature request
 - [ ] Documentation
@@ -11,9 +12,10 @@
 Please describe the issue or feature request in detail.
 
 ## Steps to Reproduce (for bugs)
-1. 
-2. 
-3. 
+
+1.
+2.
+3.
 
 ## Expected Behavior
 
@@ -22,6 +24,7 @@ Please describe the issue or feature request in detail.
 ## Screenshots (if applicable)
 
 ## Environment
+
 - OS:
 - Node version:
 - App version:

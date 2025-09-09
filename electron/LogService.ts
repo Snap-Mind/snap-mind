@@ -16,10 +16,10 @@ class LogService {
   private log: typeof mainLog;
 
   constructor() {
-  this.log = mainLog;
+    this.log = mainLog;
 
-  this.log.initialize({ preload: true });
-  Object.assign(console, this.log.functions);
+    this.log.initialize({ preload: true });
+    Object.assign(console, this.log.functions);
     this.configureLogger();
   }
 

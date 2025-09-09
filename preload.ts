@@ -41,8 +41,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openInstallFolder: () => ipcRenderer.invoke('system:open-install-folder'),
   onPermissionChanged: (callback) =>
     ipcRenderer.on('permission:changed', (_event, permissions) => callback(permissions)),
-  offPermissionChanged: () =>
-    ipcRenderer.removeAllListeners('permission:changed'),
+  offPermissionChanged: () => ipcRenderer.removeAllListeners('permission:changed'),
   // General app events
   quitApp: () => ipcRenderer.send('app:quit'),
 });
