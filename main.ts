@@ -18,6 +18,7 @@ import TextSelectionService from './electron/TextSelectionService';
 import SettingsService from './electron/SettingsService';
 import SystemPermissionService from './electron/SystemPermissionService';
 import logService from './electron/LogService';
+import AutoUpdateService from './electron/AutoUpdateService';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,6 +42,7 @@ if (!gotTheLock) {
 }
 
 const settingsService = new SettingsService();
+let autoUpdateService: AutoUpdateService | null = null;
 
 let tray = null;
 let chatPopupWindow = null;
@@ -407,6 +409,12 @@ ipcMain.handle('settings:get', () => {
 
 ipcMain.handle('settings:update', async (event, newSettings) => {
   try {
+
+    const beta = !!newSettings?.autoUpdate?.betaChannel;
+    if (autoUpdateService) {
+      autoUpdateService.updatePrereleaseFlag(beta);
+    }
+
     const updated = await settingsService.updateSettings(newSettings);
     logService.debug('[main] Settings updated:', updated);
 
@@ -425,6 +433,13 @@ ipcMain.handle('settings:update', async (event, newSettings) => {
 
 ipcMain.handle('settings:update-path', async (event, { path, value }) => {
   try {
+    if (path[0] === 'autoUpdate' && path[1] === 'betaChannel') {
+      const beta = !!value;
+      if (autoUpdateService) {
+        autoUpdateService.updatePrereleaseFlag(beta);
+      }
+    }
+
     const updated = await settingsService.updateSetting(path, value);
     logService.debug('[main] Settings updated:', updated);
 
@@ -511,6 +526,17 @@ ipcMain.handle('system:open-install-folder', async () => {
   }
 });
 
+// Update-related IPC
+ipcMain.handle('update:check', () => {
+  if (autoUpdateService) return autoUpdateService.manualCheck();
+  return { started: false, reason: 'disabled' };
+});
+ipcMain.handle('update:install', () => {
+  if (autoUpdateService) return autoUpdateService.installNow();
+  return false;
+});
+ipcMain.handle('app:get-version', () => app.getVersion());
+
 app.on('window-all-closed', function () {
   // do nothing, so app stays active in tray
 });
@@ -525,6 +551,27 @@ app.whenReady().then(() => {
   logService.logSystemInfo();
 
   settingsService.initializeConfigs();
+
+  // Initialize auto update service based on settings (general.autoUpdate)
+  try {
+    const settings = settingsService.getSettings();
+    const autoUpdate = settings?.general?.autoUpdate || {
+      enabled: true,
+      checkOnLaunchDelaySec: 10,
+      betaChannel: false,
+    };
+    autoUpdateService = new AutoUpdateService({
+      enabled: autoUpdate.enabled !== false,
+      checkOnStartDelay:
+        typeof autoUpdate.checkOnLaunchDelaySec === 'number'
+          ? autoUpdate.checkOnLaunchDelaySec
+          : 10,
+      allowPrerelease: !!autoUpdate.betaChannel,
+    });
+    autoUpdateService.init();
+  } catch (e) {
+    logService.error('[main] failed to init auto update service', e);
+  }
 
   createSettingsWindow();
 

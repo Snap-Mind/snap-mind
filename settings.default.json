@@ -1,7 +1,12 @@
 {
   "general": {
     "language": "",
-    "clipboardEnabled": true
+    "clipboardEnabled": true,
+    "autoUpdate": {
+      "enabled": true,
+      "checkOnLaunchDelaySec": 10,
+      "betaChannel": false
+    }
   },
   "chat": {
     "temperature": 0.7,
