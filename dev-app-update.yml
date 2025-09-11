@@ -1,0 +1,6 @@
+provider: github
+owner: Snap-Mind
+repo: snap-mind
+# releaseType: release
+# When testing prereleases locally, set to 'prerelease'
+releaseType: prerelease

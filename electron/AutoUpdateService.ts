@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from 'electron';
+import path from 'path';
 import logService from './LogService';
 // electron-updater is CommonJS; import compatibility handled below
 import electronUpdater, { type AppUpdater } from 'electron-updater';
@@ -21,6 +22,8 @@ export interface AutoUpdateOptions {
   enabled: boolean;
 }
 
+const __rootdir = process.cwd();
+
 export default class AutoUpdateService {
   private updater: AppUpdater | null = null;
   private initialized = false;
@@ -40,6 +43,19 @@ export default class AutoUpdateService {
 
     this.updater.autoDownload = true;
     this.updater.allowPrerelease = this.options.allowPrerelease;
+    // Enable update checks in development with dev-app-update.yml
+  if (!app.isPackaged) {
+      try {
+        (this.updater as any).forceDevUpdateConfig = true;
+    // When running from source, main is executed from dist-electron/main.js.
+    // Use project root as CWD to locate dev-app-update.yml reliably.
+    const devConfigPath = path.join(__rootdir, 'dev-app-update.yml');
+    (this.updater as any).updateConfigPath = devConfigPath;
+    logService.info('[update] dev mode: forceDevUpdateConfig enabled, path =', devConfigPath);
+      } catch (e) {
+        logService.warn('[update] dev mode: failed to enable forceDevUpdateConfig', e);
+      }
+    }
     // Let electron-builder manage feed (via app-update.yml)
 
     // Attach logger
