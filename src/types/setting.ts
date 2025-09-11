@@ -1,6 +1,6 @@
 import { AnthropicConfig, AzureOpenAIConfig, GoogleConfig, OpenAIConfig } from './providers';
 
-export interface Setting {
+export type Setting = {
   general: GeneralSetting;
   chat: ChatSetting;
   providers: ProviderSetting[];
@@ -8,6 +8,14 @@ export interface Setting {
 
 export interface GeneralSetting {
   clipboardEnabled: boolean;
+  app: App;
+  autoUpdate?: AutoUpdateSetting;
+}
+
+export interface AutoUpdateSetting {
+  enabled: boolean;
+  checkOnLaunchDelaySec: number;
+  betaChannel: boolean;
 }
 
 export interface ChatSetting {
@@ -53,3 +61,7 @@ export type Capability =
   | 'multi-modal';
 
 export type ProviderSetting = OpenAIConfig | AzureOpenAIConfig | AnthropicConfig | GoogleConfig;
+
+export interface App {
+  version: string;
+}

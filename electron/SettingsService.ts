@@ -80,8 +80,14 @@ class SettingsService {
     // Deep merge default settings with user settings
     // This will preserve all user settings while adding any missing fields from default settings
     const mergedSettings = mergeDeep(userSettings, defaultSettings);
+    // Add app info to the settings
+    mergedSettings.general.app = {
+      version: app.getVersion(),
+    };
+    // Encrypt any API keys
     this.settings = this.processApiKeys(mergedSettings, false);
 
+    // Load hotkeys
     this.loadHotkeys();
   }
 

@@ -4,6 +4,20 @@
     "general": {
       "title": "General",
       "language": "Language",
+      "update": {
+        "title": "App Updates",
+        "version": "Version",
+        "currentVersion": "Current version: {{version}}",
+        "checkNow": "Check Now",
+        "description": "Check for updates on launch and download automatically.",
+        "restartToUpdate": "Restart to Update",
+        "statusIdle": "Idle",
+        "statusChecking": "Checking for updates...",
+        "statusAvailable": "Update available",
+        "statusNone": "You are up to date.",
+        "statusError": "Update error",
+        "statusDownloaded": "Update downloaded"
+      },
       "permission": {
         "title": "Permissions",
         "macAccessibility": "Accessibility",

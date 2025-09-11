@@ -34,7 +34,6 @@
     "@heroui/use-theme": "^2.1.10",
     "@tailwindcss/vite": "^4.1.11",
     "electron-log": "^5.4.2",
-    "electron-updater": "^6.6.8",
     "framer-motion": "^12.23.12",
     "github-markdown-css": "^5.8.1",
     "i18next": "^25.4.2",
@@ -52,7 +51,7 @@
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.1.11",
-    "electron-updater": "^6.6.8"
+  "electron-updater": "^6.6.8"
   },
   "devDependencies": {
     "@electron/notarize": "^2.5.0",

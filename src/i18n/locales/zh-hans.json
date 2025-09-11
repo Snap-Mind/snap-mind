@@ -4,6 +4,20 @@
     "general": {
       "title": "通用",
       "language": "语言",
+      "update": {
+        "title": "应用更新",
+        "version": "版本",
+        "currentVersion": "当前版本：{{version}}",
+        "checkNow": "立即检查",
+        "description": "启动时检查更新并自动下载。",
+        "restartToUpdate": "重启更新",
+        "statusIdle": "空闲",
+        "statusChecking": "正在检查更新...",
+        "statusAvailable": "发现可用更新",
+        "statusNone": "当前已是最新版本。",
+        "statusError": "更新出错",
+        "statusDownloaded": "更新已下载"
+      },
       "permission": {
         "title": "权限",
         "macAccessibility": "辅助功能权限",

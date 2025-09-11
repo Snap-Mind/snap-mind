@@ -10,9 +10,9 @@ export type UpdateEvent =
   | { type: 'not-available'; info: any }
   | { type: 'error'; error: string }
   | {
-      type: 'download-progress';
-      progress: { percent: number; transferred: number; total: number; bytesPerSecond: number };
-    }
+    type: 'download-progress';
+    progress: { percent: number; transferred: number; total: number; bytesPerSecond: number };
+  }
   | { type: 'downloaded'; info: any };
 
 export interface AutoUpdateOptions {
@@ -32,7 +32,7 @@ export default class AutoUpdateService {
   }
 
   init() {
-    if (this.initialized || !this.options.enabled) return;
+    if (this.initialized) return;
 
     // Workaround for ESM compatibility as recommended by electron-builder docs
     const { autoUpdater } = electronUpdater as any;
@@ -48,7 +48,7 @@ export default class AutoUpdateService {
     this.registerEvents();
     this.initialized = true;
 
-    if (this.options.checkOnStartDelay >= 0) {
+    if (this.options.enabled && this.options.checkOnStartDelay >= 0) {
       setTimeout(() => this.safeCheck(), this.options.checkOnStartDelay * 1000).unref();
     }
   }
@@ -113,7 +113,8 @@ export default class AutoUpdateService {
   }
 
   manualCheck() {
-    if (!this.updater) return { started: false, reason: 'not-initialized-or-disabled' };
+    if (!this.initialized) this.init();
+    if (!this.updater) return { started: false, reason: 'init-failed' };
     this.safeCheck();
     return { started: true };
   }
