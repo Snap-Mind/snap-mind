@@ -56,9 +56,10 @@ jobs:
           fi
 
       - name: Rename latest-mac.yml to arch-specific name
+        if: ${{ matrix.arch == 'arm64' }}
         run: |
           if [ -f build/latest-mac.yml ]; then
-            mv build/latest-mac.yml build/latest-mac-${{ matrix.arch }}.yml
+            mv build/latest-mac.yml build/latest-mac-arm64.yml
           fi
 
       - name: List build contents
