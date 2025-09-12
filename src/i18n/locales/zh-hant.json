@@ -29,7 +29,7 @@
         "administratorNotGranted": "為獲得最佳的文字選取體驗，請以管理員權限執行此應用。要執行此操作，<0>打開安裝資料夾</0>。或啟用<1>剪貼簿備用</1>功能。"
       },
       "clipboardFallback": "剪貼簿備用",
-      "clipboardFallbackDescription": "不開啟此選項將無法在 Chrome 等應用中使用本軟件"
+      "clipboardFallbackDescription": "不開啟此選項將無法在 Chrome 等應用中使用本軟件。"
     },
     "providers": {
       "title": "AI模型",
