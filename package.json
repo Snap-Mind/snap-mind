@@ -1,7 +1,7 @@
 {
   "name": "snap-mind",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.1.5-beta.1",
   "description": "A quick prompt launcher.",
   "author": "Louis Liu",
   "license": "Apache-2.0",
@@ -51,7 +51,7 @@
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.1.11",
-  "electron-updater": "^6.6.8"
+    "electron-updater": "^6.6.8"
   },
   "devDependencies": {
     "@electron/notarize": "^2.5.0",

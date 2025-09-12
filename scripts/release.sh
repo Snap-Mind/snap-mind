@@ -72,10 +72,10 @@ git commit -m "chore(release): bump version to $(node -p "require('./package.jso
 echo "==> Create annotated tag: $TAG"
 git tag -a "$TAG" -m "release $TAG"
 
-echo "==> Push branch commits"
-git push
+# echo "==> Push branch commits"
+# git push
 
-echo "==> Push tag"
-git push origin "$TAG"
+# echo "==> Push tag"
+# git push origin "$TAG"
 
 echo "==> Done. Released $TAG on branch $CURRENT_BRANCH."
