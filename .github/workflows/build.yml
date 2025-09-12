@@ -72,7 +72,7 @@ jobs:
           path: |
             build/*.dmg
             build/*.zip
-            build/latest-mac-${{ matrix.arch }}.yml
+            ${{ matrix.arch == 'arm64' && 'build/latest-mac-arm64.yml' || 'build/latest-mac.yml' }}
             build/*.blockmap
             build/*.sha512
           retention-days: 1
