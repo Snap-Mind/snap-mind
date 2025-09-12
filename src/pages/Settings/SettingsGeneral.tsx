@@ -1,4 +1,4 @@
-import { Divider, Card, CardBody, CardHeader, Switch, Link, Button, Input, Progress } from '@heroui/react';
+import { Divider, Card, CardBody, CardHeader, Switch, Link, Button, Progress } from '@heroui/react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { LanguageSelector } from '../../components/LanguageSelector';
@@ -111,8 +111,8 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
 
   const renderAutoUpdateStatus = () => {
     return (
-      <div className="text-xs text-gray-600 flex flex-col gap-2">
-        {updateStatus.type === 'idle' && t('settings.general.update.statusIdle', 'Idle')}
+      <div className="text-sm text-gray-600 flex flex-col gap-2">
+        {updateStatus.type === 'idle' && t('settings.general.update.statusIdle')}
         {updateStatus.type === 'checking' && t('settings.general.update.statusChecking', 'Checking for updates...')}
         {updateStatus.type === 'available' && (
           <span>
@@ -206,22 +206,27 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
           <CardHeader className="flex gap-3 justify-between items-center">
             <h4 className="font-bold">{t('settings.general.update.version')}</h4>
           </CardHeader>
-          <CardBody className="flex flex-col gap-4">
-            {renderAutoUpdateStatus()}
-            <p className="text-sm text-gray-500">{t('settings.general.update.currentVersion', { version: settings.app?.version })}</p>
-            <Button color="primary" onPress={() => window.electronAPI.checkForUpdates?.()}>
-              {t('settings.general.update.checkNow')}
-            </Button>
-            {updateStatus.type === 'downloaded' && (
-              <Button color="primary" onPress={() => window.electronAPI.installUpdateNow?.()}>
-                {t('settings.general.update.restartToUpdate')}
-              </Button>
-            )}
+          <CardBody>
+            <div className='flex flex-col gap-4'>
+              {renderAutoUpdateStatus()}
+              <p className="text-sm text-gray-500">{t('settings.general.update.currentVersion', { version: settings.app?.version })}</p>
+              <div className='flex gap-2'>
+                <Button color="primary" variant="ghost" onPress={() => window.electronAPI.checkForUpdates?.()}>
+                  {t('settings.general.update.checkNow')}
+                </Button>
+                {updateStatus.type === 'downloaded' && (
+                  <Button color="primary" onPress={() => window.electronAPI.installUpdateNow?.()}>
+                    {t('settings.general.update.restartToUpdate')}
+                  </Button>
+                )}
+              </div>
+            </div>
+
           </CardBody>
         </Card>
         <Card className="w-full my-5 border-1 border-gray-100" shadow="none">
           <CardHeader className="flex gap-3 justify-between items-center">
-            <h4 className="font-bold">{t('settings.general.update.title')}</h4>
+            <h4 className="font-bold">{t('settings.general.update.autoUpdate')}</h4>
             <Switch
               size="sm"
               defaultSelected={settings.autoUpdate?.enabled}

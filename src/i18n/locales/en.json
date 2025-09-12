@@ -11,12 +11,13 @@
         "checkNow": "Check Now",
         "description": "Check for updates on launch and download automatically.",
         "restartToUpdate": "Restart to Update",
-        "statusIdle": "Idle",
+        "statusIdle": " ",
         "statusChecking": "Checking for updates...",
         "statusAvailable": "Update available",
         "statusNone": "You are up to date.",
         "statusError": "Update error",
-        "statusDownloaded": "Update downloaded"
+        "statusDownloaded": "Update downloaded",
+        "autoUpdate": "Auto Update"
       },
       "permission": {
         "title": "Permissions",

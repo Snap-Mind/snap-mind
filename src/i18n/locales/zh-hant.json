@@ -11,12 +11,13 @@
         "checkNow": "立即檢查",
         "description": "啟動時檢查更新並自動下載。",
         "restartToUpdate": "重新啟動以更新",
-        "statusIdle": "閒置",
+        "statusIdle": " ",
         "statusChecking": "正在檢查更新...",
         "statusAvailable": "發現可用更新",
         "statusNone": "目前已是最新版本。",
         "statusError": "更新錯誤",
-        "statusDownloaded": "更新已下載"
+        "statusDownloaded": "更新已下載",
+        "autoUpdate": "自動更新"
       },
       "permission": {
         "title": "權限",
