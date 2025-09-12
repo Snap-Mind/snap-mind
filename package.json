@@ -13,7 +13,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:electron": "npm run copy:assets && concurrently -k -r \"vite build -c vite.config.main.ts -w\" \"tsc -p tsconfig.preload.json -w\" \"vite\" \"wait-on dist-electron/main.js dist-electron/preload.js && wait-on http://localhost:5173 && electron dist-electron/main.js\"",
+    "dev:electron": "npm run copy:assets && concurrently -k -r \"vite build -c vite.config.main.ts -w\" \"tsc -p tsconfig.preload.json -w\" \"vite\" \"wait-on dist-electron/main.js dist-electron/preload.js && wait-on http://localhost:5173 && electron .\"",
     "build": "npm run build:main && npm run build:preload && npm run build:render",
     "build:main": "vite build -c vite.config.main.ts && npm run copy:assets",
     "build:preload": "tsc -p tsconfig.preload.json",
