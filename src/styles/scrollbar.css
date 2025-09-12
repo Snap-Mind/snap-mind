@@ -1,0 +1,50 @@
+/* Global custom auto-hiding scrollbars */
+/* This attempts to mimic overlay scrollbars even when macOS system preference is set to 'Always'. */
+/* Applied only inside our app root to avoid interfering with embedded web content if any. */
+
+:root {
+  /* Provide space fallback similar to scrollbar-gutter stable, but we rely on overlay illusion */
+  scrollbar-gutter: stable both-edges; /* modern browsers (Chromium) */
+}
+
+/* Hide scrollbar track by default, show on hover/active scrolling */
+* {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(120,120,120,0.5) transparent; /* Firefox */
+}
+
+/* Chromium/WebKit */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: transparent; /* fully transparent track */
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-clip: padding-box;
+  border-radius: 4px;
+  background-color: rgba(120,120,120,0.0);
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+  opacity: 0; /* start hidden */
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(120,120,120,0.55);
+}
+
+/* When user is interacting (body has .show-scrollbars), reveal */
+body.show-scrollbars *::-webkit-scrollbar-thumb {
+  background-color: rgba(120,120,120,0.35);
+  opacity: 1;
+}
+
+body.show-scrollbars *::-webkit-scrollbar-thumb:active {
+  background-color: rgba(120,120,120,0.6);
+}
+
+/* Fallback: if user prefers always-visible (future toggle), we can add .force-scrollbars class */
+body.force-scrollbars *::-webkit-scrollbar-thumb {
+  background-color: rgba(120,120,120,0.5);
+  opacity: 1;
+}

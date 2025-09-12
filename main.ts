@@ -24,6 +24,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const resourcesPath = isDev() ? path.join(__dirname, '..') : process.resourcesPath;
 
+// Enable Chromium overlay scrollbars feature (modern auto-hide style) if available.
+// Should be called before app 'ready'. Safe no-op if feature already default.
+try {
+  app.commandLine.appendSwitch('enable-features', 'OverlayScrollbar,OverlayScrollbarFlashAfterAnyScrollUpdate,OverlayScrollbarFlashWhenMouseEnter');
+} catch (e) {
+  // ignore if not supported
+}
+
 // ---- SINGLE INSTANCE LOCK ----
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
