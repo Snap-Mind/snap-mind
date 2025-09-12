@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState, useMemo, ReactNode } from 'react';
+import { Spinner } from '@heroui/react';
 import { LoggerService } from '../services/LoggerService';
 import { SettingsManager } from '../services/SettingsManager';
 
@@ -16,6 +17,7 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const loggerService = useMemo(() => new LoggerService(), []);
   const [settingsManager, setSettingsManager] = useState<SettingsManager | null>(null);
   const [systemPermissions, setSystemPermissions] = useState<SystemPermission[] | null>(null);
+  const [theme] = useState<'light' | 'dark'>(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -68,7 +70,9 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
   return (
     <>
       {loading ? (
-        <>Loading...</>
+        <div className={`${theme === 'dark' ? 'dark' : ''} bg-background text-default h-screen w-full flex items-center justify-center`}>
+          <Spinner variant="dots" size='lg'/>
+        </div>
       ) : (
         <LoggerServiceContext.Provider value={loggerService}>
           <SettingsManagerContext.Provider value={settingsManager}>
