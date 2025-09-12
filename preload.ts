@@ -44,4 +44,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   offPermissionChanged: () => ipcRenderer.removeAllListeners('permission:changed'),
   // General app events
   quitApp: () => ipcRenderer.send('app:quit'),
+  // Auto update APIs
+  onUpdateEvent: (callback) => {
+    ipcRenderer.on('update:event', (_event, evt) => callback(evt));
+  },
+  offUpdateEvent: () => ipcRenderer.removeAllListeners('update:event'),
+  checkForUpdates: () => ipcRenderer.invoke('update:check'),
+  installUpdateNow: () => ipcRenderer.invoke('update:install'),
+  getAppVersion: () => ipcRenderer.invoke('app:get-version'),
 });

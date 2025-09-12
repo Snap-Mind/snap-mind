@@ -15,6 +15,17 @@ export interface SystemPermission {
   isGranted: boolean;
 }
 
+export type UpdateEvent =
+  | { type: 'checking' }
+  | { type: 'available'; info: any }
+  | { type: 'not-available'; info: any }
+  | { type: 'error'; error: string }
+  | {
+      type: 'download-progress';
+      progress: { percent: number; transferred: number; total: number; bytesPerSecond: number };
+    }
+  | { type: 'downloaded'; info: any };
+
 interface ElectronAPI {
   // Chat popup events
   showChatPopup: (position: { x: number; y: number }) => void;
@@ -62,6 +73,13 @@ interface ElectronAPI {
 
   // General app events
   quitApp: () => void;
+
+  // Auto update APIs
+  onUpdateEvent: (callback: (evt: UpdateEvent) => void) => void;
+  offUpdateEvent: () => void;
+  checkForUpdates: () => Promise<{ started: boolean; reason?: string }>;
+  installUpdateNow: () => Promise<boolean>;
+  getAppVersion: () => Promise<string>;
 }
 
 export type SettingsChangeHandler = (

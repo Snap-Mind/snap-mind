@@ -1,10 +1,20 @@
-import { Divider, Card, CardBody, CardHeader, Switch, Link } from '@heroui/react';
+import { Divider, Card, CardBody, CardHeader, Switch, Link, Button, Progress } from '@heroui/react';
 import { Trans, useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import Icon from '../../components/Icon';
 
-import { SettingsChangeHandler, SystemPermission } from '@/types';
+import { SettingsChangeHandler, SystemPermission, UpdateEvent } from '@/types';
 import { GeneralSetting } from '@/types/setting';
+
+type UpdateStatus =
+  | { type: 'idle' }
+  | { type: 'checking' }
+  | { type: 'available'; version?: string }
+  | { type: 'not-available' }
+  | { type: 'error'; message: string }
+  | { type: 'progress'; percent: number }
+  | { type: 'downloaded'; version?: string };
 
 export interface SettingsGeneralProps {
   settings: GeneralSetting;
@@ -14,6 +24,38 @@ export interface SettingsGeneralProps {
 
 function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGeneralProps) {
   const { t } = useTranslation();
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ type: 'idle' });
+
+  useEffect(() => {
+    if (!window.electronAPI?.onUpdateEvent) return;
+    const handler = (evt: UpdateEvent) => {
+      if (!evt || !evt.type) return;
+      switch (evt.type) {
+        case 'checking':
+          setUpdateStatus({ type: 'checking' });
+          break;
+        case 'available':
+          setUpdateStatus({ type: 'available', version: evt.info?.version });
+          break;
+        case 'not-available':
+          setUpdateStatus({ type: 'not-available' });
+          break;
+        case 'error':
+          setUpdateStatus({ type: 'error', message: evt.error });
+          break;
+        case 'download-progress':
+          setUpdateStatus({ type: 'progress', percent: Math.round(evt.progress?.percent || 0) });
+          break;
+        case 'downloaded':
+          setUpdateStatus({ type: 'downloaded', version: evt.info?.version });
+          break;
+        default:
+          break;
+      }
+    };
+    window.electronAPI.onUpdateEvent(handler);
+    return () => window.electronAPI?.offUpdateEvent && window.electronAPI.offUpdateEvent();
+  }, []);
 
   const renderPermissionCard = (permission: SystemPermission) => {
     const accessibilityInfo = () => (
@@ -67,6 +109,38 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
     );
   };
 
+  const renderAutoUpdateStatus = () => {
+    return (
+      <div className="text-sm text-gray-600 flex flex-col gap-2">
+        {updateStatus.type === 'idle' && t('settings.general.update.statusIdle')}
+        {updateStatus.type === 'checking' && t('settings.general.update.statusChecking', 'Checking for updates...')}
+        {updateStatus.type === 'available' && (
+          <span>
+            {t('settings.general.update.statusAvailable', 'Update available')} {updateStatus.version && `(${updateStatus.version})`}
+          </span>
+        )}
+        {updateStatus.type === 'not-available' && t('settings.general.update.statusNone', 'You are up to date.')}
+        {updateStatus.type === 'error' && (
+          <span className="text-danger">
+            {t('settings.general.update.statusError', 'Update error')}: {updateStatus.message}
+          </span>
+        )}
+        {updateStatus.type === 'progress' && (
+          <div className="flex items-center gap-3">
+            <Progress aria-label="download progress" size="sm" value={updateStatus.percent} className="max-w-[240px]" />
+            <span>{updateStatus.percent}%</span>
+          </div>
+        )}
+        {updateStatus.type === 'downloaded' && (
+          <span className="text-primary">
+            {t('settings.general.update.statusDownloaded', 'Update downloaded')}
+            {updateStatus.version && ` (${updateStatus.version})`}
+          </span>
+        )}
+      </div>
+    )
+  }
+
   const onOpenSystemAccessibility = () => {
     if (window.electronAPI.openSystemAccessibility) {
       window.electronAPI.openSystemAccessibility();
@@ -90,6 +164,7 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
           <label className="block text-sm font-medium mb-2">{t('settings.general.language')}</label>
           <LanguageSelector />
         </div>
+
         <Divider className="my-4" />
         <h2 className="font-bold text-xl">{t('settings.general.permission.title')}</h2>
         {permissions.map((permission) => (
@@ -121,6 +196,50 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
           <CardBody className="flex flex-col gap-5">
             <div className="text-xs text-gray-500">
               {t('settings.general.clipboardFallbackDescription')}
+            </div>
+          </CardBody>
+        </Card>
+
+        <Divider className="my-4" />
+        <h2 className="font-bold text-xl">{t('settings.general.update.title')}</h2>
+        <Card className="w-full my-5 border-1 border-gray-100" shadow="none">
+          <CardHeader className="flex gap-3 justify-between items-center">
+            <h4 className="font-bold">{t('settings.general.update.version')}</h4>
+          </CardHeader>
+          <CardBody>
+            <div className='flex flex-col gap-4'>
+              {renderAutoUpdateStatus()}
+              <p className="text-sm text-gray-500">{t('settings.general.update.currentVersion', { version: settings.app?.version })}</p>
+              <div className='flex gap-2'>
+                <Button color="primary" variant="ghost" onPress={() => window.electronAPI.checkForUpdates?.()}>
+                  {t('settings.general.update.checkNow')}
+                </Button>
+                {updateStatus.type === 'downloaded' && (
+                  <Button color="primary" onPress={() => window.electronAPI.installUpdateNow?.()}>
+                    {t('settings.general.update.restartToUpdate')}
+                  </Button>
+                )}
+              </div>
+            </div>
+
+          </CardBody>
+        </Card>
+        <Card className="w-full my-5 border-1 border-gray-100" shadow="none">
+          <CardHeader className="flex gap-3 justify-between items-center">
+            <h4 className="font-bold">{t('settings.general.update.autoUpdate')}</h4>
+            <Switch
+              size="sm"
+              defaultSelected={settings.autoUpdate?.enabled}
+              onValueChange={(value) => onSettingsChange(['general', 'autoUpdate', 'enabled'], value)}
+            >
+              {t('common.enabled')}
+            </Switch>
+          </CardHeader>
+          <CardBody className="flex flex-col gap-4">
+            <div className="grid grid-cols-[1fr_auto] items-center gap-4">
+              <div className="text-xs text-gray-500">
+                {t('settings.general.update.description')}
+              </div>
             </div>
           </CardBody>
         </Card>

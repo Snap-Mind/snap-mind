@@ -4,6 +4,21 @@
     "general": {
       "title": "通用",
       "language": "語言",
+      "update": {
+        "title": "應用更新",
+        "version": "版本",
+        "currentVersion": "目前版本：{{version}}",
+        "checkNow": "立即檢查",
+        "description": "啟動時檢查更新並自動下載。",
+        "restartToUpdate": "重新啟動以更新",
+        "statusIdle": " ",
+        "statusChecking": "正在檢查更新...",
+        "statusAvailable": "發現可用更新",
+        "statusNone": "目前已是最新版本。",
+        "statusError": "更新錯誤",
+        "statusDownloaded": "更新已下載",
+        "autoUpdate": "自動更新"
+      },
       "permission": {
         "title": "權限",
         "macAccessibility": "輔助使用",
@@ -14,7 +29,7 @@
         "administratorNotGranted": "為獲得最佳的文字選取體驗，請以管理員權限執行此應用。要執行此操作，<0>打開安裝資料夾</0>。或啟用<1>剪貼簿備用</1>功能。"
       },
       "clipboardFallback": "剪貼簿備用",
-      "clipboardFallbackDescription": "不開啟此選項將無法在 Chrome 等應用中使用本軟件"
+      "clipboardFallbackDescription": "不開啟此選項將無法在 Chrome 等應用中使用本軟件。"
     },
     "providers": {
       "title": "AI模型",

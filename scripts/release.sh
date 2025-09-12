@@ -29,11 +29,28 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-echo "==> Switch to main"
-git checkout main
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "==> Operating on current branch: $CURRENT_BRANCH"
 
-echo "==> Pull latest changes from origin/main"
-git pull --ff-only origin main
+echo "==> Fetch & fast-forward (if possible) current branch from origin/$CURRENT_BRANCH"
+git fetch origin "$CURRENT_BRANCH" || true
+if git rev-parse --verify "origin/$CURRENT_BRANCH" >/dev/null 2>&1; then
+  # Cases:
+  # 1) origin is ancestor of HEAD  -> local ahead (ok)
+  # 2) HEAD is ancestor of origin  -> need fast-forward
+  # 3) Diverged                    -> abort
+  if git merge-base --is-ancestor "origin/$CURRENT_BRANCH" HEAD; then
+    echo "==> Local is ahead of origin/$CURRENT_BRANCH (no fast-forward needed)"
+  elif git merge-base --is-ancestor HEAD "origin/$CURRENT_BRANCH"; then
+    echo "==> Fast-forwarding to origin/$CURRENT_BRANCH"
+    git merge --ff-only "origin/$CURRENT_BRANCH"
+  else
+    echo "ERROR: Branch has diverged from origin/$CURRENT_BRANCH. Please reconcile (pull/rebase) before releasing." >&2
+    exit 1
+  fi
+else
+  echo "==> Remote branch origin/$CURRENT_BRANCH does not exist yet (will be created on push)."
+fi
 
 echo "==> Bump package.json version: $VERSION_ARG"
 # Use npm to update package.json without creating git tag/commit
@@ -55,8 +72,10 @@ git commit -m "chore(release): bump version to $(node -p "require('./package.jso
 echo "==> Create annotated tag: $TAG"
 git tag -a "$TAG" -m "release $TAG"
 
-echo "==> Push tags"
-git push origin "$TAG"
+# echo "==> Push branch commits"
+# git push
 
-echo "==> Done. Released $TAG."
-echo "==> Next, manually push commit to main: git push origin main"
+# echo "==> Push tag"
+# git push origin "$TAG"
+
+echo "==> Done. Released $TAG on branch $CURRENT_BRANCH."

@@ -4,6 +4,21 @@
     "general": {
       "title": "通用",
       "language": "语言",
+      "update": {
+        "title": "应用更新",
+        "version": "版本",
+        "currentVersion": "当前版本：{{version}}",
+        "checkNow": "立即检查",
+        "description": "启动时检查更新并自动下载。",
+        "restartToUpdate": "重启更新",
+        "statusIdle": " ",
+        "statusChecking": "正在检查更新...",
+        "statusAvailable": "发现可用更新",
+        "statusNone": "当前已是最新版本。",
+        "statusError": "更新出错",
+        "statusDownloaded": "更新已下载",
+        "autoUpdate": "自动更新"
+      },
       "permission": {
         "title": "权限",
         "macAccessibility": "辅助功能权限",
@@ -14,7 +29,7 @@
         "administratorNotGranted": "为获得最佳的文本选择体验，请以管理员权限运行此应用。要执行此操作, <0>打开安装文件夹</0>。或启用<1>剪贴板备用</1>功能。"
       },
       "clipboardFallback": "剪贴板备用",
-      "clipboardFallbackDescription": "不开启此选项将无法在Chrome等应用中使用本软件"
+      "clipboardFallbackDescription": "不开启此选项将无法在Chrome等应用中使用本软件。"
     },
     "providers": {
       "title": "AI模型",
