@@ -6,7 +6,7 @@
 - [x] edit model, add model form upgrade, figure out mode type's meaning
 - [x] app icon not set
 - [x] app not signed
-- [ ] On macOS when click snap-mind in the header bar, the menu item displays "snap-mind" which should be "SnapMind"
-- [ ] weird scroll bar on chat and hotkeys page. scroll bar should auto disappear
+- [x] weird scroll bar on chat and hotkeys page. scroll bar should auto disappear
+- [x] On macOS when click snap-mind in the header bar, the menu item displays "snap-mind" which should be "SnapMind"
 - [ ] disallow user select text on the UI
 - [ ] auto upgrade
