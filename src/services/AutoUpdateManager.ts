@@ -1,15 +1,25 @@
 import { UpdateEvent, UpdateStatus } from '@/types/autoUpdate';
+import { LoggerService } from './LoggerService';
 
 export class AutoUpdateManager {
   private status: UpdateStatus = { type: 'idle' };
   private unsubscribe: (() => void) | null = null;
   private listeners: Set<(status: UpdateStatus) => void> = new Set();
+  private logger?: LoggerService;
+
+  constructor(logger?: LoggerService) {
+    this.logger = logger;
+  }
 
   async initialize(): Promise<void> {
-    const event = await window.electronAPI.getUpdateStatus?.();
-    if (event) this.status = this.translate(event);
-
-    // TODO: add log service
+    try {
+      const event = await window.electronAPI.getUpdateStatus?.();
+      if (event) {
+        this.status = this.translate(event);
+      }
+    } catch (err) {
+      this.logger?.error('AutoUpdateManager initialize error', err);
+    }
 
     // Subscribe to streaming events
     const handler = (event: UpdateEvent) => {
@@ -19,6 +29,7 @@ export class AutoUpdateManager {
     window.electronAPI.onUpdateEvent?.(handler);
     this.unsubscribe = () => {
       // Current preload only exposes removeAll; safe because we own the sole subscription
+      this.logger?.info('AutoUpdateManager unsubscribe called');
       window.electronAPI.offUpdateEvent?.();
     };
 
@@ -73,6 +84,7 @@ export class AutoUpdateManager {
       case 'downloaded':
         return { type: 'downloaded', version: (event as any).info?.version };
       default:
+        this.logger?.warn('AutoUpdateManager unknown event type', (event as any).type);
         return { type: 'idle' };
     }
   }

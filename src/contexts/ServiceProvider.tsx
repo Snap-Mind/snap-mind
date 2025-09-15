@@ -17,7 +17,7 @@ interface ServiceProviderProps {
 
 const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const loggerService = useMemo(() => new LoggerService(), []);
-  const autoUpdateManager = useMemo(() => new AutoUpdateManager(), []);
+  const autoUpdateManager = useMemo(() => new AutoUpdateManager(loggerService), [loggerService]);
   const [settingsManager, setSettingsManager] = useState<SettingsManager | null>(null);
   const [systemPermissions, setSystemPermissions] = useState<SystemPermission[] | null>(null);
   const [theme] = useState<'light' | 'dark'>(
