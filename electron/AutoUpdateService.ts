@@ -29,6 +29,7 @@ export default class AutoUpdateService {
   private initialized = false;
   private options: AutoUpdateOptions;
   private lastProgressEmit = 0;
+  private currentStatus: UpdateEvent | { type: 'idle' } = { type: 'idle' };
 
   constructor(options: AutoUpdateOptions) {
     this.options = options;
@@ -73,25 +74,33 @@ export default class AutoUpdateService {
     if (!this.updater) return;
     this.updater.on('checking-for-update', () => {
       logService.info('[update] checking for update');
-      this.broadcast({ type: 'checking' });
+      const evt: UpdateEvent = { type: 'checking' };
+      this.currentStatus = evt;
+      this.broadcast(evt);
     });
     this.updater.on('update-available', (info) => {
       logService.info('[update] update available', info?.version);
-      this.broadcast({ type: 'available', info });
+      const evt: UpdateEvent = { type: 'available', info };
+      this.currentStatus = evt;
+      this.broadcast(evt);
     });
     this.updater.on('update-not-available', (info) => {
       logService.info('[update] no update available');
-      this.broadcast({ type: 'not-available', info });
+      const evt: UpdateEvent = { type: 'not-available', info };
+      this.currentStatus = evt;
+      this.broadcast(evt);
     });
     this.updater.on('error', (err) => {
       logService.error('[update] error', err);
-      this.broadcast({ type: 'error', error: err?.message || String(err) });
+      const evt: UpdateEvent = { type: 'error', error: err?.message || String(err) };
+      this.currentStatus = evt;
+      this.broadcast(evt);
     });
     this.updater.on('download-progress', (p) => {
       const now = Date.now();
       if (now - this.lastProgressEmit < 500) return; // throttle
       this.lastProgressEmit = now;
-      this.broadcast({
+      const evt: UpdateEvent = {
         type: 'download-progress',
         progress: {
           percent: p.percent,
@@ -99,11 +108,15 @@ export default class AutoUpdateService {
           total: p.total,
           bytesPerSecond: p.bytesPerSecond,
         },
-      });
+      };
+      this.currentStatus = evt;
+      this.broadcast(evt);
     });
     this.updater.on('update-downloaded', (info) => {
       logService.info('[update] update downloaded', info?.version);
-      this.broadcast({ type: 'downloaded', info });
+      const evt: UpdateEvent = { type: 'downloaded', info };
+      this.currentStatus = evt;
+      this.broadcast(evt);
     });
   }
 
@@ -151,5 +164,9 @@ export default class AutoUpdateService {
       this.updater.allowPrerelease = allow;
       logService.info('[update] allowPrerelease set to', allow);
     }
+  }
+
+  getStatus(): UpdateEvent | { type: 'idle' } {
+    return this.currentStatus;
   }
 }

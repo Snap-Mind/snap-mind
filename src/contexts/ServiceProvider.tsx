@@ -4,10 +4,12 @@ import { LoggerService } from '../services/LoggerService';
 import { SettingsManager } from '../services/SettingsManager';
 
 import { SystemPermission } from '@/types';
+import { AutoUpdateManager } from '../services/AutoUpdateManager';
 
 const LoggerServiceContext = createContext<LoggerService | null>(null);
 const SettingsManagerContext = createContext<SettingsManager | null>(null);
 const SystemPermissionsContext = createContext<SystemPermission[] | null>(null);
+const AutoUpdateManagerContext = createContext<AutoUpdateManager | null>(null);
 
 interface ServiceProviderProps {
   children: ReactNode;
@@ -15,6 +17,7 @@ interface ServiceProviderProps {
 
 const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const loggerService = useMemo(() => new LoggerService(), []);
+  const autoUpdateManager = useMemo(() => new AutoUpdateManager(), []);
   const [settingsManager, setSettingsManager] = useState<SettingsManager | null>(null);
   const [systemPermissions, setSystemPermissions] = useState<SystemPermission[] | null>(null);
   const [theme] = useState<'light' | 'dark'>(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -50,12 +53,17 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
       }
     };
 
+    // Async initializations
     Promise.all([initializeManager(), initializeSystemPermissions()]).finally(() => {
       setLoading(false);
     });
 
+    // Sync initializations
+    autoUpdateManager.initialize();
+
     // Cleanup listener on unmount
     return () => {
+      autoUpdateManager.dispose();
       if (window.electronAPI) {
         if (window.electronAPI.offSettingsUpdated) {
           window.electronAPI.offSettingsUpdated();
@@ -65,19 +73,21 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
         }
       }
     };
-  }, [loggerService]);
+  }, [loggerService, autoUpdateManager]);
 
   return (
     <>
       {loading ? (
         <div className={`${theme === 'dark' ? 'dark' : ''} bg-background text-default h-screen w-full flex items-center justify-center`}>
-          <Spinner variant="dots" size='lg'/>
+          <Spinner variant="dots" size='lg' />
         </div>
       ) : (
         <LoggerServiceContext.Provider value={loggerService}>
           <SettingsManagerContext.Provider value={settingsManager}>
             <SystemPermissionsContext.Provider value={systemPermissions}>
-              {children}
+              <AutoUpdateManagerContext.Provider value={autoUpdateManager}>
+                {children}
+              </AutoUpdateManagerContext.Provider>
             </SystemPermissionsContext.Provider>
           </SettingsManagerContext.Provider>
         </LoggerServiceContext.Provider>
@@ -86,4 +96,4 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
   );
 };
 
-export { ServiceProvider, LoggerServiceContext, SettingsManagerContext, SystemPermissionsContext };
+export { ServiceProvider, LoggerServiceContext, SettingsManagerContext, SystemPermissionsContext, AutoUpdateManagerContext };

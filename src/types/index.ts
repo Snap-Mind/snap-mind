@@ -79,6 +79,7 @@ interface ElectronAPI {
   offUpdateEvent: () => void;
   checkForUpdates: () => Promise<{ started: boolean; reason?: string }>;
   installUpdateNow: () => Promise<boolean>;
+  getUpdateStatus: () => Promise<UpdateEvent | { type: 'idle' }>;
   getAppVersion: () => Promise<string>;
 }
 

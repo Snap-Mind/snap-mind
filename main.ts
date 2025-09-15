@@ -538,6 +538,10 @@ ipcMain.handle('update:install', () => {
   if (autoUpdateService) return autoUpdateService.installNow();
   return false;
 });
+ipcMain.handle('update:get-status', () => {
+  if (autoUpdateService) return autoUpdateService.getStatus();
+  return { type: 'idle' } as const;
+});
 ipcMain.handle('app:get-version', () => app.getVersion());
 
 app.on('window-all-closed', function () {

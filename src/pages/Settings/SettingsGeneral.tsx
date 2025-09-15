@@ -1,11 +1,11 @@
 import { Divider, Card, CardBody, CardHeader, Switch, Link, Button, Progress } from '@heroui/react';
 import { Trans, useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import Icon from '../../components/Icon';
 
 import { SettingsChangeHandler, SystemPermission, UpdateEvent } from '@/types';
 import { GeneralSetting } from '@/types/setting';
+import { useAutoUpdate } from '@/hooks/useAutoUpdate';
 
 type UpdateStatus =
   | { type: 'idle' }
@@ -24,38 +24,7 @@ export interface SettingsGeneralProps {
 
 function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGeneralProps) {
   const { t } = useTranslation();
-  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ type: 'idle' });
-
-  useEffect(() => {
-    if (!window.electronAPI?.onUpdateEvent) return;
-    const handler = (evt: UpdateEvent) => {
-      if (!evt || !evt.type) return;
-      switch (evt.type) {
-        case 'checking':
-          setUpdateStatus({ type: 'checking' });
-          break;
-        case 'available':
-          setUpdateStatus({ type: 'available', version: evt.info?.version });
-          break;
-        case 'not-available':
-          setUpdateStatus({ type: 'not-available' });
-          break;
-        case 'error':
-          setUpdateStatus({ type: 'error', message: evt.error });
-          break;
-        case 'download-progress':
-          setUpdateStatus({ type: 'progress', percent: Math.round(evt.progress?.percent || 0) });
-          break;
-        case 'downloaded':
-          setUpdateStatus({ type: 'downloaded', version: evt.info?.version });
-          break;
-        default:
-          break;
-      }
-    };
-    window.electronAPI.onUpdateEvent(handler);
-    return () => window.electronAPI?.offUpdateEvent && window.electronAPI.offUpdateEvent();
-  }, []);
+  const { status: updateStatus, checkForUpdates, installUpdateNow } = useAutoUpdate();
 
   const renderPermissionCard = (permission: SystemPermission) => {
     const accessibilityInfo = () => (
@@ -211,11 +180,16 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
               {renderAutoUpdateStatus()}
               <p className="text-sm text-gray-500">{t('settings.general.update.currentVersion', { version: settings.app?.version })}</p>
               <div className='flex gap-2'>
-                <Button color="primary" variant="ghost" onPress={() => window.electronAPI.checkForUpdates?.()}>
+                <Button
+                  color="primary"
+                  variant="ghost"
+                  isDisabled={['checking','progress'].includes(updateStatus.type)}
+                  onPress={() => checkForUpdates()}
+                >
                   {t('settings.general.update.checkNow')}
                 </Button>
                 {updateStatus.type === 'downloaded' && (
-                  <Button color="primary" onPress={() => window.electronAPI.installUpdateNow?.()}>
+                  <Button color="primary" onPress={() => installUpdateNow()}>
                     {t('settings.general.update.restartToUpdate')}
                   </Button>
                 )}
