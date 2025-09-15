@@ -432,11 +432,7 @@ ipcMain.handle('settings:update', async (event, newSettings) => {
 
 ipcMain.handle('settings:update-path', async (event, { path, value }) => {
   try {
-    if (
-      path[0] === 'general' &&
-      path[1] === 'autoUpdate' &&
-      path[2] === 'betaChannel'
-    ) {
+    if (path[0] === 'general' && path[1] === 'autoUpdate' && path[2] === 'betaChannel') {
       const beta = !!value;
       if (autoUpdateService) {
         autoUpdateService.updatePrereleaseFlag(beta);

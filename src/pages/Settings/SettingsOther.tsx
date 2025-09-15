@@ -21,7 +21,11 @@ function SettingsOther() {
         <Divider className="my-4" />
       </div>
       <div className="body overflow-y-auto">
-        <Button color="primary" startContent={<Icon icon="file-text" size={18} />} onPress={handleShowLogs}>
+        <Button
+          color="primary"
+          startContent={<Icon icon="file-text" size={18} />}
+          onPress={handleShowLogs}
+        >
           {t('settings.others.showLogFiles')}
         </Button>
       </div>

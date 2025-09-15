@@ -82,13 +82,16 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
     return (
       <div className="text-sm text-gray-600 flex flex-col gap-2">
         {updateStatus.type === 'idle' && t('settings.general.update.statusIdle')}
-        {updateStatus.type === 'checking' && t('settings.general.update.statusChecking', 'Checking for updates...')}
+        {updateStatus.type === 'checking' &&
+          t('settings.general.update.statusChecking', 'Checking for updates...')}
         {updateStatus.type === 'available' && (
           <span>
-            {t('settings.general.update.statusAvailable', 'Update available')} {updateStatus.version && `(${updateStatus.version})`}
+            {t('settings.general.update.statusAvailable', 'Update available')}{' '}
+            {updateStatus.version && `(${updateStatus.version})`}
           </span>
         )}
-        {updateStatus.type === 'not-available' && t('settings.general.update.statusNone', 'You are up to date.')}
+        {updateStatus.type === 'not-available' &&
+          t('settings.general.update.statusNone', 'You are up to date.')}
         {updateStatus.type === 'error' && (
           <span className="text-danger">
             {t('settings.general.update.statusError', 'Update error')}: {updateStatus.message}
@@ -96,7 +99,12 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
         )}
         {updateStatus.type === 'progress' && (
           <div className="flex items-center gap-3">
-            <Progress aria-label="download progress" size="sm" value={updateStatus.percent} className="max-w-[240px]" />
+            <Progress
+              aria-label="download progress"
+              size="sm"
+              value={updateStatus.percent}
+              className="max-w-[240px]"
+            />
             <span>{updateStatus.percent}%</span>
           </div>
         )}
@@ -107,8 +115,8 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
           </span>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   const onOpenSystemAccessibility = () => {
     if (window.electronAPI.openSystemAccessibility) {
@@ -176,14 +184,16 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
             <h4 className="font-bold">{t('settings.general.update.version')}</h4>
           </CardHeader>
           <CardBody>
-            <div className='flex flex-col gap-4'>
+            <div className="flex flex-col gap-4">
               {renderAutoUpdateStatus()}
-              <p className="text-sm text-gray-500">{t('settings.general.update.currentVersion', { version: settings.app?.version })}</p>
-              <div className='flex gap-2'>
+              <p className="text-sm text-gray-500">
+                {t('settings.general.update.currentVersion', { version: settings.app?.version })}
+              </p>
+              <div className="flex gap-2">
                 <Button
                   color="primary"
                   variant="ghost"
-                  isDisabled={['checking','progress'].includes(updateStatus.type)}
+                  isDisabled={['checking', 'progress'].includes(updateStatus.type)}
                   onPress={() => checkForUpdates()}
                 >
                   {t('settings.general.update.checkNow')}
@@ -195,7 +205,6 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
                 )}
               </div>
             </div>
-
           </CardBody>
         </Card>
         <Card className="w-full my-5 border-1 border-gray-100" shadow="none">
@@ -204,7 +213,9 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
             <Switch
               size="sm"
               defaultSelected={settings.autoUpdate?.enabled}
-              onValueChange={(value) => onSettingsChange(['general', 'autoUpdate', 'enabled'], value)}
+              onValueChange={(value) =>
+                onSettingsChange(['general', 'autoUpdate', 'enabled'], value)
+              }
             >
               {t('common.enabled')}
             </Switch>

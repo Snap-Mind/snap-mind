@@ -11,9 +11,9 @@ export type UpdateEvent =
   | { type: 'not-available'; info: any }
   | { type: 'error'; error: string }
   | {
-    type: 'download-progress';
-    progress: { percent: number; transferred: number; total: number; bytesPerSecond: number };
-  }
+      type: 'download-progress';
+      progress: { percent: number; transferred: number; total: number; bytesPerSecond: number };
+    }
   | { type: 'downloaded'; info: any };
 
 export interface AutoUpdateOptions {
@@ -45,14 +45,14 @@ export default class AutoUpdateService {
     this.updater.autoDownload = true;
     this.updater.allowPrerelease = this.options.allowPrerelease;
     // Enable update checks in development with dev-app-update.yml
-  if (!app.isPackaged) {
+    if (!app.isPackaged) {
       try {
         (this.updater as any).forceDevUpdateConfig = true;
-    // When running from source, main is executed from dist-electron/main.js.
-    // Use project root as CWD to locate dev-app-update.yml reliably.
-    const devConfigPath = path.join(__rootdir, 'dev-app-update.yml');
-    (this.updater as any).updateConfigPath = devConfigPath;
-    logService.info('[update] dev mode: forceDevUpdateConfig enabled, path =', devConfigPath);
+        // When running from source, main is executed from dist-electron/main.js.
+        // Use project root as CWD to locate dev-app-update.yml reliably.
+        const devConfigPath = path.join(__rootdir, 'dev-app-update.yml');
+        (this.updater as any).updateConfigPath = devConfigPath;
+        logService.info('[update] dev mode: forceDevUpdateConfig enabled, path =', devConfigPath);
       } catch (e) {
         logService.warn('[update] dev mode: failed to enable forceDevUpdateConfig', e);
       }

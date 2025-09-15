@@ -64,77 +64,41 @@ function Icon({
   const renderIcon = () => {
     switch (icon) {
       case 'eye':
-        return (
-          <LuEye className={svgClassName} color={color} size={size} />
-        );
+        return <LuEye className={svgClassName} color={color} size={size} />;
       case 'eye-off':
-        return (
-          <LuEyeOff className={svgClassName} color={color} size={size} />
-        );
+        return <LuEyeOff className={svgClassName} color={color} size={size} />;
       case 'trash-2':
-        return (
-          <LuTrash2 className={svgClassName} color={color} size={size} />
-        );
+        return <LuTrash2 className={svgClassName} color={color} size={size} />;
       case 'square-pen':
-        return (
-          <LuSquarePen className={svgClassName} color={color} size={size} />
-        );
+        return <LuSquarePen className={svgClassName} color={color} size={size} />;
       case 'plus':
-        return (
-          <LuPlus className={svgClassName} color={color} size={size} />
-        );
+        return <LuPlus className={svgClassName} color={color} size={size} />;
       case 'square':
-        return (
-          <LuSquare className={svgClassName} color={color} size={size} />
-        );
+        return <LuSquare className={svgClassName} color={color} size={size} />;
       case 'circle-check-big':
-        return (
-          <LuCircleCheckBig className={svgClassName} color={color} size={size} />
-        );
+        return <LuCircleCheckBig className={svgClassName} color={color} size={size} />;
       case 'circle-x':
-        return (
-          <LuCircleX className={svgClassName} color={color} size={size} />
-        );
+        return <LuCircleX className={svgClassName} color={color} size={size} />;
       case 'bot':
-        return (
-          <LuBot className={svgClassName} color={color} size={size} />
-        );
+        return <LuBot className={svgClassName} color={color} size={size} />;
       case 'cog':
-        return (
-          <LuCog className={svgClassName} color={color} size={size} />
-        );
+        return <LuCog className={svgClassName} color={color} size={size} />;
       case 'flame':
-        return (
-          <LuFlame className={svgClassName} color={color} size={size} />
-        );
+        return <LuFlame className={svgClassName} color={color} size={size} />;
       case 'square-dashed':
-        return (
-          <LuSquareDashed className={svgClassName} color={color} size={size} />
-        );
+        return <LuSquareDashed className={svgClassName} color={color} size={size} />;
       case 'message-circle':
-        return (
-          <LuMessageCircle className={svgClassName} color={color} size={size} />
-        );
+        return <LuMessageCircle className={svgClassName} color={color} size={size} />;
       case 'file-text':
-        return (
-          <LuFileText className={svgClassName} color={color} size={size} />
-        );
+        return <LuFileText className={svgClassName} color={color} size={size} />;
       case 'openai':
-        return (
-          <OpenAI className={svgClassName} fill={color} width={size} height={size} />
-        );
+        return <OpenAI className={svgClassName} fill={color} width={size} height={size} />;
       case 'anthropic':
-        return (
-          <Anthropic className={svgClassName} fill={color} width={size} height={size} />
-        );
+        return <Anthropic className={svgClassName} fill={color} width={size} height={size} />;
       case 'azure-openai':
-        return (
-          <AzureAI className={svgClassName} fill={color} width={size} height={size} />
-        );
+        return <AzureAI className={svgClassName} fill={color} width={size} height={size} />;
       case 'google':
-        return (
-          <Gemini className={svgClassName} fill={color} width={size} height={size} />
-        );
+        return <Gemini className={svgClassName} fill={color} width={size} height={size} />;
       default:
         return null;
     }

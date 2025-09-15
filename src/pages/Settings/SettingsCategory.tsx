@@ -24,11 +24,15 @@ function SettingsCategory({
 }: SettingsCategoryProps) {
   const { t } = useTranslation();
   const renderIcon = (categoryId) => {
-    if (categoryId === 'general') return <Icon icon="cog" className="inline-block ml-2" size={18} />;
+    if (categoryId === 'general')
+      return <Icon icon="cog" className="inline-block ml-2" size={18} />;
     if (categoryId === 'models') return <Icon icon="bot" className="inline-block ml-2" size={18} />;
-    if (categoryId === 'chat') return <Icon icon="message-circle" className="inline-block ml-2" size={18} />;
-    if (categoryId === 'hotkeys') return <Icon icon="flame" className="inline-block ml-2" size={18} />;
-    if (categoryId === 'others') return <Icon icon="square-dashed" className="inline-block ml-2" size={18} />;
+    if (categoryId === 'chat')
+      return <Icon icon="message-circle" className="inline-block ml-2" size={18} />;
+    if (categoryId === 'hotkeys')
+      return <Icon icon="flame" className="inline-block ml-2" size={18} />;
+    if (categoryId === 'others')
+      return <Icon icon="square-dashed" className="inline-block ml-2" size={18} />;
     return null;
   };
 

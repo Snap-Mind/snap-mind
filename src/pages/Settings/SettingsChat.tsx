@@ -26,7 +26,7 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
           minValue={1}
           maxValue={16000}
           step={1}
-          size='sm'
+          size="sm"
           marks={[
             { value: 2400, label: '2.4k' },
             {
@@ -40,7 +40,7 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
             {
               value: 14000,
               label: '14k',
-            }
+            },
           ]}
           onChange={(value) => onSettingsChange(['chat', 'max_tokens'], value as number)}
         />
@@ -52,7 +52,7 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
           minValue={0}
           maxValue={1}
           step={0.01}
-          size='sm'
+          size="sm"
           onChange={(value) => onSettingsChange(['chat', 'temperature'], value as number)}
         />
 
@@ -63,7 +63,7 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
           minValue={0.1}
           maxValue={1}
           step={0.01}
-          size='sm'
+          size="sm"
           onChange={(value) => onSettingsChange(['chat', 'top_p'], value as number)}
         />
 

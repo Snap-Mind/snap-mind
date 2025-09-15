@@ -4,7 +4,7 @@ export type Setting = {
   general: GeneralSetting;
   chat: ChatSetting;
   providers: ProviderSetting[];
-}
+};
 
 export interface GeneralSetting {
   clipboardEnabled: boolean;

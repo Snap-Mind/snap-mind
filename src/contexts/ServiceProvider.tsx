@@ -20,7 +20,9 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
   const autoUpdateManager = useMemo(() => new AutoUpdateManager(), []);
   const [settingsManager, setSettingsManager] = useState<SettingsManager | null>(null);
   const [systemPermissions, setSystemPermissions] = useState<SystemPermission[] | null>(null);
-  const [theme] = useState<'light' | 'dark'>(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const [theme] = useState<'light' | 'dark'>(
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,8 +80,10 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
   return (
     <>
       {loading ? (
-        <div className={`${theme === 'dark' ? 'dark' : ''} bg-background text-default h-screen w-full flex items-center justify-center`}>
-          <Spinner variant="dots" size='lg' />
+        <div
+          className={`${theme === 'dark' ? 'dark' : ''} bg-background text-default h-screen w-full flex items-center justify-center`}
+        >
+          <Spinner variant="dots" size="lg" />
         </div>
       ) : (
         <LoggerServiceContext.Provider value={loggerService}>
@@ -96,4 +100,10 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
   );
 };
 
-export { ServiceProvider, LoggerServiceContext, SettingsManagerContext, SystemPermissionsContext, AutoUpdateManagerContext };
+export {
+  ServiceProvider,
+  LoggerServiceContext,
+  SettingsManagerContext,
+  SystemPermissionsContext,
+  AutoUpdateManagerContext,
+};
