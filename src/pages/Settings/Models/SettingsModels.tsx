@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Routes, Route } from 'react-router';
-import { Bot } from 'lucide-react';
 import { Divider, Listbox, ListboxItem } from '@heroui/react';
 
 import ProviderOpenAI from './ProviderOpenAI';
 import ProviderAzureOpenAI from './ProviderAzureOpenAI';
 import ProviderAnthropic from './ProviderAnthropic';
 import ProviderGoogle from './ProviderGoogle';
+import Icon from '@/components/Icon';
+
 import { ProviderSetting } from '@/types/setting';
 import { SettingsChangeHandler } from '@/types';
 import { AzureOpenAIConfig } from '@/types/providers';
@@ -57,7 +58,7 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
                   className={activeStyle(provider)}
                   key={provider.id}
                   href={provider?.path ? provider.path : ''}
-                  startContent={<Bot className="inline-block ml-2" size={18} />}
+                  startContent={<Icon icon="bot" className="inline-block ml-2" size={18} />}
                   onClick={() => setActiveProvider(provider)}
                 >
                   {provider.name}

@@ -1,7 +1,8 @@
 import { Listbox, ListboxItem } from '@heroui/listbox';
 import { Divider } from '@heroui/divider';
-import { Bot, Cog, Flame, SquareDashed, MessageCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
+import Icon from '@/components/Icon';
 
 interface SettingsCategoryProps {
   categories: {
@@ -23,11 +24,11 @@ function SettingsCategory({
 }: SettingsCategoryProps) {
   const { t } = useTranslation();
   const renderIcon = (categoryId) => {
-    if (categoryId === 'general') return <Cog className="inline-block ml-2" size={18} />;
-    if (categoryId === 'models') return <Bot className="inline-block ml-2" size={18} />;
-    if (categoryId === 'chat') return <MessageCircle className="inline-block ml-2" size={18} />;
-    if (categoryId === 'hotkeys') return <Flame className="inline-block ml-2" size={18} />;
-    if (categoryId === 'others') return <SquareDashed className="inline-block ml-2" size={18} />;
+    if (categoryId === 'general') return <Icon icon="cog" className="inline-block ml-2" size={18} />;
+    if (categoryId === 'models') return <Icon icon="bot" className="inline-block ml-2" size={18} />;
+    if (categoryId === 'chat') return <Icon icon="message-circle" className="inline-block ml-2" size={18} />;
+    if (categoryId === 'hotkeys') return <Icon icon="flame" className="inline-block ml-2" size={18} />;
+    if (categoryId === 'others') return <Icon icon="square-dashed" className="inline-block ml-2" size={18} />;
     return null;
   };
 
