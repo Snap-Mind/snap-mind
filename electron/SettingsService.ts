@@ -52,6 +52,12 @@ class SettingsService {
    * initialize config files
    */
   initializeConfigs() {
+    if (app.isPackaged) {
+      // Stabilize userData path and refresh cached paths
+      this.stabilizeUserDataAndMigrate();
+      this.refreshPaths();
+    }
+
     this.ensureDefaultConfig('settings.json', 'settings.default.json');
     this.ensureDefaultConfig('hotkeys.json', 'hotkeys.default.json');
 
@@ -322,6 +328,87 @@ class SettingsService {
     };
 
     return setAt(original, 0);
+  }
+
+  /**
+   * Ensure userData path is stable across renames and migrate legacy files if needed.
+   * Must be called before reading/writing settings/hotkeys.
+   */
+  private stabilizeUserDataAndMigrate() {
+    try {
+      const desiredFolderName = 'SnapMind';
+      const appDataBase = app.getPath('appData');
+      const desiredUserData = path.join(appDataBase, desiredFolderName);
+      const currentUserData = app.getPath('userData');
+
+      if (currentUserData === desiredUserData) {
+        return; // already stable
+      }
+
+      const candidates = [
+        path.join(appDataBase, 'snap-mind'),
+        path.join(appDataBase, 'Snapmind'),
+        path.join(appDataBase, 'snapmind'),
+      ].filter((p) => p !== desiredUserData);
+
+      const exists = (p: string) => {
+        try {
+          return fs.existsSync(p);
+        } catch {
+          return false;
+        }
+      };
+      const ensureDir = (p: string) => {
+        try {
+          fs.mkdirSync(p, { recursive: true });
+        } catch (e: any) {
+          // If the path exists and is a directory, mkdirSync with recursive
+          // should be a no-op, but handle and log unexpected errors to aid debugging.
+          if (e && e.code && (e.code === 'EEXIST' || e.code === 'EISDIR')) {
+            // harmless — directory already exists
+            return;
+          }
+          logService.warn('[settings] Failed to ensure directory', p, e);
+        }
+      };
+      const copyIfExists = (fromDir: string, file: string, toDir: string) => {
+        const src = path.join(fromDir, file);
+        const dst = path.join(toDir, file);
+        try {
+          if (exists(src) && !exists(dst)) {
+            fs.copyFileSync(src, dst);
+            logService.info(`[settings] Migrated ${file} from`, fromDir, 'to', toDir);
+          }
+        } catch (e) {
+          logService.warn('[settings] Failed to migrate', file, 'from', src, 'to', dst, e);
+        }
+      };
+
+      ensureDir(desiredUserData);
+      const targetMissingSettings = !exists(path.join(desiredUserData, 'settings.json'));
+      const targetMissingHotkeys = !exists(path.join(desiredUserData, 'hotkeys.json'));
+      if (targetMissingSettings || targetMissingHotkeys) {
+        for (const c of candidates) {
+          if (exists(c)) {
+            if (targetMissingSettings) copyIfExists(c, 'settings.json', desiredUserData);
+            if (targetMissingHotkeys) copyIfExists(c, 'hotkeys.json', desiredUserData);
+            break;
+          }
+        }
+      }
+
+      app.setPath('userData', desiredUserData);
+      logService.info('[settings] userData path set to', desiredUserData);
+    } catch (e) {
+      logService.warn('[settings] Failed to stabilize userData path; using default', e);
+    }
+  }
+
+  /** Refresh cached file paths from current app userData path */
+  private refreshPaths() {
+    this.userDataPath = app.getPath('userData');
+    this.settingsPath = path.join(this.userDataPath, 'settings.json');
+    this.hotkeysPath = path.join(this.userDataPath, 'hotkeys.json');
   }
 }
 
