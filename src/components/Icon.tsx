@@ -15,6 +15,11 @@ import {
   LuFileText,
 } from 'react-icons/lu';
 
+import OpenAI from '@lobehub/icons-static-svg/icons/openai.svg?react';
+import AzureAI from '@lobehub/icons-static-svg/icons/azureai.svg?react';
+import Anthropic from '@lobehub/icons-static-svg/icons/anthropic.svg?react';
+import Gemini from '@lobehub/icons-static-svg/icons/gemini.svg?react';
+
 type IconType =
   | 'bot'
   | 'cog'
@@ -29,7 +34,11 @@ type IconType =
   | 'plus'
   | 'square'
   | 'circle-check-big'
-  | 'circle-x';
+  | 'circle-x'
+  | 'openai'
+  | 'anthropic'
+  | 'azure-openai'
+  | 'google';
 
 interface IconProps {
   className?: string;
@@ -109,6 +118,22 @@ function Icon({
       case 'file-text':
         return (
           <LuFileText className={svgClassName} color={color} size={size} />
+        );
+      case 'openai':
+        return (
+          <OpenAI className={svgClassName} fill={color} width={size} height={size} />
+        );
+      case 'anthropic':
+        return (
+          <Anthropic className={svgClassName} fill={color} width={size} height={size} />
+        );
+      case 'azure-openai':
+        return (
+          <AzureAI className={svgClassName} fill={color} width={size} height={size} />
+        );
+      case 'google':
+        return (
+          <Gemini className={svgClassName} fill={color} width={size} height={size} />
         );
       default:
         return null;

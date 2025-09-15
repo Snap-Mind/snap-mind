@@ -43,6 +43,21 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
     return activeProvider != null && provider.id === activeProvider.id ? 'bg-default' : '';
   };
 
+  const renderIcon = (provider) => {
+    switch (provider.id) {
+      case 'openai':
+        return <Icon icon="openai" className="inline-block ml-2" size={18} />;
+      case 'azure-openai':
+        return <Icon icon="azure-openai" className="inline-block ml-2" size={18} />;
+      case 'anthropic':
+        return <Icon icon="anthropic" className="inline-block ml-2" size={18} />;
+      case 'google':
+        return <Icon icon="google" className="inline-block ml-2" size={18} />;
+      default:
+        return <Icon icon="bot" className="inline-block ml-2" size={18} />;
+    }
+  };
+
   return (
     <div className="setting-container grid grid-cols-[250px_1px_1fr] grid-rows-1 h-[100vh]">
       <div className="setting-category bg-background">
@@ -58,7 +73,7 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
                   className={activeStyle(provider)}
                   key={provider.id}
                   href={provider?.path ? provider.path : ''}
-                  startContent={<Icon icon="bot" className="inline-block ml-2" size={18} />}
+                  startContent={renderIcon(provider)}
                   onClick={() => setActiveProvider(provider)}
                 >
                   {provider.name}
