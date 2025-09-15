@@ -3,18 +3,9 @@ import { Trans, useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import Icon from '../../components/Icon';
 
-import { SettingsChangeHandler, SystemPermission, UpdateEvent } from '@/types';
+import { SettingsChangeHandler, SystemPermission } from '@/types';
 import { GeneralSetting } from '@/types/setting';
 import { useAutoUpdate } from '@/hooks/useAutoUpdate';
-
-type UpdateStatus =
-  | { type: 'idle' }
-  | { type: 'checking' }
-  | { type: 'available'; version?: string }
-  | { type: 'not-available' }
-  | { type: 'error'; message: string }
-  | { type: 'progress'; percent: number }
-  | { type: 'downloaded'; version?: string };
 
 export interface SettingsGeneralProps {
   settings: GeneralSetting;

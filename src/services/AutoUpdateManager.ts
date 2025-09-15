@@ -1,5 +1,4 @@
-import { UpdateEvent } from '@/types';
-import { UpdateStatus } from '@/types/autoUpdate';
+import { UpdateEvent, UpdateStatus } from '@/types/autoUpdate';
 
 export class AutoUpdateManager {
   private status: UpdateStatus = { type: 'idle' };
@@ -7,11 +6,10 @@ export class AutoUpdateManager {
   private listeners: Set<(status: UpdateStatus) => void> = new Set();
 
   async initialize(): Promise<void> {
-    // Hydrate snapshot first
-    try {
-      const event = await window.electronAPI.getUpdateStatus?.();
-      if (event) this.status = this.translate(event);
-    } catch {}
+    const event = await window.electronAPI.getUpdateStatus?.();
+    if (event) this.status = this.translate(event);
+
+    // TODO: add log service
 
     // Subscribe to streaming events
     const handler = (event: UpdateEvent) => {

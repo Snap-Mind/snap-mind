@@ -4,17 +4,7 @@ import logService from './LogService';
 // electron-updater is CommonJS; import compatibility handled below
 import electronUpdater, { type AppUpdater } from 'electron-updater';
 
-// Thin wrapper class to manage auto update lifecycle.
-export type UpdateEvent =
-  | { type: 'checking' }
-  | { type: 'available'; info: any }
-  | { type: 'not-available'; info: any }
-  | { type: 'error'; error: string }
-  | {
-      type: 'download-progress';
-      progress: { percent: number; transferred: number; total: number; bytesPerSecond: number };
-    }
-  | { type: 'downloaded'; info: any };
+import { UpdateEvent } from '@/types/autoUpdate';
 
 export interface AutoUpdateOptions {
   allowPrerelease: boolean;

@@ -4,6 +4,11 @@ import { builtinModules } from 'node:module';
 
 // Vite config for Electron main process bundling
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   build: {
     outDir: 'dist-electron',
     emptyOutDir: false,

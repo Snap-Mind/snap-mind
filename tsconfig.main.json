@@ -15,8 +15,11 @@
     "isolatedModules": true,
     "noEmit": false,
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "sourceMap": true
   },
-  "include": ["electron", "main.ts", "preload.ts"],
+  "include": ["electron", "main.ts", "preload.ts", "src/types/*.ts"],
   "exclude": ["node_modules"]
 }

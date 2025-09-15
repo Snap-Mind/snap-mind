@@ -57,8 +57,6 @@ function Icon({
   icon,
   color = 'currentColor',
   size = 18,
-  strokeWidth = 2,
-  absoluteStrokeWidth = false,
   onClick,
 }: IconProps) {
   const renderIcon = () => {

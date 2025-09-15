@@ -14,6 +14,9 @@
     "isolatedModules": true,
     "noEmit": false,
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "sourceMap": true
   },
   "include": ["preload.ts"],

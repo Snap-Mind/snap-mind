@@ -1,3 +1,4 @@
+import { UpdateEvent } from './autoUpdate';
 import { Hotkey, ModelSetting, Setting } from './setting';
 
 export interface LoggerService {
@@ -14,17 +15,6 @@ export interface SystemPermission {
   name: 'Accessibility' | 'Administrator' | 'none';
   isGranted: boolean;
 }
-
-export type UpdateEvent =
-  | { type: 'checking' }
-  | { type: 'available'; info: any }
-  | { type: 'not-available'; info: any }
-  | { type: 'error'; error: string }
-  | {
-      type: 'download-progress';
-      progress: { percent: number; transferred: number; total: number; bytesPerSecond: number };
-    }
-  | { type: 'downloaded'; info: any };
 
 interface ElectronAPI {
   // Chat popup events
