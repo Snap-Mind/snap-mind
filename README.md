@@ -10,11 +10,12 @@
 <p align="center">
   <a href="https://discord.gg/5SBqDHxU"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
   <a href="https://x.com/louisgh_7"><img src="https://img.shields.io/badge/X-Follow-000000?logo=x&logoColor=white" alt="X"></a>
-  <br />
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue.svg" alt="License"></a>
   <a href="https://github.com/Snap-Mind/snap-mind/stargazers"><img src="https://img.shields.io/github/stars/Snap-Mind/snap-mind?style=social" alt="GitHub stars"></a>
+  </br>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue.svg" alt="License"></a>
   <a href="https://github.com/Snap-Mind/snap-mind/releases"><img src="https://img.shields.io/github/v/release/Snap-Mind/snap-mind" alt="Release"></a>
   <a href="https://github.com/conventional-branch/conventional-branch"><img src="https://img.shields.io/badge/Conventional%20Branch-1.0.0-blue" alt="Conventional Branch"/></a>
+  <a href="https://github.com/Snap-Mind/snap-mind/actions/workflows/build.yml"><img src="https://github.com/Snap-Mind/snap-mind/actions/workflows/build.yml/badge.svg?branch=main" alt="Build and Release"></a>
 </p>
 
 SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs** from anywhere in your system. Select text + hit a hotkey, and get translations, rewrites, summaries, explanations, and more — all without switching apps, keeping your workflow smooth and uninterrupted.
