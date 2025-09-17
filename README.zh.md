@@ -27,6 +27,25 @@ SnapMind 是一款桌面 AI 助手，让你可以在系统的任意位置**即�
 - ⚡ **极速响应** — 一键触发 AI，瞬间完成任务
 - 🎯 **无缝体验** — 在任意应用中使用，不打断你的工作流
 - 🛠 **高度定制** — 可为常用任务配置专属快捷指令
+ - 🔌 **多模型提供商** — 见下方已支持的模型
+
+### 已支持的模型
+
+<p align="center">
+  <img src="./resources/openai.svg" alt="OpenAI" />
+  &nbsp;&nbsp;
+  <img src="./resources/anthropic.svg" alt="Anthropic" />
+  &nbsp;&nbsp;
+  <img src="./resources/azureai.svg" alt="Azure OpenAI" />
+  &nbsp;&nbsp;
+  <img src="./resources/gemini.svg" alt="Google Gemini" />
+  &nbsp;&nbsp;
+  <img src="./resources/deepseek.svg" alt="DeepSeek" />
+  &nbsp;&nbsp;
+  <img src="./resources/qwen.svg" alt="Qwen" />
+</p>
+
+<p align="center"><sub>OpenAI · Anthropic · Azure OpenAI · Google Gemini · DeepSeek · Qwen</sub></p>
 
 ---
 
