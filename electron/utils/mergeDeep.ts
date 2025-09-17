@@ -54,9 +54,16 @@ export function mergeDeep<T extends Record<string, any>>(target: T, source: Deep
       return;
     }
 
-    // Handle arrays - only add if target doesn't have the array
+    // Handle arrays
     if (Array.isArray(sourceValue)) {
-      if (!Array.isArray(targetValue)) {
+      if (Array.isArray(targetValue)) {
+        // Only merge arrays of objects by `id`; otherwise, keep target array as-is
+        if (isArrayOfIdObjects(targetValue) || isArrayOfIdObjects(sourceValue)) {
+          result[key] = mergeArrayById(targetValue as Array<Record<string, any>>, sourceValue);
+        }
+        // For non-id arrays, do nothing (preserve user's target array)
+      } else {
+        // Target not an array, adopt source array
         result[key] = [...sourceValue];
       }
       return;
@@ -89,3 +96,70 @@ export function mergeDeep<T extends Record<string, any>>(target: T, source: Deep
 function isPlainObject(value: unknown): value is Record<string, any> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
+
+/**
+ * Check if array consists of objects that have an 'id' property (string-like). Useful for providers/models.
+ */
+function isArrayOfIdObjects(arr: unknown): arr is Array<{ id: string }> {
+  if (!Array.isArray(arr)) return false;
+  if (arr.length === 0) return false;
+  return arr.every((item) => isPlainObject(item) && 'id' in item && typeof (item as any).id === 'string');
+}
+
+/**
+ * Merge arrays of objects by 'id' field. Target takes precedence; source adds new items and deep-fills missing fields.
+ */
+function mergeArrayById(
+  targetArr: Array<Record<string, any>>,
+  sourceArr: Array<Record<string, any>>
+): Array<Record<string, any>> {
+  // Build map from target to preserve target order and values
+  const targetMap = new Map<string, Record<string, any>>();
+  const targetOrder: string[] = [];
+  for (const t of targetArr) {
+    const tid = (t as any)?.id as string | undefined;
+    if (typeof tid === 'string') {
+      targetMap.set(tid, t);
+      targetOrder.push(tid);
+    }
+  }
+
+  // Collect new items (not in target) and merge duplicates from source by id
+  const addedMap = new Map<string, Record<string, any>>();
+  const addedOrder: string[] = [];
+
+  for (const s of sourceArr) {
+    const sid = (s as any)?.id as string | undefined;
+    if (typeof sid !== 'string' || sid.length === 0) continue;
+
+    if (targetMap.has(sid)) {
+      // Deep merge into existing target item without overriding user-set values
+      const merged = mergeDeep(targetMap.get(sid)!, s);
+      targetMap.set(sid, merged);
+    } else {
+      if (addedMap.has(sid)) {
+        addedMap.set(sid, mergeDeep(addedMap.get(sid)!, s));
+      } else {
+        addedMap.set(sid, s);
+        addedOrder.push(sid);
+      }
+    }
+  }
+
+  // Rebuild array: original target order first, then newly added items in source order
+  const result: Array<Record<string, any>> = [];
+  for (const id of targetOrder) {
+    const item = targetMap.get(id);
+    if (item) result.push(item);
+  }
+  for (const id of addedOrder) {
+    const item = addedMap.get(id);
+    if (item) result.push(item);
+  }
+  return result;
+}
+
+/**
+ * Merge arrays of primitives by union: keep target items, append any new source items not already present.
+ */
+// Note: Primitive arrays are intentionally not merged; target values are preserved.
