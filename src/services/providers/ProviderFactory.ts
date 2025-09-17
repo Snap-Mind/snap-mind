@@ -3,6 +3,8 @@ import AzureOpenAIProvider from './AzureOpenAIProvider';
 import OpenAIProvider from './OpenAIProvider';
 import AnthropicProvider from './AnthropicProvider';
 import GoogleProvider from './GoogleProvider';
+import DeepSeekProvider from './DeepSeekProvider';
+import QwenProvider from './QwenProvider';
 import { ProviderType } from '@/types/providers';
 import {
   Provider,
@@ -11,6 +13,8 @@ import {
   AzureOpenAIConfig,
   AnthropicConfig,
   GoogleConfig,
+  DeepSeekConfig,
+  QwenConfig,
 } from '@/types/providers';
 import loggerService from '../LoggerService';
 
@@ -25,6 +29,10 @@ class ProviderFactory {
         return new AnthropicProvider(config as AnthropicConfig);
       case 'google':
         return new GoogleProvider(config as GoogleConfig);
+      case 'deepseek':
+        return new DeepSeekProvider(config as DeepSeekConfig);
+      case 'qwen':
+        return new QwenProvider(config as QwenConfig);
       default:
         loggerService.error('[ProviderFactory]', `Unknown provider: ${providerId}`);
         throw new Error(`Unknown provider: ${providerId}`);
@@ -32,7 +40,7 @@ class ProviderFactory {
   }
 
   static getAvailableProviders(): ProviderType[] {
-    return ['openai', 'azure-openai', 'anthropic', 'google'];
+    return ['openai', 'azure-openai', 'anthropic', 'google', 'deepseek', 'qwen'];
   }
 }
 

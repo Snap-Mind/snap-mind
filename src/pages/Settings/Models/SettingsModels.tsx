@@ -6,6 +6,8 @@ import ProviderOpenAI from './ProviderOpenAI';
 import ProviderAzureOpenAI from './ProviderAzureOpenAI';
 import ProviderAnthropic from './ProviderAnthropic';
 import ProviderGoogle from './ProviderGoogle';
+import ProviderDeepSeek from './ProviderDeepSeek';
+import ProviderQwen from './ProviderQwen';
 import Icon from '@/components/Icon';
 
 import { ProviderSetting } from '@/types/setting';
@@ -32,6 +34,10 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
       newProvider = { ...provider, path: '/settings/models/anthropic' };
     } else if (provider.id == 'google') {
       newProvider = { ...provider, path: '/settings/models/google' };
+    } else if (provider.id == 'deepseek') {
+      newProvider = { ...provider, path: '/settings/models/deepseek' };
+    } else if (provider.id == 'qwen') {
+      newProvider = { ...provider, path: '/settings/models/qwen' };
     } else {
       newProvider = provider;
     }
@@ -53,6 +59,10 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
         return <Icon icon="anthropic" className="inline-block ml-2" size={18} />;
       case 'google':
         return <Icon icon="google" className="inline-block ml-2" size={18} />;
+      case 'deepseek':
+        return <Icon icon="deepseek" className="inline-block ml-2" size={18} />;
+      case 'qwen':
+        return <Icon icon="qwen" className="inline-block ml-2" size={18} />;
       default:
         return <Icon icon="bot" className="inline-block ml-2" size={18} />;
     }
@@ -120,6 +130,24 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
                 settings={settings.find((s) => s.id === 'google')}
                 onSettingsChange={onSettingsChange}
               ></ProviderGoogle>
+            }
+          ></Route>
+          <Route
+            path="deepseek"
+            element={
+              <ProviderDeepSeek
+                settings={settings.find((s) => s.id === 'deepseek')}
+                onSettingsChange={onSettingsChange}
+              ></ProviderDeepSeek>
+            }
+          ></Route>
+          <Route
+            path="qwen"
+            element={
+              <ProviderQwen
+                settings={settings.find((s) => s.id === 'qwen')}
+                onSettingsChange={onSettingsChange}
+              ></ProviderQwen>
             }
           ></Route>
         </Routes>

@@ -108,6 +108,57 @@
           "description": "Fast and efficient model for most tasks"
         }
       ]
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "apiKey": "",
+      "host": "https://api.deepseek.com/chat/completions",
+      "models": [
+        {
+          "id": "deepseek-chat",
+          "name": "DeepSeek Chat",
+          "type": "chat",
+          "capabilities": ["chat"],
+          "description": "DeepSeek general chat model"
+        },
+        {
+          "id": "deepseek-reasoner",
+          "name": "DeepSeek Reasoner",
+          "type": "chat",
+          "capabilities": ["chat", "reasoning"],
+          "description": "Reasoning-optimized model"
+        }
+      ]
+    },
+    {
+      "id": "qwen",
+      "name": "Qwen",
+      "apiKey": "",
+      "host": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "models": [
+        {
+          "id": "qwen-plus",
+          "name": "Qwen Plus",
+          "type": "chat",
+          "capabilities": ["chat"],
+          "description": "Balanced Qwen model"
+        },
+        {
+          "id": "qwen-max",
+          "name": "Qwen Max",
+          "type": "chat",
+          "capabilities": ["chat"],
+          "description": "Most capable Qwen model"
+        },
+        {
+          "id": "qwen-turbo",
+          "name": "Qwen Turbo",
+          "type": "chat",
+          "capabilities": ["chat"],
+          "description": "Fast and efficient Qwen model"
+        }
+      ]
     }
   ]
 }

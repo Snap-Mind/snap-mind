@@ -34,6 +34,12 @@ export interface GoogleConfig extends BaseProviderConfig {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional placeholder for future DeepSeek-specific fields
+export interface DeepSeekConfig extends BaseProviderConfig {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional placeholder for future Qwen-specific fields
+export interface QwenConfig extends BaseProviderConfig {}
+
 // Provider interface
 export interface Provider {
   config: BaseProviderConfig;
@@ -46,4 +52,4 @@ export interface Provider {
   listModels(): Promise<ModelSetting[]>;
 }
 
-export type ProviderType = 'openai' | 'azure-openai' | 'anthropic' | 'google';
+export type ProviderType = 'openai' | 'azure-openai' | 'anthropic' | 'google' | 'deepseek' | 'qwen';
