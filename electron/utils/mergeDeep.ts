@@ -103,7 +103,9 @@ function isPlainObject(value: unknown): value is Record<string, any> {
 function isArrayOfIdObjects(arr: unknown): arr is Array<{ id: string }> {
   if (!Array.isArray(arr)) return false;
   if (arr.length === 0) return false;
-  return arr.every((item) => isPlainObject(item) && 'id' in item && typeof (item as any).id === 'string');
+  return arr.every(
+    (item) => isPlainObject(item) && 'id' in item && typeof (item as any).id === 'string'
+  );
 }
 
 /**
