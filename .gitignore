@@ -40,3 +40,6 @@ helper/selectedtext
 .env
 hotkeys.json
 settings.json
+
+# TypeScript build info
+*.tsbuildinfo
