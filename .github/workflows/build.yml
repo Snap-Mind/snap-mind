@@ -56,10 +56,9 @@ jobs:
           fi
 
       - name: Rename latest-mac.yml to arch-specific name
-        if: ${{ matrix.arch == 'arm64' }}
         run: |
           if [ -f build/latest-mac.yml ]; then
-            mv build/latest-mac.yml build/latest-mac-arm64.yml
+            mv build/latest-mac.yml build/latest-mac-${{ matrix.arch }}.yml
           fi
 
       - name: List build contents
@@ -72,7 +71,7 @@ jobs:
           path: |
             build/*.dmg
             build/*.zip
-            ${{ matrix.arch == 'arm64' && 'build/latest-mac-arm64.yml' || 'build/latest-mac.yml' }}
+            build/latest-mac-${{ matrix.arch }}.yml
             build/*.blockmap
             build/*.sha512
           retention-days: 1
@@ -126,8 +125,25 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository (for merge script)
+        uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
+
+      - name: Setup Node.js (for merging manifests)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Merge macOS update manifests into single latest-mac.yml
+        run: |
+          set -e
+          mkdir -p combined
+          node scripts/merge-latest-mac.cjs \
+            --x64 macos-artifacts-x64/latest-mac-x64.yml \
+            --arm64 macos-artifacts-arm64/latest-mac-arm64.yml \
+            --out combined/latest-mac.yml
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -135,6 +151,7 @@ jobs:
           files: |
             macos-artifacts-*/**/*
             windows-artifacts/**/*
+            combined/latest-mac.yml
           draft: true
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}

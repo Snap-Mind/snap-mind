@@ -20,5 +20,5 @@
     }
   },
   "include": ["src"],
-  "exclude": ["dist-electron" ]
+  "exclude": ["dist-electron"]
 }

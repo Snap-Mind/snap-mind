@@ -27,6 +27,25 @@ SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs*
 - ⚡ **Blazing Fast** — Trigger AI with a single keystroke
 - 🎯 **Seamless Experience** — Works in any app without breaking your flow
 - 🛠 **Highly Customizable** — Set your own prompts for recurring tasks
+- 🔌 **Multiple Providers** — See supported providers below
+
+### Supported providers
+
+<p align="center">
+  <img src="./resources/openai.svg" alt="OpenAI" />
+  &nbsp;&nbsp;
+  <img src="./resources/anthropic.svg" alt="Anthropic" />
+  &nbsp;&nbsp;
+  <img src="./resources/azureai.svg" alt="Azure OpenAI" />
+  &nbsp;&nbsp;
+  <img src="./resources/gemini.svg" alt="Google Gemini" />
+  &nbsp;&nbsp;
+  <img src="./resources/deepseek.svg" alt="DeepSeek" />
+  &nbsp;&nbsp;
+  <img src="./resources/qwen.svg" alt="Qwen" />
+</p>
+
+<p align="center"><sub>OpenAI · Anthropic · Azure OpenAI · Google Gemini · DeepSeek · Qwen</sub></p>
 
 ---
 

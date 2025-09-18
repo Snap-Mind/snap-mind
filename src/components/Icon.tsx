@@ -19,6 +19,8 @@ import OpenAI from '@lobehub/icons-static-svg/icons/openai.svg?react';
 import AzureAI from '@lobehub/icons-static-svg/icons/azureai.svg?react';
 import Anthropic from '@lobehub/icons-static-svg/icons/anthropic.svg?react';
 import Gemini from '@lobehub/icons-static-svg/icons/gemini.svg?react';
+import DeepSeek from '@lobehub/icons-static-svg/icons/deepseek.svg?react';
+import Qwen from '@lobehub/icons-static-svg/icons/qwen.svg?react';
 
 type IconType =
   | 'bot'
@@ -38,7 +40,9 @@ type IconType =
   | 'openai'
   | 'anthropic'
   | 'azure-openai'
-  | 'google';
+  | 'google'
+  | 'deepseek'
+  | 'qwen';
 
 interface IconProps {
   className?: string;
@@ -97,6 +101,10 @@ function Icon({
         return <AzureAI className={svgClassName} fill={color} width={size} height={size} />;
       case 'google':
         return <Gemini className={svgClassName} fill={color} width={size} height={size} />;
+      case 'deepseek':
+        return <DeepSeek className={svgClassName} fill={color} width={size} height={size} />;
+      case 'qwen':
+        return <Qwen className={svgClassName} fill={color} width={size} height={size} />;
       default:
         return null;
     }

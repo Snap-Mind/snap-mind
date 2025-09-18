@@ -1,4 +1,11 @@
-import { AnthropicConfig, AzureOpenAIConfig, GoogleConfig, OpenAIConfig } from './providers';
+import {
+  AnthropicConfig,
+  AzureOpenAIConfig,
+  GoogleConfig,
+  OpenAIConfig,
+  DeepSeekConfig,
+  QwenConfig,
+} from './providers';
 
 export type Setting = {
   general: GeneralSetting;
@@ -60,7 +67,13 @@ export type Capability =
   | 'tool-use'
   | 'multi-modal';
 
-export type ProviderSetting = OpenAIConfig | AzureOpenAIConfig | AnthropicConfig | GoogleConfig;
+export type ProviderSetting =
+  | OpenAIConfig
+  | AzureOpenAIConfig
+  | AnthropicConfig
+  | GoogleConfig
+  | DeepSeekConfig
+  | QwenConfig;
 
 export interface App {
   version: string;
