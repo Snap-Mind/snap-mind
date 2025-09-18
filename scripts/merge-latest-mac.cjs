@@ -4,15 +4,10 @@
  into a single latest-mac.yml that electron-updater (MacUpdater) expects.
 
  Usage:
-   node scripts/merge-latest-mac.js \
+   node scripts/merge-latest-mac.cjs \
      --x64 macos-artifacts-x64/latest-mac-x64.yml \
      --arm64 macos-artifacts-arm64/latest-mac-arm64.yml \
      --out combined/latest-mac.yml
-
- Notes:
- - This parser is intentionally minimal and tailored to the structure produced by electron-builder.
- - If one architecture is missing, it will simply pass through the existing one.
- - Order preference: x64 meta (path/sha512) first for backward compatibility; adjust if you prefer arm64.
 */
 
 const fs = require('fs');
@@ -85,12 +80,6 @@ function main() {
   const x64Data = x64Exists ? parseManifest(fs.readFileSync(x64, 'utf8')) : null;
   const arm64Data = arm64Exists ? parseManifest(fs.readFileSync(arm64, 'utf8')) : null;
 
-  if (x64Data && arm64Data) {
-    if (x64Data.version !== arm64Data.version) {
-      console.warn(`Version mismatch: x64=${x64Data.version} arm64=${arm64Data.version} — proceeding with x64 version.`);
-    }
-  }
-
   const merged = {
     version: (x64Data || arm64Data).version,
     files: [],
@@ -110,14 +99,11 @@ function main() {
   addFiles(x64Data);
   addFiles(arm64Data);
 
-  // Prefer x64 meta as default; fallback to arm64
   const primary = x64Data || arm64Data;
   merged.path = primary.path;
   merged.sha512 = primary.sha512;
   const dates = [x64Data?.releaseDate, arm64Data?.releaseDate].filter(Boolean).sort();
   merged.releaseDate = dates[dates.length - 1];
-
-  // Sort files for determinism (x64 first, then arm64) if naming allows
   merged.files.sort((a, b) => a.url.localeCompare(b.url));
 
   const yaml = toYAML(merged);
