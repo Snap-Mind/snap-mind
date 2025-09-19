@@ -13,6 +13,8 @@ import {
 } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
+import { HotkeyRecorder } from '@/components/HotkeyRecorder';
+
 interface SettingsHotkeysProps {
   hotkeys: Hotkey[];
   onHotkeysChange: HotkeysChangeHandler;
@@ -80,12 +82,18 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
                   </CardBody>
                 </Card>
               ) : (
-                <Textarea
-                  label="Prompt"
-                  placeholder="Enter your prompt"
-                  defaultValue={hotkey.prompt}
-                  onValueChange={(value) => onHotkeysChange([index, 'prompt'], value)}
-                />
+                <>
+                  <HotkeyRecorder
+                    value={hotkey.key}
+                    placeholder="Focus then press (Ctrl/Cmd + ...)"
+                  />
+                  <Textarea
+                    label="Prompt"
+                    placeholder="Enter your prompt"
+                    defaultValue={hotkey.prompt}
+                    onValueChange={(value) => onHotkeysChange([index, 'prompt'], value)}
+                  />
+                </>
               )}
             </CardBody>
           </Card>
