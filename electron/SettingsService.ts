@@ -339,11 +339,6 @@ class SettingsService {
       const desiredFolderName = 'SnapMind';
       const appDataBase = app.getPath('appData');
       const desiredUserData = path.join(appDataBase, desiredFolderName);
-      const currentUserData = app.getPath('userData');
-
-      if (currentUserData === desiredUserData) {
-        return; // already stable
-      }
 
       const candidates = [
         path.join(appDataBase, 'snap-mind'),
