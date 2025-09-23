@@ -14,7 +14,7 @@ import {
 } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 import HotkeyPickerModal from '@/components/HotkeyPickerModal';
-import { Button } from '@heroui/react';
+import Icon from '@/components/Icon';
 
 interface SettingsHotkeysProps {
   hotkeys: Hotkey[];
@@ -84,22 +84,25 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
               </Switch>
             </CardHeader>
             <CardBody className="flex flex-col gap-5">
-              <div>{renderHotkeyKey(hotkey.key)}</div>
               {hotkey.id === 0 ? (
-                <Card shadow="none" isHoverable={true}>
-                  <CardBody>
-                    <p>{t('settings.hotkeys.defaultDescription')}</p>
-                  </CardBody>
-                </Card>
+                <>
+                  <div>{renderHotkeyKey(hotkey.key)}</div>
+                  <Card shadow="none" isHoverable={true}>
+                    <CardBody>
+                      <p>{t('settings.hotkeys.defaultDescription')}</p>
+                    </CardBody>
+                  </Card>
+                </>
               ) : (
                 <>
                   <div className="flex items-center gap-3">
-                    <Button size="sm" variant="flat" onPress={() => setEditingIndex(index)}>
-                      {t('common.set') || 'Set'}
-                    </Button>
-                    <span className="text-xs text-gray-500">
-                      {t('settings.hotkeys.setDescription', 'Click set to change this shortcut')}
-                    </span>
+                    {renderHotkeyKey(hotkey.key)}
+                    <Icon
+                      className="cursor-pointer hover:text-default-500"
+                      icon="settings"
+                      size={14}
+                      onClick={() => setEditingIndex(index)}
+                    ></Icon>
                   </div>
                   <Textarea
                     label="Prompt"
