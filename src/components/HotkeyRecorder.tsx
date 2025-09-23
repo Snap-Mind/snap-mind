@@ -125,6 +125,12 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
     setRecording(true);
   };
 
+  const handleBlur = () => {
+    if (disabled) return;
+    if (keybindings) return;
+    setRecording(false);
+  };
+
   const attemptCommit = useCallback(
     (mods: Set<string>, main: string | null) => {
       if (main && mods.size > 0) {
@@ -176,12 +182,14 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
   const shown = recording ? partialDisplay || '' : keybindings || '';
 
   // Description messaging
-  let description: string | undefined;
+  let description: React.ReactNode;
   if (keybindings) {
     description = 'Hotkey captured. Click Reset to change.';
   } else if (recording) {
-    if (!modKeys.size && !mainKey) description = 'Waiting for keys...';
-    else if (mainKey && !modKeys.size) description = 'At least one modifier key is required. Up to 2 allowed.';
+    if (!modKeys.size && !mainKey)
+      description = "Waiting for keys...";
+    else if (mainKey && !modKeys.size)
+      description = 'At least one modifier key is required. Up to 2 allowed.';
     else if (modKeys.size > 0 && !mainKey) description = 'At least one main key is required.';
     else description = 'Hotkey captured';
   } else {
@@ -197,6 +205,7 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
           placeholder={placeholder}
           readOnly
           onFocus={handleFocus}
+          onBlur={handleBlur}
           onKeyDown={onKeyDown}
           disabled={!!disabled}
           autoFocus={autoFocus}
@@ -204,9 +213,9 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
           className="max-w-[260px]"
           variant="bordered"
         />
-        <Button onPress={handleReset}>Clear</Button>
+        <Button onPress={handleReset}>Reset</Button>
       </div>
-      <div className="text-xs text-gray-500">{description}</div>
+      <div className="text-xs text-gray-500 ml-1">{description}</div>
     </>
   );
 };

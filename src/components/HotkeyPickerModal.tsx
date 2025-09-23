@@ -82,12 +82,12 @@ export const HotkeyPickerModal: React.FC<HotkeyPickerModalProps> = ({
             <ModalHeader>{title}</ModalHeader>
             <ModalBody>
               {initialValue && (
-                <div className="text-xs text-gray-500 mb-1">Current: <span className="font-mono">{initialValue}</span></div>
+                <div className="mb-1">Current: <span className="font-mono">{initialValue}</span></div>
               )}
-              <HotkeyRecorder autoFocus onChange={handleChange} />
-              <div className="text-xs text-gray-400 mt-2">
+              <div className="text-xs mb-1">
                 Press a combination: up to 2 modifiers + 1 key. Example: Command+Shift+K
               </div>
+              <HotkeyRecorder autoFocus onChange={handleChange} />
             </ModalBody>
             <ModalFooter>
               <Button variant="flat" onPress={() => { onCancel(); onClose(); }}>Cancel</Button>
