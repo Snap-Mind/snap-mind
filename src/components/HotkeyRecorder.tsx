@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Input } from '@heroui/react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * HotkeyRecorder
@@ -93,6 +94,7 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
   onChange,
   onReset,
 }) => {
+  const { t } = useTranslation();
   const platform: 'mac' | 'other' = /mac/i.test(navigator.userAgent) ? 'mac' : 'other';
   const [keybindings, setKeybindings] = useState<string | null>(null);
   const [modKeys, setModKeys] = useState<Set<string>>(new Set()); // active modifiers captured (max 2)
@@ -184,16 +186,14 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
   // Description messaging
   let description: React.ReactNode;
   if (keybindings) {
-    description = 'Hotkey captured. Click Reset to change.';
+    description = t('settings.hotkeys.recorder.capturedDescription');
   } else if (recording) {
-    if (!modKeys.size && !mainKey)
-      description = "Waiting for keys...";
-    else if (mainKey && !modKeys.size)
-      description = 'At least one modifier key is required. Up to 2 allowed.';
-    else if (modKeys.size > 0 && !mainKey) description = 'At least one main key is required.';
-    else description = 'Hotkey captured';
+    if (!modKeys.size && !mainKey) description = t('settings.hotkeys.recorder.waiting');
+    else if (mainKey && !modKeys.size) description = t('settings.hotkeys.recorder.needModifier');
+    else if (modKeys.size > 0 && !mainKey) description = t('settings.hotkeys.recorder.needMain');
+    else description = t('settings.hotkeys.recorder.captured');
   } else {
-    description = 'Click the input to start recording a hotkey.';
+    description = t('settings.hotkeys.recorder.start');
   }
 
   return (
@@ -202,18 +202,18 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
         <Input
           ref={inputRef}
           value={shown}
-          placeholder={placeholder}
+          placeholder={t('settings.hotkeys.recorder.placeholder', placeholder)}
           readOnly
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={onKeyDown}
           disabled={!!disabled}
           autoFocus={autoFocus}
-          aria-label="Hotkey recorder"
+          aria-label={t('settings.hotkeys.recorder.ariaLabel')}
           className="max-w-[260px]"
           variant="bordered"
         />
-        <Button onPress={handleReset}>Reset</Button>
+        <Button onPress={handleReset}>{t('settings.hotkeys.recorder.reset')}</Button>
       </div>
       <div className="text-xs text-gray-500 ml-1">{description}</div>
     </>

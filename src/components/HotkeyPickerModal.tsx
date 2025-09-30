@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Button } from '@heroui/react';
 import HotkeyRecorder from './HotkeyRecorder';
+import { useTranslation } from 'react-i18next';
 
 /**
  * HotkeyPickerModal
@@ -49,6 +50,7 @@ export const HotkeyPickerModal: React.FC<HotkeyPickerModalProps> = ({
   onConfirm,
   title = 'Set Hotkey',
 }) => {
+  const { t } = useTranslation();
   const [temp, setTemp] = useState<string | null>(null);
   // Reset only when opening fresh
   useEffect(() => {
@@ -82,16 +84,14 @@ export const HotkeyPickerModal: React.FC<HotkeyPickerModalProps> = ({
             <ModalHeader>{title}</ModalHeader>
             <ModalBody>
               {initialValue && (
-                <div className="mb-1">Current: <span className="font-mono">{initialValue}</span></div>
+                <div className="mb-1">{t('settings.hotkeys.modalCurrent')} <span className="font-mono">{initialValue}</span></div>
               )}
-              <div className="text-xs mb-1">
-                Press a combination: up to 2 modifiers + 1 key. Example: Command+Shift+K
-              </div>
+              <div className="text-xs mb-1">{t('settings.hotkeys.modalInstruction')}</div>
               <HotkeyRecorder autoFocus onChange={handleChange} />
             </ModalBody>
             <ModalFooter>
-              <Button variant="flat" onPress={() => { onCancel(); onClose(); }}>Cancel</Button>
-              <Button color="primary" isDisabled={!canConfirm} onPress={() => { handleConfirm(); onClose(); }}>Confirm</Button>
+              <Button variant="flat" onPress={() => { onCancel(); onClose(); }}>{t('common.cancel')}</Button>
+              <Button color="primary" isDisabled={!canConfirm} onPress={() => { handleConfirm(); onClose(); }}>{t('common.confirm')}</Button>
             </ModalFooter>
           </>
         )}
