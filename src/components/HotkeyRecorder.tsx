@@ -211,10 +211,23 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
           disabled={!!disabled}
           autoFocus={autoFocus}
           aria-label={t('settings.hotkeys.recorder.ariaLabel')}
-          className="max-w-[260px]"
+          className={`max-w-[260px]`}
           variant="bordered"
+          endContent={
+            <span
+              className={
+                recording
+                  ? 'w-3 h-3 rounded-full bg-red-500 animate-pulse'
+                  : 'w-3 h-3 bg-default-300'
+              }
+              aria-hidden="true"
+              title={recording ? t('settings.hotkeys.recorder.waiting') : t('settings.hotkeys.recorder.start')}
+            />
+          }
         />
-        <Button isIconOnly size='sm' onPress={handleReset}><Icon icon='rotate-ccw'></Icon></Button>
+        <Button isIconOnly size="sm" onPress={handleReset}>
+          <Icon icon="rotate-ccw" />
+        </Button>
       </div>
       <div className="text-xs text-gray-500 ml-1">{description}</div>
     </>
