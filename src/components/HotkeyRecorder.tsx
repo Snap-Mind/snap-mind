@@ -220,7 +220,11 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
                   : 'w-3 h-3 bg-default-300'
               }
               aria-hidden="true"
-              title={recording ? t('settings.hotkeys.recorder.waiting') : t('settings.hotkeys.recorder.start')}
+              title={
+                recording
+                  ? t('settings.hotkeys.recorder.waiting')
+                  : t('settings.hotkeys.recorder.start')
+              }
             />
           }
         />

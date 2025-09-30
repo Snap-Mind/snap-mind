@@ -20,10 +20,6 @@
     }
   },
   "include": ["src"],
-  "exclude": ["dist-electron"]
-  ,
-  "references": [
-    { "path": "./tsconfig.main.json" },
-    { "path": "./tsconfig.preload.json" }
-  ]
+  "exclude": ["dist-electron"],
+  "references": [{ "path": "./tsconfig.main.json" }, { "path": "./tsconfig.preload.json" }]
 }

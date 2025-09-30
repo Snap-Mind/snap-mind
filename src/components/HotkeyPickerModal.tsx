@@ -84,14 +84,34 @@ export const HotkeyPickerModal: React.FC<HotkeyPickerModalProps> = ({
             <ModalHeader>{title}</ModalHeader>
             <ModalBody>
               {initialValue && (
-                <div className="mb-1">{t('settings.hotkeys.modalCurrent')} <span className="font-mono">{initialValue}</span></div>
+                <div className="mb-1">
+                  {t('settings.hotkeys.modalCurrent')}{' '}
+                  <span className="font-mono">{initialValue}</span>
+                </div>
               )}
               <div className="text-xs mb-1">{t('settings.hotkeys.modalInstruction')}</div>
               <HotkeyRecorder autoFocus={true} onChange={handleChange} />
             </ModalBody>
             <ModalFooter>
-              <Button variant="flat" onPress={() => { onCancel(); onClose(); }}>{t('common.cancel')}</Button>
-              <Button color="primary" isDisabled={!canConfirm} onPress={() => { handleConfirm(); onClose(); }}>{t('common.confirm')}</Button>
+              <Button
+                variant="flat"
+                onPress={() => {
+                  onCancel();
+                  onClose();
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                color="primary"
+                isDisabled={!canConfirm}
+                onPress={() => {
+                  handleConfirm();
+                  onClose();
+                }}
+              >
+                {t('common.confirm')}
+              </Button>
             </ModalFooter>
           </>
         )}

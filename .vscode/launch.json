@@ -7,10 +7,7 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run-script",
-        "dev:electron"
-      ],
+      "runtimeArgs": ["run-script", "dev:electron"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "env": {
@@ -34,9 +31,7 @@
       "restart": false,
       "sourceMaps": true,
       "smartStep": true,
-      "skipFiles": [
-        "<node_internals>/**"
-      ]
+      "skipFiles": ["<node_internals>/**"]
     },
     {
       "name": "Attach: Renderer (Chrome DevTools)",
