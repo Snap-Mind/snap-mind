@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Input } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
+import Icon from './Icon';
 
 /**
  * HotkeyRecorder
@@ -213,7 +214,7 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
           className="max-w-[260px]"
           variant="bordered"
         />
-        <Button onPress={handleReset}>{t('settings.hotkeys.recorder.reset')}</Button>
+        <Button isIconOnly size='sm' onPress={handleReset}><Icon icon='rotate-ccw'></Icon></Button>
       </div>
       <div className="text-xs text-gray-500 ml-1">{description}</div>
     </>

@@ -14,6 +14,7 @@ import {
   LuMessageCircle,
   LuFileText,
   LuSettings,
+  LuRotateCcw,
 } from 'react-icons/lu';
 
 import OpenAI from '@lobehub/icons-static-svg/icons/openai.svg?react';
@@ -44,7 +45,8 @@ type IconType =
   | 'google'
   | 'deepseek'
   | 'qwen'
-  | 'settings';
+  | 'settings'
+  | 'rotate-ccw';
 
 interface IconProps {
   className?: string;
@@ -109,6 +111,8 @@ function Icon({
         return <Qwen className={svgClassName} fill={color} width={size} height={size} />;
       case 'settings':
         return <LuSettings className={svgClassName} color={color} size={size} />;
+      case 'rotate-ccw':
+        return <LuRotateCcw className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }
