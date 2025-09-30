@@ -1,0 +1,59 @@
+{
+  // VS Code launch configurations for debugging SnapMind
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Dev: Electron (Main + Renderer)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run-script",
+        "dev:electron"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": {
+        // "ELECTRON_ENABLE_LOGGING": "true",
+        // "ELECTRON_ENABLE_STACK_DUMPING": "true"
+      },
+      "outputCapture": "std",
+      "autoAttachChildProcesses": true,
+      // Break on first line of user code in main process
+      "stopOnEntry": false,
+      // Source maps for TS main/preload
+      "sourceMaps": true,
+      "smartStep": true,
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Attach: Electron Main (Running)",
+      "type": "node",
+      "request": "attach",
+      "processId": "${command:PickProcess}",
+      "restart": false,
+      "sourceMaps": true,
+      "smartStep": true,
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    },
+    {
+      "name": "Attach: Renderer (Chrome DevTools)",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "webRoot": "${workspaceFolder}",
+      "timeout": 10000,
+      "sourceMaps": true,
+      "smartStep": true,
+      "skipFiles": ["**/node_modules/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Dev: Full (Main + Renderer)",
+      "configurations": ["Dev: Electron (Main + Renderer)"]
+    }
+  ]
+}
