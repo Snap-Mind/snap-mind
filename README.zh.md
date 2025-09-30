@@ -8,7 +8,7 @@
   <a href="./README.md">English</a> | <a href="./README.zh.md">简体中文</a>
 </p>
 <p align="center">
-  <a href="https://discord.gg/5SBqDHxU"><img src="https://img.shields.io/badge/Discord-加入-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
+  <a href="https://discord.gg/4bpEAKMUzw"><img src="https://img.shields.io/badge/Discord-加入-5865F2?logo=discord&logoColor=white" alt="Discord"></a>
   <a href="https://x.com/louisgh_7"><img src="https://img.shields.io/badge/X-关注-000000?logo=x&logoColor=white" alt="X"></a>
   <a href="https://github.com/Snap-Mind/snap-mind/stargazers"><img src="https://img.shields.io/github/stars/Snap-Mind/snap-mind?style=social" alt="GitHub stars"></a>
   <br />
