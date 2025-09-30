@@ -104,10 +104,10 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (autoFocus && inputRef.current) {
+    if (autoFocus && recording && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [autoFocus]);
+  });
 
   const commit = useCallback(
     (val: string | null) => {
@@ -175,8 +175,7 @@ export const HotkeyRecorder: React.FC<HotkeyRecorderProps> = ({
   const handleReset = () => {
     clearAttempt();
     commit(null);
-    setRecording(false);
-    inputRef.current?.blur();
+    if (modKeys.size > 0 || mainKey) setRecording(true);
     onReset?.();
   };
 
