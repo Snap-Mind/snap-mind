@@ -56,7 +56,21 @@
       "custom": "自定义键盘快捷键",
       "customDescription": "配置最多 3 个带有个性化提示的自定义键盘快捷键",
       "shortcut": "快捷键",
-      "defaultDescription": "使用默认快捷键打开空白聊天窗口"
+      "defaultDescription": "使用默认快捷键打开空白聊天窗口",
+      "modalTitle": "设置快捷键",
+      "modalCurrent": "当前：",
+      "modalInstruction": "按组合键：最多 2 个修饰键 + 1 个主键。例如：Command+Shift+K",
+      "recorder": {
+        "placeholder": "按下快捷键",
+        "reset": "重置",
+        "capturedDescription": "已捕获快捷键。点击重置以更改。",
+        "waiting": "等待按键...",
+        "needModifier": "至少需要一个修饰键。最多允许 2 个。",
+        "needMain": "至少需要一个主键。",
+        "captured": "快捷键已捕获",
+        "start": "点击输入框开始录制快捷键。",
+        "ariaLabel": "快捷键录制器"
+      }
     },
     "others": {
       "title": "其他",

@@ -56,7 +56,21 @@
       "custom": "Custom Keyboard Shortcuts",
       "customDescription": "Configure up to 3 custom keyboard shortcuts with personalized prompts",
       "shortcut": "Shortcut",
-      "defaultDescription": "Use default hotkey to open blank chat window."
+      "defaultDescription": "Use default hotkey to open blank chat window.",
+      "modalTitle": "Set Hotkey",
+      "modalCurrent": "Current:",
+      "modalInstruction": "Press a combination: up to 2 modifiers + 1 key. Example: Command+Shift+K",
+      "recorder": {
+        "placeholder": "Press a shortcut",
+        "reset": "Reset",
+        "capturedDescription": "Hotkey captured. Click Reset to change.",
+        "waiting": "Waiting for keys...",
+        "needModifier": "At least one modifier key is required. Up to 2 allowed.",
+        "needMain": "At least one main key is required.",
+        "captured": "Hotkey captured",
+        "start": "Click the input to start recording a hotkey.",
+        "ariaLabel": "Hotkey recorder"
+      }
     },
     "others": {
       "title": "Others",
