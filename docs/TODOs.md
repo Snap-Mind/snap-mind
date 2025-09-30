@@ -8,5 +8,5 @@
 - [x] app not signed
 - [x] weird scroll bar on chat and hotkeys page. scroll bar should auto disappear
 - [x] On macOS when click snap-mind in the header bar, the menu item displays "snap-mind" which should be "SnapMind"
-- [ ] disallow user select text on the UI
-- [ ] auto upgrade
+- [x] auto upgrade
+- [ ] Prevent open links inside the app, it is dangerous.

@@ -56,7 +56,22 @@
       "custom": "自定義鍵盤快捷鍵",
       "customDescription": "配置最多 3 個帶有個性化提示的自定義鍵盤快捷鍵",
       "shortcut": "快捷鍵",
-      "defaultDescription": "使用默認快捷鍵打開空白聊天窗口"
+      "defaultDescription": "使用默認快捷鍵打開空白聊天視窗",
+      "modalTitle": "設定快捷鍵",
+      "modalCurrent": "目前：",
+      "modalInstruction": "按組合鍵：最多 2 個修飾鍵 + 1 個主鍵。例如：Command+Shift+K",
+      "promptPlaceholder": "輸入你的提示詞",
+      "recorder": {
+        "placeholder": "按下快捷鍵",
+        "reset": "重置",
+        "capturedDescription": "已捕獲快捷鍵。點擊重置以更改。",
+        "waiting": "等待按鍵...",
+        "needModifier": "至少需要一個修飾鍵。最多允許 2 個。",
+        "needMain": "至少需要一個主鍵。",
+        "captured": "快捷鍵已捕獲",
+        "start": "點擊輸入框開始錄製快捷鍵。",
+        "ariaLabel": "快捷鍵錄製器"
+      }
     },
     "others": {
       "title": "其他",

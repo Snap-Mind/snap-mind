@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { HotkeysChangeHandler } from '@/types';
 import { Hotkey } from '@/types/setting';
 import {
@@ -12,6 +13,8 @@ import {
   KbdKey,
 } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
+import HotkeyPickerModal from '@/components/HotkeyPickerModal';
+import Icon from '@/components/Icon';
 
 interface SettingsHotkeysProps {
   hotkeys: Hotkey[];
@@ -44,6 +47,15 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
   const { t } = useTranslation();
   const title = t('settings.hotkeys.custom');
   const description = t('settings.hotkeys.customDescription');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const closeModal = () => setEditingIndex(null);
+  const handleConfirm = async (val: string) => {
+    if (editingIndex != null) {
+      await onHotkeysChange([editingIndex, 'key'], val);
+      closeModal();
+    }
+  };
 
   return (
     <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
@@ -72,24 +84,44 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
               </Switch>
             </CardHeader>
             <CardBody className="flex flex-col gap-5">
-              <div>{renderHotkeyKey(hotkey.key)}</div>
               {hotkey.id === 0 ? (
-                <Card shadow="none" isHoverable={true}>
-                  <CardBody>
-                    <p>{t('settings.hotkeys.defaultDescription')}</p>
-                  </CardBody>
-                </Card>
+                <>
+                  <div>{renderHotkeyKey(hotkey.key)}</div>
+                  <Card shadow="none" isHoverable={true}>
+                    <CardBody>
+                      <p>{t('settings.hotkeys.defaultDescription')}</p>
+                    </CardBody>
+                  </Card>
+                </>
               ) : (
-                <Textarea
-                  label="Prompt"
-                  placeholder="Enter your prompt"
-                  defaultValue={hotkey.prompt}
-                  onValueChange={(value) => onHotkeysChange([index, 'prompt'], value)}
-                />
+                <>
+                  <div className="flex items-center gap-3">
+                    {renderHotkeyKey(hotkey.key)}
+                    <Icon
+                      className="cursor-pointer hover:text-default-500"
+                      icon="settings"
+                      size={14}
+                      onClick={() => setEditingIndex(index)}
+                    ></Icon>
+                  </div>
+                  <Textarea
+                    label="Prompt"
+                    placeholder={t('settings.hotkeys.promptPlaceholder', 'Enter your prompt')}
+                    defaultValue={hotkey.prompt}
+                    onValueChange={(value) => onHotkeysChange([index, 'prompt'], value)}
+                  />
+                </>
               )}
             </CardBody>
           </Card>
         ))}
+        <HotkeyPickerModal
+          isOpen={editingIndex != null}
+          initialValue={editingIndex != null ? hotkeys[editingIndex].key : null}
+          onCancel={closeModal}
+          onConfirm={handleConfirm}
+          title={t('settings.hotkeys.modalTitle', 'Set Hotkey')}
+        />
       </div>
     </div>
   );

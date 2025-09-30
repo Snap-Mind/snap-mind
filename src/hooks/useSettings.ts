@@ -1,4 +1,4 @@
-import { useContext, useCallback } from 'react';
+import { useContext, useCallback, useState } from 'react';
 import { SettingsManagerContext, SystemPermissionsContext } from '../contexts/ServiceProvider';
 import { SettingsChangeHandler, HotkeysChangeHandler, SystemPermission } from '@/types';
 import { Setting, Hotkey } from '@/types/setting';
@@ -24,24 +24,32 @@ export const useSettings = (): UseSettingsReturn => {
     throw new Error('useSettings must be used within a SystemPermissionsContext');
   }
 
+  // Local reactive snapshots (minimal change approach). External code is responsible for any global sync.
+  const [settingsState, setSettingsState] = useState<Setting>(() => settingsContext.getSettings());
+  const [hotkeysState, setHotkeysState] = useState<Hotkey[]>(() => settingsContext.getHotkeys());
+
   const updateSettings: SettingsChangeHandler = useCallback(
     async (path, value) => {
-      return await settingsContext.updateSetting(path, value);
+      const updated = await settingsContext.updateSetting(path, value);
+      setSettingsState(updated);
+      return updated;
     },
     [settingsContext]
   );
 
   const updateHotkeys: HotkeysChangeHandler = useCallback(
     async (path, value) => {
-      return await settingsContext.updateHotkey(path, value);
+      const updated = await settingsContext.updateHotkey(path, value);
+      setHotkeysState(updated as Hotkey[]); // underlying returns Hotkey[]
+      return updated;
     },
     [settingsContext]
   );
 
   return {
     isLoading: !settingsContext.isInitialized,
-    settings: settingsContext.getSettings(),
-    hotkeys: settingsContext.getHotkeys(),
+    settings: settingsState,
+    hotkeys: hotkeysState,
     permissions: systemPermissionsContext,
     setSettings: updateSettings,
     setHotkeys: updateHotkeys,
