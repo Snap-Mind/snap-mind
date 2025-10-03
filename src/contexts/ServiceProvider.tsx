@@ -34,10 +34,10 @@ const ServiceProvider = ({ children }: ServiceProviderProps) => {
 
       // Listen for settings:updated event from main process
       if (window.electronAPI && window.electronAPI.onSettingsUpdated) {
-        window.electronAPI.onSettingsUpdated((updatedSettings) => {
+        window.electronAPI.onSettingsUpdated(async (updatedSettings) => {
           loggerService.info('ServiceProvider received settings:updated event, refreshing context');
           const newManager = new SettingsManager(loggerService);
-          newManager.initialize({ settings: updatedSettings, hotkeys: manager.getHotkeys() });
+          await newManager.initialize({ settings: updatedSettings, hotkeys: manager.getHotkeys() });
           setSettingsManager(newManager);
           setLoading(false);
         });
