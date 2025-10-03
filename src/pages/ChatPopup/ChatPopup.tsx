@@ -10,6 +10,7 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
+import { BaseProviderConfig, ProviderType } from '@/types/providers';
 
 interface ChatPopupProps {
   initialMessage?: Message | Message[];
@@ -116,8 +117,16 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   }, [messages, loading]);
 
   const renderAvailableModels = () => {
+    const isValidProvider = (provider: BaseProviderConfig) => {
+      const ollamaType: ProviderType = 'ollama';
+      return (
+        (provider.apiKey && provider.host && provider.models.length !== 0) ||
+        (provider.id === ollamaType && provider.host != null && provider.models.length !== 0)
+      );
+    };
+
     return settings.providers
-      .filter((provider) => provider.apiKey && provider.host && provider.models.length !== 0)
+      .filter((provider) => isValidProvider(provider))
       .map((provider) => (
         <SelectSection key={provider.name} title={provider.name}>
           {provider.models.map((model) => (
