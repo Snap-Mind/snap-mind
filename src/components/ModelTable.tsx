@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, type ReactNode } from 'react';
 import {
   Button,
   Input,
@@ -27,6 +27,8 @@ interface Column {
 interface ModelTableProps {
   models: ModelSetting[];
   onModelsChange: (models: ModelSetting[]) => void;
+  // Optional extra actions to render next to the "New model" button (e.g., provider-specific actions)
+  extraActions?: ReactNode;
 }
 
 const initialFormData: ModelSetting = {
@@ -37,7 +39,7 @@ const initialFormData: ModelSetting = {
   description: '',
 };
 
-function ModelTable({ models, onModelsChange }: ModelTableProps) {
+function ModelTable({ models, onModelsChange, extraActions }: ModelTableProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const columns: Column[] = [
@@ -213,9 +215,10 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
           onChange={handleSearchChange}
         />
         <div className="flex gap-3">
-          <Button startContent={<Icon size={18} icon="plus" />} onPress={onAddModelOpen}>
+          <Button color='primary' startContent={<Icon size={18} icon="plus" />} onPress={onAddModelOpen}>
             {t('settings.providers.newModel')}
           </Button>
+          {extraActions}
         </div>
       </div>
       <Modal isOpen={isAddModelOpen} onOpenChange={onAddModelOpenChange}>

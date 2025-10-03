@@ -159,6 +159,22 @@
           "description": "Fast and efficient Qwen model"
         }
       ]
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama (Local)",
+      "apiKey": "",
+      "host": "http://localhost:11434/api/chat",
+      "description": "Use local models served by the Ollama runtime",
+      "models": [
+        {
+          "id": "llama3.2",
+          "name": "llama3.2",
+          "type": "chat",
+          "capabilities": ["chat"],
+          "description": "Default sample model name; replace with your local models"
+        }
+      ]
     }
   ]
 }

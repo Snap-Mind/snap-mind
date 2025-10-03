@@ -15,6 +15,7 @@ import {
   LuFileText,
   LuSettings,
   LuRotateCcw,
+  LuCloud,
 } from 'react-icons/lu';
 
 import OpenAI from '@lobehub/icons-static-svg/icons/openai.svg?react';
@@ -23,6 +24,7 @@ import Anthropic from '@lobehub/icons-static-svg/icons/anthropic.svg?react';
 import Gemini from '@lobehub/icons-static-svg/icons/gemini.svg?react';
 import DeepSeek from '@lobehub/icons-static-svg/icons/deepseek.svg?react';
 import Qwen from '@lobehub/icons-static-svg/icons/qwen.svg?react';
+import Ollama from '@lobehub/icons-static-svg/icons/ollama.svg?react';
 
 type IconType =
   | 'bot'
@@ -45,8 +47,10 @@ type IconType =
   | 'google'
   | 'deepseek'
   | 'qwen'
+  | 'ollama'
   | 'settings'
-  | 'rotate-ccw';
+  | 'rotate-ccw'
+  | 'cloud';
 
 interface IconProps {
   className?: string;
@@ -109,10 +113,14 @@ function Icon({
         return <DeepSeek className={svgClassName} fill={color} width={size} height={size} />;
       case 'qwen':
         return <Qwen className={svgClassName} fill={color} width={size} height={size} />;
+      case 'ollama':
+        return <Ollama className={svgClassName} fill={color} width={size} height={size} />;
       case 'settings':
         return <LuSettings className={svgClassName} color={color} size={size} />;
       case 'rotate-ccw':
         return <LuRotateCcw className={svgClassName} color={color} size={size} />;
+      case 'cloud':
+        return <LuCloud className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }

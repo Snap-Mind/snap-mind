@@ -8,6 +8,7 @@ import ProviderAnthropic from './ProviderAnthropic';
 import ProviderGoogle from './ProviderGoogle';
 import ProviderDeepSeek from './ProviderDeepSeek';
 import ProviderQwen from './ProviderQwen';
+import ProviderOllama from './ProviderOllama';
 import Icon from '@/components/Icon';
 
 import { ProviderSetting } from '@/types/setting';
@@ -38,6 +39,8 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
       newProvider = { ...provider, path: '/settings/models/deepseek' };
     } else if (provider.id == 'qwen') {
       newProvider = { ...provider, path: '/settings/models/qwen' };
+    } else if (provider.id == 'ollama') {
+      newProvider = { ...provider, path: '/settings/models/ollama' };
     } else {
       newProvider = provider;
     }
@@ -63,6 +66,8 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
         return <Icon icon="deepseek" className="inline-block ml-2" size={18} />;
       case 'qwen':
         return <Icon icon="qwen" className="inline-block ml-2" size={18} />;
+      case 'ollama':
+        return <Icon icon="ollama" className="inline-block ml-2" size={18} />;
       default:
         return <Icon icon="bot" className="inline-block ml-2" size={18} />;
     }
@@ -148,6 +153,15 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
                 settings={settings.find((s) => s.id === 'qwen')}
                 onSettingsChange={onSettingsChange}
               ></ProviderQwen>
+            }
+          ></Route>
+          <Route
+            path="ollama"
+            element={
+              <ProviderOllama
+                settings={settings.find((s) => s.id === 'ollama')}
+                onSettingsChange={onSettingsChange}
+              ></ProviderOllama>
             }
           ></Route>
         </Routes>
