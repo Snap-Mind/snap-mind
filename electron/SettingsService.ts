@@ -85,7 +85,10 @@ class SettingsService {
 
     // Deep merge default settings with user settings
     // This will preserve all user settings while adding any missing fields from default settings
-    const mergedSettings = mergeDeep(userSettings, defaultSettings);
+    const mergedSettings = mergeDeep(userSettings, defaultSettings, {
+      // Don't merge providers.*.models; keep user's models array if present
+      preservePaths: ['providers.*.models'],
+    });
     // Add app info to the settings
     mergedSettings.general.app = {
       version: app.getVersion(),
