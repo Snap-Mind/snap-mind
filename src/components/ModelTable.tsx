@@ -164,8 +164,9 @@ function ModelTable({ models, onModelsChange, extraActions }: ModelTableProps) {
     onClose();
   };
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+  // Use HeroUI controlled pattern so clear button works reliably
+  const handleSearchValueChange = (value: string) => {
+    setSearchQuery(value);
   };
 
   const filteredModels = localModels.filter((model) =>
@@ -212,7 +213,8 @@ function ModelTable({ models, onModelsChange, extraActions }: ModelTableProps) {
           className="w-full sm:max-w-[44%]"
           placeholder={t('settings.providers.searchModels')}
           value={searchQuery}
-          onChange={handleSearchChange}
+          onValueChange={handleSearchValueChange}
+          onClear={() => setSearchQuery('')}
         />
         <div className="flex gap-3">
           <Button color='primary' startContent={<Icon size={18} icon="plus" />} onPress={onAddModelOpen}>
