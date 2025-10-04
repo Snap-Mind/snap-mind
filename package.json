@@ -1,7 +1,7 @@
 {
   "name": "SnapMind",
   "private": true,
-  "version": "0.3.0-beta.2",
+  "version": "0.3.0-beta.3",
   "description": "A quick prompt launcher.",
   "author": "Louis Liu",
   "license": "Apache-2.0",
