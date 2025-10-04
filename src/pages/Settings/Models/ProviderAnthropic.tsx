@@ -36,7 +36,7 @@ function ProviderAnthropic({ settings, onSettingsChange }: ProviderAnthropicProp
       <div className="max-w-full flex flex-col gap-4">
         <div className="font-weight-bold">{t('settings.providers.models')}</div>
         <ModelTable
-          models={settings.models}
+          providerConfig={settings}
           onModelsChange={(newModels) => onSettingsChange(['providers', 2, 'models'], newModels)}
         />
       </div>
