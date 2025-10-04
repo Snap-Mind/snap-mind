@@ -32,7 +32,7 @@ type DeepPartial<T> = T extends object
  * ```
  */
 export type PathSegment = string | number;
-export type PathPattern = string | RegExp | ((path: PathSegment[]) => boolean);
+export type PathPattern = string | RegExp | ((_path: PathSegment[]) => boolean);
 
 export interface MergeOptions {
   // If a path matches, keep target value when defined; if undefined in target, do not add from source (skip entirely)
