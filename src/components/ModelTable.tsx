@@ -8,6 +8,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  Tooltip,
 } from '@heroui/react';
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/table';
 import { semanticColors } from '@heroui/theme';
@@ -237,9 +238,11 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
             {t('settings.providers.newModel')}
           </Button>
           {showSyncedButton && (
-            <Button isIconOnly isLoading={discovering} isDisabled={discovering} onPress={handleDiscover}>
-              <Icon icon="cloud" />
-            </Button>
+            <Tooltip content={t('settings.providers.syncModels')} delay={500}>
+              <Button isIconOnly isLoading={discovering} isDisabled={discovering} onPress={handleDiscover}>
+                <Icon icon="cloud" />
+              </Button>
+            </Tooltip>
           )}
         </div>
       </div>
