@@ -95,6 +95,14 @@ class OllamaProvider implements Provider {
         if (!trimmed) continue;
         try {
           const obj = JSON.parse(trimmed);
+          // If Ollama signals completion, exit early
+          if (obj?.done === true) {
+            return fullText;
+          }
+          // Surface mid-stream errors if present
+          if (obj?.error) {
+            throw new Error(typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error));
+          }
           if (obj?.message?.content) {
             const token: string = obj.message.content;
             if (typeof onToken === 'function') onToken(token);
@@ -102,9 +110,7 @@ class OllamaProvider implements Provider {
           }
           // When done === true the stream will end soon; we don't need to do anything special here
         } catch (e) {
-          // Occasionally a chunk may split a JSON object even with line splitting; keep in buffer
-          // Re-append to buffer to try parsing on next iteration
-          buffer = trimmed + (buffer ? '\n' + buffer : '');
+          loggerService.debug?.('[Ollama]', 'Skipping malformed NDJSON line:', trimmed);
         }
       }
     }
