@@ -175,7 +175,7 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
         setLocalModels(syncedModels);
       }
     } catch (e) {
-      logger.error('[Ollama] auto discover failed:', e);
+      logger.error(`[${providerConfig.id}] auto discover failed:`, e);
     } finally {
       setDiscovering(false);
     }
