@@ -168,7 +168,7 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
   const handleDiscover = async () => {
     setDiscovering(true);
     try {
-      const provider = ProviderFactory.createProvider('ollama', providerConfig);
+      const provider = ProviderFactory.createProvider(providerConfig);
       const syncedModels = await provider.listModels();
       if (Array.isArray(syncedModels) && syncedModels.length > 0) {
         onModelsChange(syncedModels);

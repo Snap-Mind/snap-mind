@@ -42,7 +42,6 @@ export class AIService {
     }
 
     this.activeProvider = ProviderFactory.createProvider(
-      this.providerSetting.id,
       this.providerSetting
     );
     this.streamingEnabled = this.settings.chat.streamingEnabled;
@@ -68,7 +67,7 @@ export class AIService {
   ): Promise<Message> {
     const modelSetting = options?.modelSetting || this.modelSetting;
     const providerSetting = options?.providerSetting || this.providerSetting;
-    const activeProvider = ProviderFactory.createProvider(providerSetting.id, providerSetting);
+    const activeProvider = ProviderFactory.createProvider(providerSetting);
     const streamingEnabled = options?.streamingEnabled || this.streamingEnabled;
 
     if (!this.activeProvider) {

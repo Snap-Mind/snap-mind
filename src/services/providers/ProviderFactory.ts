@@ -21,8 +21,8 @@ import {
 import loggerService from '../LoggerService';
 
 class ProviderFactory {
-  static createProvider(providerId: ProviderType, config: BaseProviderConfig): Provider {
-    switch (providerId) {
+  static createProvider(config: BaseProviderConfig): Provider {
+    switch (config.id) {
       case 'openai':
         return new OpenAIProvider(config as OpenAIConfig);
       case 'azure-openai':
@@ -38,8 +38,8 @@ class ProviderFactory {
       case 'ollama':
         return new OllamaProvider(config as OllamaConfig);
       default:
-        loggerService.error('[ProviderFactory]', `Unknown provider: ${providerId}`);
-        throw new Error(`Unknown provider: ${providerId}`);
+        loggerService.error('[ProviderFactory]', `Unknown provider: ${config.id}`);
+        throw new Error(`Unknown provider: ${config.id}`);
     }
   }
 
