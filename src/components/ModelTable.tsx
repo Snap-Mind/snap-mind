@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   Button,
   Input,
@@ -189,6 +189,10 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
   const filteredModels = localModels.filter((model) =>
     model.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  useEffect(() => {
+    setLocalModels([...providerConfig.models]);
+  }, [providerConfig.models]);
 
   const renderCell = useCallback(
     (model: ModelSetting, columnKey: string) => {
