@@ -1,5 +1,5 @@
 // Ollama Provider (local models via Ollama REST API)
-import { Provider, ProviderOptions, BaseProviderConfig } from '../../types/providers';
+import { Provider, ProviderOptions, BaseProviderConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import loggerService from '../LoggerService';
 import { ModelSetting } from '@/types/setting';
