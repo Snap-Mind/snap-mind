@@ -40,6 +40,7 @@
       "editModel": "Edit model",
       "deleteModel": "Delete model",
       "deleteModelConfirm": "Are you sure you want to delete <b>{{modelName}}</b>?",
+      "syncModels": "Sync models",
       "name": "Name",
       "actions": "Actions"
     },

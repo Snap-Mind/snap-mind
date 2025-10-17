@@ -36,7 +36,7 @@ function ProviderQwen({ settings, onSettingsChange }: ProviderQwenProps) {
       <div className="max-w-full flex flex-col gap-4">
         <div className="font-weight-bold">{t('settings.providers.models')}</div>
         <ModelTable
-          models={settings.models}
+          providerConfig={settings}
           onModelsChange={(newModels) => onSettingsChange(['providers', 5, 'models'], newModels)}
         />
       </div>

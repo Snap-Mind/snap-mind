@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   Button,
   Input,
@@ -8,6 +8,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  Tooltip,
 } from '@heroui/react';
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/table';
 import { semanticColors } from '@heroui/theme';
@@ -18,6 +19,9 @@ import { ModelCreateForm } from './ModelCreateForm';
 import { ModelSetting } from '@/types/setting';
 import { ModelEditForm } from './ModelEditForm';
 import { useTranslation } from 'react-i18next';
+import ProviderFactory from '@/services/providers/ProviderFactory';
+import { useLogService } from '@/hooks/useLogService';
+import { BaseProviderConfig } from '@/types/providers';
 
 interface Column {
   name: string;
@@ -25,8 +29,9 @@ interface Column {
 }
 
 interface ModelTableProps {
-  models: ModelSetting[];
+  providerConfig: BaseProviderConfig
   onModelsChange: (models: ModelSetting[]) => void;
+  showSyncedButton?: boolean;
 }
 
 const initialFormData: ModelSetting = {
@@ -37,8 +42,10 @@ const initialFormData: ModelSetting = {
   description: '',
 };
 
-function ModelTable({ models, onModelsChange }: ModelTableProps) {
+function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }: ModelTableProps) {
   const { t } = useTranslation();
+  const logger = useLogService();
+  const [discovering, setDiscovering] = useState(false);
   const { theme } = useTheme();
   const columns: Column[] = [
     { name: t('settings.providers.name'), uid: 'name' },
@@ -59,7 +66,7 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
     onOpen: onDeleteModelOpen,
     onOpenChange: onDeleteModelOpenChange,
   } = useDisclosure();
-  const [localModels, setLocalModels] = useState<ModelSetting[]>(models);
+  const [localModels, setLocalModels] = useState<ModelSetting[]>([...providerConfig.models]);
   const [addFormData, setAddFormData] = useState<ModelSetting>(initialFormData);
   const [editFormData, setEditFormData] = useState<ModelSetting>();
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,10 +80,6 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
   const [editModelErrors, setEditModelErrors] = useState<
     Partial<Record<keyof ModelSetting, string>>
   >({});
-
-  useEffect(() => {
-    setLocalModels(models);
-  }, [models]);
 
   const handleAddModel = () => {
     if (addFormRef.current && addFormRef.current.checkValidity()) {
@@ -162,13 +165,34 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
     onClose();
   };
 
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+  const handleDiscover = async () => {
+    setDiscovering(true);
+    try {
+      const provider = ProviderFactory.createProvider(providerConfig);
+      const syncedModels = await provider.listModels();
+      if (Array.isArray(syncedModels) && syncedModels.length > 0) {
+        onModelsChange(syncedModels);
+        setLocalModels(syncedModels);
+      }
+    } catch (e) {
+      logger.error(`[${providerConfig.id}] auto discover failed:`, e);
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
+  // Use HeroUI controlled pattern so clear button works reliably
+  const handleSearchValueChange = (value: string) => {
+    setSearchQuery(value);
   };
 
   const filteredModels = localModels.filter((model) =>
     model.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  useEffect(() => {
+    setLocalModels([...providerConfig.models]);
+  }, [providerConfig.models]);
 
   const renderCell = useCallback(
     (model: ModelSetting, columnKey: string) => {
@@ -210,12 +234,20 @@ function ModelTable({ models, onModelsChange }: ModelTableProps) {
           className="w-full sm:max-w-[44%]"
           placeholder={t('settings.providers.searchModels')}
           value={searchQuery}
-          onChange={handleSearchChange}
+          onValueChange={handleSearchValueChange}
+          onClear={() => setSearchQuery('')}
         />
         <div className="flex gap-3">
-          <Button startContent={<Icon size={18} icon="plus" />} onPress={onAddModelOpen}>
+          <Button color='primary' startContent={<Icon size={18} icon="plus" />} onPress={onAddModelOpen}>
             {t('settings.providers.newModel')}
           </Button>
+          {showSyncedButton && (
+            <Tooltip content={t('settings.providers.syncModels')} delay={500}>
+              <Button isIconOnly isLoading={discovering} isDisabled={discovering} onPress={handleDiscover}>
+                <Icon icon="cloud" />
+              </Button>
+            </Tooltip>
+          )}
         </div>
       </div>
       <Modal isOpen={isAddModelOpen} onOpenChange={onAddModelOpenChange}>

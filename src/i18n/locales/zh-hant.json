@@ -40,6 +40,7 @@
       "editModel": "編輯模型",
       "deleteModel": "刪除模型",
       "deleteModelConfirm": "您確認要刪除<b>{{modelName}}</b>嗎？",
+      "syncModels": "同步模型列表",
       "name": "名稱",
       "actions": "操作"
     },

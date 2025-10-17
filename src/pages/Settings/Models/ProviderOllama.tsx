@@ -1,17 +1,19 @@
 import { Form, Input } from '@heroui/react';
 import ModelTable from '../../../components/ModelTable';
 import { SettingsChangeHandler } from '@/types';
-import { DeepSeekConfig } from '@/types/providers';
-import PasswordInput from '../../../components/PasswordInput';
+import { OllamaConfig } from '@/types/providers';
 import { useTranslation } from 'react-i18next';
 
-interface ProviderDeepSeekProps {
-  settings: DeepSeekConfig;
+interface ProviderOllamaProps {
+  settings: OllamaConfig;
   onSettingsChange: SettingsChangeHandler;
 }
 
-function ProviderDeepSeek({ settings, onSettingsChange }: ProviderDeepSeekProps) {
+function ProviderOllama({ settings, onSettingsChange }: ProviderOllamaProps) {
   const { t } = useTranslation();
+  // In default config, ollama is appended after qwen (index 6 if zero-based)
+  const idx = 6;
+
   return (
     <div className="overflow-y-auto p-1 flex flex-col gap-5">
       <h1 className="font-bold text-2xl">{settings.name}</h1>
@@ -19,17 +21,10 @@ function ProviderDeepSeek({ settings, onSettingsChange }: ProviderDeepSeekProps)
         <Input
           label="Host"
           labelPlacement="outside"
-          placeholder="e.g. https://api.deepseek.com/chat/completions"
+          placeholder="e.g. http://localhost:11434/api/chat"
           defaultValue={settings.host ? settings.host : ''}
           type="url"
-          onValueChange={(value) => onSettingsChange(['providers', 4, 'host'], value)}
-        />
-        <PasswordInput
-          label="API Key"
-          labelPlacement="outside"
-          placeholder="Enter your API key"
-          defaultValue={settings.apiKey ? settings.apiKey : ''}
-          onValueChange={(value) => onSettingsChange(['providers', 4, 'apiKey'], value)}
+          onValueChange={(value) => onSettingsChange(['providers', idx, 'host'], value)}
         />
       </Form>
 
@@ -37,11 +32,12 @@ function ProviderDeepSeek({ settings, onSettingsChange }: ProviderDeepSeekProps)
         <div className="font-weight-bold">{t('settings.providers.models')}</div>
         <ModelTable
           providerConfig={settings}
-          onModelsChange={(newModels) => onSettingsChange(['providers', 4, 'models'], newModels)}
+          onModelsChange={(newModels) => onSettingsChange(['providers', idx, 'models'], newModels)}
+          showSyncedButton={true}
         />
       </div>
     </div>
   );
 }
 
-export default ProviderDeepSeek;
+export default ProviderOllama;

@@ -24,15 +24,13 @@ export const useSettings = (): UseSettingsReturn => {
     throw new Error('useSettings must be used within a SystemPermissionsContext');
   }
 
-  // Local reactive snapshots (minimal change approach). External code is responsible for any global sync.
-  const [settingsState, setSettingsState] = useState<Setting>(() => settingsContext.getSettings());
+  // Maintain hotkeys in local state to reflect updates immediately,
+  // as they are not syncing via context among different windows (chat popup and settings window).
   const [hotkeysState, setHotkeysState] = useState<Hotkey[]>(() => settingsContext.getHotkeys());
 
   const updateSettings: SettingsChangeHandler = useCallback(
     async (path, value) => {
-      const updated = await settingsContext.updateSetting(path, value);
-      setSettingsState(updated);
-      return updated;
+      return await settingsContext.updateSetting(path, value);
     },
     [settingsContext]
   );
@@ -48,7 +46,7 @@ export const useSettings = (): UseSettingsReturn => {
 
   return {
     isLoading: !settingsContext.isInitialized,
-    settings: settingsState,
+    settings: settingsContext.getSettings(),
     hotkeys: hotkeysState,
     permissions: systemPermissionsContext,
     setSettings: updateSettings,

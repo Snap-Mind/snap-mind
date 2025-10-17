@@ -10,6 +10,7 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
+import { BaseProviderConfig, ProviderType } from '@/types/providers';
 
 interface ChatPopupProps {
   initialMessage?: Message | Message[];
@@ -25,6 +26,11 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const { settings, setSettings } = useSettings();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  // Focus the input when ChatPopup mounts
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   // Helper function to handle sending messages to AI and processing responses
   const processAIMessage = useCallback(
@@ -111,8 +117,16 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   }, [messages, loading]);
 
   const renderAvailableModels = () => {
+    const isValidProvider = (provider: BaseProviderConfig) => {
+      const ollamaType: ProviderType = 'ollama';
+      return (
+        (provider.apiKey && provider.host && provider.models.length !== 0) ||
+        (provider.id === ollamaType && provider.host != null && provider.models.length !== 0)
+      );
+    };
+
     return settings.providers
-      .filter((provider) => provider.apiKey && provider.host && provider.models.length !== 0)
+      .filter((provider) => isValidProvider(provider))
       .map((provider) => (
         <SelectSection key={provider.name} title={provider.name}>
           {provider.models.map((model) => (
@@ -203,6 +217,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 maxRows={5}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                ref={inputRef}
               />
               <div className="basis-[200px] flex flex-row items-center gap-2">
                 <Select

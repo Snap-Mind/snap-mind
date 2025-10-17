@@ -5,6 +5,7 @@ import AnthropicProvider from './AnthropicProvider';
 import GoogleProvider from './GoogleProvider';
 import DeepSeekProvider from './DeepSeekProvider';
 import QwenProvider from './QwenProvider';
+import OllamaProvider from './OllamaProvider';
 import { ProviderType } from '@/types/providers';
 import {
   Provider,
@@ -15,12 +16,13 @@ import {
   GoogleConfig,
   DeepSeekConfig,
   QwenConfig,
+  OllamaConfig,
 } from '@/types/providers';
 import loggerService from '../LoggerService';
 
 class ProviderFactory {
-  static createProvider(providerId: ProviderType, config: BaseProviderConfig): Provider {
-    switch (providerId) {
+  static createProvider(config: BaseProviderConfig): Provider {
+    switch (config.id) {
       case 'openai':
         return new OpenAIProvider(config as OpenAIConfig);
       case 'azure-openai':
@@ -33,14 +35,16 @@ class ProviderFactory {
         return new DeepSeekProvider(config as DeepSeekConfig);
       case 'qwen':
         return new QwenProvider(config as QwenConfig);
+      case 'ollama':
+        return new OllamaProvider(config as OllamaConfig);
       default:
-        loggerService.error('[ProviderFactory]', `Unknown provider: ${providerId}`);
-        throw new Error(`Unknown provider: ${providerId}`);
+        loggerService.error('[ProviderFactory]', `Unknown provider: ${config.id}`);
+        throw new Error(`Unknown provider: ${config.id}`);
     }
   }
 
   static getAvailableProviders(): ProviderType[] {
-    return ['openai', 'azure-openai', 'anthropic', 'google', 'deepseek', 'qwen'];
+    return ['openai', 'azure-openai', 'anthropic', 'google', 'deepseek', 'qwen', 'ollama'];
   }
 }
 
