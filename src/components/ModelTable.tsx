@@ -29,7 +29,7 @@ interface Column {
 }
 
 interface ModelTableProps {
-  providerConfig: BaseProviderConfig
+  providerConfig: BaseProviderConfig;
   onModelsChange: (models: ModelSetting[]) => void;
   showSyncedButton?: boolean;
 }
@@ -238,12 +238,21 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
           onClear={() => setSearchQuery('')}
         />
         <div className="flex gap-3">
-          <Button color='primary' startContent={<Icon size={18} icon="plus" />} onPress={onAddModelOpen}>
+          <Button
+            color="primary"
+            startContent={<Icon size={18} icon="plus" />}
+            onPress={onAddModelOpen}
+          >
             {t('settings.providers.newModel')}
           </Button>
           {showSyncedButton && (
             <Tooltip content={t('settings.providers.syncModels')} delay={500}>
-              <Button isIconOnly isLoading={discovering} isDisabled={discovering} onPress={handleDiscover}>
+              <Button
+                isIconOnly
+                isLoading={discovering}
+                isDisabled={discovering}
+                onPress={handleDiscover}
+              >
                 <Icon icon="cloud" />
               </Button>
             </Tooltip>

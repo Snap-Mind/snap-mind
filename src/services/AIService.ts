@@ -41,9 +41,7 @@ export class AIService {
       throw new Error(`Model ${defaultModelId} not found in provider ${this.providerSetting.id}`);
     }
 
-    this.activeProvider = ProviderFactory.createProvider(
-      this.providerSetting
-    );
+    this.activeProvider = ProviderFactory.createProvider(this.providerSetting);
     this.streamingEnabled = this.settings.chat.streamingEnabled;
   }
 

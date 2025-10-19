@@ -165,7 +165,7 @@ class OllamaProvider implements Provider {
   }
 
   async initialize(config: BaseProviderConfig): Promise<void> {
-      this.config = config;
+    this.config = config;
   }
 
   private _deriveApiBase(host: string): string {

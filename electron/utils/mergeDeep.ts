@@ -192,10 +192,7 @@ function mergeArrayById(
       targetMap.set(sid, merged);
     } else {
       if (addedMap.has(sid)) {
-        addedMap.set(
-          sid,
-          mergeDeep(addedMap.get(sid)!, s, options, path.concat(sid))
-        );
+        addedMap.set(sid, mergeDeep(addedMap.get(sid)!, s, options, path.concat(sid)));
       } else {
         addedMap.set(sid, s);
         addedOrder.push(sid);
@@ -223,9 +220,7 @@ function mergeArrayById(
 
 // Helpers for path pattern matching
 function pathToString(path: PathSegment[]): string {
-  return path
-    .map((seg) => String(seg))
-    .join('.');
+  return path.map((seg) => String(seg)).join('.');
 }
 
 function splitPattern(pattern: string): string[] {
