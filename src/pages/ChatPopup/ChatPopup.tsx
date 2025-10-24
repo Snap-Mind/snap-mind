@@ -16,6 +16,8 @@ interface ChatPopupProps {
   initialMessage?: Message | Message[];
 }
 
+const BOTTOM_SCROLL_THRESHOLD = 8;
+
 export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>(() =>
@@ -27,8 +29,8 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const [autoScroll, setAutoScroll] = useState(true); // flag controlling whether to auto scroll to bottom on new messages
+  const lastScrollTopRef = useRef<number>(0);
+  const [autoScroll, setAutoScroll] = useState(true);
   // Focus the input when ChatPopup mounts
   useEffect(() => {
     inputRef.current?.focus();
@@ -121,16 +123,13 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
     }
   }, [messages, loading, autoScroll]);
 
-  // Scroll handler: use scroll direction only.
   // If user scrolls downward (content moving up), enable autoScroll.
   // If user scrolls upward, disable autoScroll.
-  const lastScrollTopRef = useRef<number>(0);
   const handleMessagesScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     const current = el.scrollTop;
     const last = lastScrollTopRef.current;
-    const threshold = 8; // px tolerance when considering bottom
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+    const atBottom = el.scrollHeight - current - el.clientHeight <= BOTTOM_SCROLL_THRESHOLD;
 
     if (current < last) {
       // scrolling up -> disable auto scroll
@@ -224,7 +223,6 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
             aria-label="Chat conversation"
           >
             <div
-              ref={messagesContainerRef}
               onScroll={handleMessagesScroll}
               className="flex-1 overflow-y-auto p-[18px_14px_8px_14px] bg-background flex flex-col gap-2.5"
               aria-label="Chat messages"
