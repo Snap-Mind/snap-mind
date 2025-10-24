@@ -16,6 +16,8 @@ interface ChatPopupProps {
   initialMessage?: Message | Message[];
 }
 
+const BOTTOM_SCROLL_THRESHOLD = 8;
+
 export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>(() =>
@@ -27,6 +29,8 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const lastScrollTopRef = useRef<number>(0);
+  const [autoScroll, setAutoScroll] = useState(true);
   // Focus the input when ChatPopup mounts
   useEffect(() => {
     inputRef.current?.focus();
@@ -112,9 +116,30 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
     };
   }, []);
 
+  // Auto scroll only if the flag is enabled (user is at / returns to bottom)
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+    if (autoScroll) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, loading, autoScroll]);
+
+  // If user scrolls downward (content moving up), enable autoScroll.
+  // If user scrolls upward, disable autoScroll.
+  const handleMessagesScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const current = el.scrollTop;
+    const last = lastScrollTopRef.current;
+    const atBottom = el.scrollHeight - current - el.clientHeight <= BOTTOM_SCROLL_THRESHOLD;
+
+    if (current < last) {
+      // scrolling up -> disable auto scroll
+      if (autoScroll) setAutoScroll(false);
+    } else if (current > last) {
+      // scrolling down -> only enable if truly at bottom
+      if (!autoScroll && atBottom) setAutoScroll(true);
+    }
+    lastScrollTopRef.current = current;
+  };
 
   const renderAvailableModels = () => {
     const isValidProvider = (provider: BaseProviderConfig) => {
@@ -198,6 +223,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
             aria-label="Chat conversation"
           >
             <div
+              onScroll={handleMessagesScroll}
               className="flex-1 overflow-y-auto p-[18px_14px_8px_14px] bg-background flex flex-col gap-2.5"
               aria-label="Chat messages"
             >
