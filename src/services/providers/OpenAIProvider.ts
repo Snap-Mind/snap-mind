@@ -143,17 +143,17 @@ class OpenAIProvider implements Provider {
 
       const data: OpenAIListModelsResponse = await res.json();
       return data.data
-      .filter((model: { id: string }) => model.id.includes('gpt'))
-      .map(
-        (model) =>
-          <ModelSetting>{
-            id: model.id,
-            name: model.id,
-            type: 'chat',
-            capabilities: ['chat'],
-            description: `OpenAI ${model.id} model`,
-          }
-      );
+        .filter((model) => model.id.includes('gpt'))
+        .map(
+          (model) =>
+            <ModelSetting>{
+              id: model.id,
+              name: model.id,
+              type: 'chat',
+              capabilities: ['chat'],
+              description: `OpenAI ${model.id} model`,
+            }
+        );
     } catch (err) {
       loggerService.error('Failed to list OpenAI models:', err);
     }
