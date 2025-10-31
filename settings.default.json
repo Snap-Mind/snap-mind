@@ -20,7 +20,7 @@
       "id": "openai",
       "name": "OpenAI",
       "apiKey": "",
-      "host": "https://api.openai.com/v1/chat/completions",
+      "host": "https://api.openai.com/v1",
       "models": [
         {
           "id": "gpt-4",

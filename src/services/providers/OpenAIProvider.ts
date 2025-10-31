@@ -4,6 +4,20 @@ import { Message } from '@/types/chat';
 import loggerService from '../LoggerService';
 import { ModelSetting } from '@/types/setting';
 
+const OPENAI_DEFAULT_ORIGIN = 'https://api.openai.com';
+const OPENAI_PATH_CHAT_COMPLETIONS = '/chat/completions';
+const OPENAI_PATH_MODELS = '/models';
+
+interface OpenAIListModelsResponse {
+  object: string;
+  data: Array<{
+    id: string;
+    object: string;
+    created: number;
+    owned_by: string;
+  }>;
+}
+
 class OpenAIProvider implements Provider {
   config: OpenAIConfig;
 
@@ -17,7 +31,7 @@ class OpenAIProvider implements Provider {
     onToken?: (token: string) => void
   ): Promise<string> {
     const apiKey = this.config.apiKey;
-    const endpoint = this.config.host;
+    const endpoint = this._buildChatCompletionsUrl(this.config.host || OPENAI_DEFAULT_ORIGIN);
     const model = options?.model;
 
     if (!apiKey) {
@@ -116,8 +130,8 @@ class OpenAIProvider implements Provider {
         return this.config.models || [];
       }
 
-      const endpoint = 'https://api.openai.com/v1/models';
-      const res = await fetch(endpoint, {
+      const modelsUrl = this._buildModelsUrl(this.config.host || OPENAI_DEFAULT_ORIGIN);
+      const res = await fetch(modelsUrl, {
         headers: {
           Authorization: `Bearer ${this.config.apiKey}`,
         },
@@ -127,24 +141,61 @@ class OpenAIProvider implements Provider {
         throw new Error(`Failed to fetch models: ${res.status}`);
       }
 
-      const data = await res.json();
+      const data: OpenAIListModelsResponse = await res.json();
       return data.data
-        .filter((model: { id: string }) => model.id.includes('gpt'))
-        .map((model: { id: string }) => ({
-          id: model.id,
-          name: model.id,
-          type: 'chat',
-          description: `OpenAI ${model.id} model`,
-        }));
+      .filter((model: { id: string }) => model.id.includes('gpt'))
+      .map(
+        (model) =>
+          <ModelSetting>{
+            id: model.id,
+            name: model.id,
+            type: 'chat',
+            capabilities: ['chat'],
+            description: `OpenAI ${model.id} model`,
+          }
+      );
     } catch (err) {
       loggerService.error('Failed to list OpenAI models:', err);
-      // Return models from config if API call fails
-      return this.config.models || [];
     }
   }
 
   async initialize(config: OpenAIConfig): Promise<void> {
     this.config = config;
+  }
+
+  // Extract the base API URL ending with "/v1" from either of these inputs:
+  // - https://api.openai.com/v1
+  // - https://api.openai.com/v1/chat/completions
+  // If no "/v1" segment is present, append it.
+  private _deriveApiBase(host: string): string {
+    try {
+      const url = new URL(host);
+      const parts = url.pathname.split('/').filter(Boolean);
+      const v1Index = parts.indexOf('v1');
+      let basePath: string;
+      if (v1Index >= 0) {
+        basePath = '/' + parts.slice(0, v1Index + 1).join('/');
+      } else {
+        // ensure we end with /v1
+        const path = parts.join('/');
+        basePath = path ? `/${path}/v1` : '/v1';
+      }
+      url.pathname = basePath.replace(/\/$/, '');
+      return url.origin + url.pathname;
+    } catch (e) {
+      // Surface invalid URLs instead of silently falling back
+      throw new Error(`Invalid OpenAI host URL: ${host}`);
+    }
+  }
+
+  private _buildChatCompletionsUrl(host: string): string {
+    const base = this._deriveApiBase(host);
+    return `${base}${OPENAI_PATH_CHAT_COMPLETIONS}`;
+  }
+
+  private _buildModelsUrl(host: string): string {
+    const base = this._deriveApiBase(host);
+    return `${base}${OPENAI_PATH_MODELS}`;
   }
 }
 

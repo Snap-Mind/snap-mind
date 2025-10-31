@@ -19,7 +19,7 @@ function ProviderOpenAI({ settings, onSettingsChange }: ProviderOpenAIProps) {
         <Input
           label="Host"
           labelPlacement="outside"
-          placeholder="e.g. http://openai.com/chat/completion"
+          placeholder="e.g. https://api.openai.com/v1"
           defaultValue={settings.host ? settings.host : ''}
           type="url"
           onValueChange={(value) => onSettingsChange(['providers', 0, 'host'], value)}
@@ -38,6 +38,7 @@ function ProviderOpenAI({ settings, onSettingsChange }: ProviderOpenAIProps) {
         <ModelTable
           providerConfig={settings}
           onModelsChange={(newModels) => onSettingsChange(['providers', 0, 'models'], newModels)}
+          showSyncedButton={true}
         />
       </div>
     </div>
