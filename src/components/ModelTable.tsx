@@ -81,6 +81,10 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
     Partial<Record<keyof ModelSetting, string>>
   >({});
 
+  useEffect(() => {
+    setLocalModels([...providerConfig.models]);
+  }, [providerConfig.models]);
+
   const handleAddModel = () => {
     if (addFormRef.current && addFormRef.current.checkValidity()) {
       const errors: Partial<Record<keyof ModelSetting, string>> = {};
@@ -189,10 +193,6 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
   const filteredModels = localModels.filter((model) =>
     model.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  useEffect(() => {
-    setLocalModels([...providerConfig.models]);
-  }, [providerConfig.models]);
 
   const renderCell = useCallback(
     (model: ModelSetting, columnKey: string) => {
