@@ -9,6 +9,11 @@ interface GoogleMessage {
   parts: Array<{ text: string }>;
 }
 
+// Google Generative Language API constants (mirroring OpenAI provider pattern)
+const GOOGLE_DEFAULT_ORIGIN = 'https://generativelanguage.googleapis.com';
+const GOOGLE_PATH_MODELS = '/models';
+const GOOGLE_GENERATE_CONTENT_SUFFIX = ':generateContent';
+
 class GoogleProvider implements Provider {
   config: GoogleConfig;
 
@@ -25,9 +30,13 @@ class GoogleProvider implements Provider {
     const model = options?.model;
     const topK = this.config.config?.topK;
 
-    // Base endpoint for Gemini API
-    const baseEndpoint = this.config.host;
-    const endpoint = `${baseEndpoint}/models/${model}:generateContent?key=${apiKey}`;
+    // Build content generation endpoint via helpers (OpenAI-style pattern)
+    const endpoint = this._buildGenerateContentUrl(
+      this.config.host || GOOGLE_DEFAULT_ORIGIN,
+      model,
+      apiKey,
+      options?.stream !== false
+    );
 
     if (!apiKey) {
       const error = 'Google AI API key not configured';
@@ -89,10 +98,7 @@ class GoogleProvider implements Provider {
     };
 
     // Add stream flag if streaming is enabled
-    const requestUrl =
-      options?.stream !== false
-        ? `${endpoint}&alt=sse` // Server-Sent Events for streaming
-        : endpoint;
+    const requestUrl = endpoint;
 
     const fetchOptions: RequestInit = {
       method: 'POST',
@@ -175,53 +181,79 @@ class GoogleProvider implements Provider {
    * @returns {Promise<Model[]>} - Array of available models
    */
   async listModels(): Promise<ModelSetting[]> {
+    // Align with Anthropic/OpenAI pattern: no hardcoded fallback defaults.
+    if (!this.config.apiKey) {
+      return this.config.models || [];
+    }
     try {
-      if (!this.config.apiKey) {
-        return this.config.models || [];
-      }
-
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models?key=${this.config.apiKey}`;
-      const res = await fetch(endpoint);
-
+      const modelsUrl = this._buildModelsUrl(
+        this.config.host || GOOGLE_DEFAULT_ORIGIN,
+        this.config.apiKey
+      );
+      const res = await fetch(modelsUrl, {
+        headers: { Accept: 'application/json' },
+      });
       if (!res.ok) {
         throw new Error(`Failed to fetch models: ${res.status}`);
       }
-
       const data = await res.json();
-      return data.models
-        .filter((model: { name: string }) => model.name.includes('gemini'))
-        .map((model: { name: string; displayName?: string; description?: string }) => ({
-          id: model.name.split('/').pop(),
-          name: model.displayName || model.name,
-          type: 'chat',
-          description: model.description || `Google ${model.name} model`,
-        }));
+      return Array.isArray(data.models)
+        ? data.models.map(
+            (model: { name: string; displayName?: string; description?: string }) =>
+              <ModelSetting>{
+                id: model.name.split('/').pop(),
+                name: model.displayName || model.name,
+                type: 'chat',
+                capabilities: ['chat'],
+                description: model.description || `Google ${model.name} model`,
+              }
+          )
+        : [];
     } catch (err) {
       loggerService.error('[Google]', 'Failed to list models:', err);
-      // Return models from config if API call fails
-      return (
-        this.config.models || [
-          {
-            id: 'gemini-1.5-pro',
-            name: 'Gemini 1.5 Pro',
-            type: 'chat',
-            capabilities: ['chat'],
-            description: 'Highly capable multimodal model',
-          },
-          {
-            id: 'gemini-1.5-flash',
-            name: 'Gemini 1.5 Flash',
-            type: 'chat',
-            capabilities: ['chat'],
-            description: 'Fast and efficient model for most tasks',
-          },
-        ]
-      );
+      return this.config.models || [];
     }
   }
 
   async initialize(config: GoogleConfig): Promise<void> {
     this.config = config;
+  }
+
+  // Helpers mimicking OpenAI pattern
+  private _deriveApiBase(host: string): string {
+    try {
+      const url = new URL(host);
+      const parts = url.pathname.split('/').filter(Boolean);
+      // Find version segment starting with v digit (e.g. v1, v1beta)
+      const versionIndex = parts.findIndex((p) => /^v\d/.test(p));
+      let baseParts: string[];
+      if (versionIndex >= 0) {
+        baseParts = parts.slice(0, versionIndex + 1);
+      } else {
+        baseParts = parts.concat('v1beta');
+      }
+      url.pathname = '/' + baseParts.join('/');
+      return url.origin + url.pathname.replace(/\/$/, '');
+    } catch (e) {
+      throw new Error(`Invalid Google host URL: ${host}`);
+    }
+  }
+
+  private _buildGenerateContentUrl(
+    host: string,
+    model: string,
+    apiKey: string,
+    streaming: boolean
+  ): string {
+    const base = this._deriveApiBase(host);
+    const path = `${GOOGLE_PATH_MODELS}/${model}${GOOGLE_GENERATE_CONTENT_SUFFIX}`;
+    const url = `${base}${path}?key=${apiKey}${streaming ? '&alt=sse' : ''}`;
+    return url;
+  }
+
+  private _buildModelsUrl(host: string, apiKey: string): string {
+    const base = this._deriveApiBase(host);
+    return `${base}${GOOGLE_PATH_MODELS}?key=${apiKey}`;
   }
 }
 

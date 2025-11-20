@@ -4,7 +4,9 @@ import { Message } from '@/types/chat';
 import loggerService from '../LoggerService';
 import { ModelSetting } from '@/types/setting';
 
-// API version constant
+const ANTHROPIC_DEFAULT_ORIGIN = 'https://api.anthropic.com';
+const ANTHROPIC_PATH_MESSAGES = '/messages';
+const ANTHROPIC_PATH_MODELS = '/models';
 const ANTHROPIC_API_VERSION = '2023-06-01';
 
 class AnthropicProvider implements Provider {
@@ -20,7 +22,7 @@ class AnthropicProvider implements Provider {
     onToken?: (token: string) => void
   ): Promise<string> {
     const apiKey = this.config.apiKey;
-    const endpoint = this.config.host;
+    const endpoint = this._buildMessagesUrl(this.config.host || ANTHROPIC_DEFAULT_ORIGIN);
     const model = options?.model;
 
     if (!apiKey) {
@@ -141,33 +143,70 @@ class AnthropicProvider implements Provider {
   }
 
   async listModels(): Promise<ModelSetting[]> {
-    // Anthropic doesn't have a list models endpoint currently
-    // Return a default list of models
-    return (
-      this.config.models || [
-        {
-          id: 'claude-3-opus-20240229',
-          name: 'Claude 3 Opus',
-          type: 'chat',
-          capabilities: ['chat'],
-          description: 'Most powerful Claude model for highly complex tasks',
+    // Mirror OpenAI pattern: if no API key, just return configured models (or empty) without hardcoded defaults.
+    if (!this.config.apiKey) {
+      return this.config.models || [];
+    }
+    try {
+      const modelsUrl = this._buildModelsUrl(this.config.host || ANTHROPIC_DEFAULT_ORIGIN);
+      const res = await fetch(modelsUrl, {
+        headers: {
+          'X-API-Key': this.config.apiKey,
+          'Anthropic-Version': ANTHROPIC_API_VERSION,
+          Accept: 'application/json',
         },
-        {
-          id: 'claude-3-sonnet-20240229',
-          name: 'Claude 3 Sonnet',
-          type: 'chat',
-          capabilities: ['chat'],
-          description: 'Balanced Claude model for most tasks',
-        },
-        {
-          id: 'claude-3-haiku-20240307',
-          name: 'Claude 3 Haiku',
-          type: 'chat',
-          capabilities: ['chat'],
-          description: 'Fastest, most compact Claude model',
-        },
-      ]
-    );
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch models: ${res.status}`);
+      }
+      const data = await res.json();
+      return Array.isArray(data.data)
+        ? data.data.map(
+            (m: { id: string; display_name?: string; description?: string }) =>
+              <ModelSetting>{
+                id: m.id,
+                name: m.display_name || m.id,
+                type: 'chat',
+                capabilities: ['chat'],
+                description: m.description || `Anthropic ${m.id} model`,
+              }
+          )
+        : [];
+    } catch (err) {
+      loggerService.error('[Anthropic]', 'Failed to list models:', err);
+      // On error, don't inject defaults; return configured models or empty.
+      return this.config.models || [];
+    }
+  }
+
+  // Derive API base ending with /v1 similar to OpenAI pattern
+  private _deriveApiBase(host: string): string {
+    try {
+      const url = new URL(host);
+      const parts = url.pathname.split('/').filter(Boolean);
+      const v1Index = parts.indexOf('v1');
+      let basePath: string;
+      if (v1Index >= 0) {
+        basePath = '/' + parts.slice(0, v1Index + 1).join('/');
+      } else {
+        const path = parts.join('/');
+        basePath = path ? `/${path}/v1` : '/v1';
+      }
+      url.pathname = basePath.replace(/\/$/, '');
+      return url.origin + url.pathname;
+    } catch (e) {
+      throw new Error(`Invalid Anthropic host URL: ${host}`);
+    }
+  }
+
+  private _buildMessagesUrl(host: string): string {
+    const base = this._deriveApiBase(host);
+    return `${base}${ANTHROPIC_PATH_MESSAGES}`;
+  }
+
+  private _buildModelsUrl(host: string): string {
+    const base = this._deriveApiBase(host);
+    return `${base}${ANTHROPIC_PATH_MODELS}`;
   }
 
   async initialize(config: AnthropicConfig): Promise<void> {
