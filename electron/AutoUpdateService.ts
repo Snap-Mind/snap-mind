@@ -82,7 +82,8 @@ export default class AutoUpdateService {
     });
     this.updater.on('error', (err) => {
       logService.error('[update] error', err);
-      const evt: UpdateEvent = { type: 'error', error: err?.message || String(err) };
+      // Show "not available" to UI instead of error message
+      const evt: UpdateEvent = { type: 'not-available', info: {} };
       this.currentStatus = evt;
       this.broadcast(evt);
     });
