@@ -98,23 +98,31 @@ class OllamaProvider implements Provider {
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
+        let hasError = false;
         try {
           const obj = JSON.parse(trimmed);
-          // If Ollama signals completion, exit early
-          if (obj?.done === true) {
-            return fullText;
-          }
           // Surface mid-stream errors if present
           if (obj?.error) {
+            hasError = true;
             throw new Error(typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error));
           }
+          // Process content first before checking done flag
           if (obj?.message?.content) {
             const token: string = obj.message.content;
             if (typeof onToken === 'function') onToken(token);
             fullText += token;
           }
+          // If Ollama signals completion, exit early
+          if (obj?.done === true) {
+            return fullText;
+          }
           // When done === true the stream will end soon; we don't need to do anything special here
         } catch (e) {
+          // If it's an error from the API response, re-throw it
+          if (hasError) {
+            throw e;
+          }
+          // Otherwise it's a malformed JSON, just skip it
           loggerService.debug?.('[Ollama]', 'Skipping malformed NDJSON line:', trimmed);
         }
       }

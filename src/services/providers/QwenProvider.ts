@@ -7,7 +7,6 @@ import { ModelSetting } from '@/types/setting';
 const QWEN_DEFAULT_ORIGIN = 'https://dashscope.aliyuncs.com';
 const QWEN_PATH_CHAT_COMPLETIONS = '/chat/completions';
 const QWEN_PATH_MODELS = '/models';
-const QWEN_API_VERSION = 'v1';
 
 class QwenProvider implements Provider {
   config: QwenConfig;
@@ -164,13 +163,13 @@ class QwenProvider implements Provider {
     try {
       const url = new URL(raw);
       const parts = url.pathname.split('/').filter(Boolean);
-      
+
       // Look for 'compatible-mode' and 'v1' segments
       const compatIndex = parts.indexOf('compatible-mode');
-      const vIndex = parts.findIndex(p => /^v\d/.test(p));
+      const vIndex = parts.findIndex((p) => /^v\d/.test(p));
 
       let baseParts: string[];
-      
+
       if (compatIndex >= 0) {
         // If we found 'compatible-mode', keep everything up to and including 'v1'
         if (vIndex > compatIndex) {
