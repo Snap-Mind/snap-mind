@@ -41,6 +41,7 @@
       "deleteModel": "删除模型",
       "deleteModelConfirm": "您确定要删除<b>{{modelName}}</b>吗？",
       "syncModels": "同步模型列表",
+      "cleanModels": "清空模型列表",
       "name": "名称",
       "actions": "操作"
     },

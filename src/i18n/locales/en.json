@@ -41,6 +41,7 @@
       "deleteModel": "Delete model",
       "deleteModelConfirm": "Are you sure you want to delete <b>{{modelName}}</b>?",
       "syncModels": "Sync models",
+      "cleanModels": "Clean models",
       "name": "Name",
       "actions": "Actions"
     },

@@ -1,6 +1,7 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   Button,
+  ButtonGroup,
   Input,
   Modal,
   ModalContent,
@@ -185,6 +186,18 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
     }
   };
 
+  const handleCleanModels = async () => {
+    setDiscovering(true);
+    try {
+      onModelsChange([]);
+      setLocalModels([]);
+    } catch (e) {
+      logger.error(`[${providerConfig.id}] clean models failed:`, e);
+    } finally {
+      setDiscovering(false);
+    }
+  }
+
   // Use HeroUI controlled pattern so clear button works reliably
   const handleSearchValueChange = (value: string) => {
     setSearchQuery(value);
@@ -245,18 +258,31 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
           >
             {t('settings.providers.newModel')}
           </Button>
-          {showSyncedButton && (
-            <Tooltip content={t('settings.providers.syncModels')} delay={500}>
-              <Button
-                isIconOnly
-                isLoading={discovering}
-                isDisabled={discovering}
-                onPress={handleDiscover}
-              >
-                <Icon icon="cloud" />
-              </Button>
-            </Tooltip>
-          )}
+          <ButtonGroup>
+            {showSyncedButton && (
+              <Tooltip content={t('settings.providers.syncModels')} delay={500}>
+                <Button
+                  isIconOnly
+                  isLoading={discovering}
+                  isDisabled={discovering}
+                  onPress={handleDiscover}
+                >
+                  <Icon icon="cloud" />
+                </Button>
+              </Tooltip>
+            )}
+            <Tooltip content={t('settings.providers.cleanModels')} delay={500}>
+                <Button
+                  isIconOnly
+                  variant='ghost'
+                  isLoading={discovering}
+                  isDisabled={discovering}
+                  onPress={handleCleanModels}
+                >
+                  <Icon icon="cleaning-services" />
+                </Button>
+              </Tooltip>
+          </ButtonGroup>
         </div>
       </div>
       <Modal isOpen={isAddModelOpen} onOpenChange={onAddModelOpenChange}>
