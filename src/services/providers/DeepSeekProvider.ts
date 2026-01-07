@@ -4,6 +4,11 @@ import { Message } from '@/types/chat';
 import loggerService from '../LoggerService';
 import { ModelSetting } from '@/types/setting';
 
+const DEEPSEEK_DEFAULT_ORIGIN = 'https://api.deepseek.com';
+const DEEPSEEK_PATH_CHAT_COMPLETIONS = '/chat/completions';
+const DEEPSEEK_PATH_MODELS = '/models';
+const DEEPSEEK_API_VERSION = 'v1';
+
 class DeepSeekProvider implements Provider {
   config: DeepSeekConfig;
 
@@ -17,7 +22,7 @@ class DeepSeekProvider implements Provider {
     onToken?: (token: string) => void
   ): Promise<string> {
     const apiKey = this.config.apiKey;
-    const endpoint = this.config.host; // Typically https://api.deepseek.com/chat/completions or compatible
+    const endpoint = this._buildChatUrl(this.config.host);
     const model = options?.model;
 
     if (!apiKey) {
@@ -104,25 +109,73 @@ class DeepSeekProvider implements Provider {
   }
 
   async listModels(): Promise<ModelSetting[]> {
-    // DeepSeek often uses fixed model ids like deepseek-chat, deepseek-reasoner
-    return (
-      this.config.models || [
-        {
-          id: 'deepseek-chat',
-          name: 'DeepSeek Chat',
-          type: 'chat',
-          capabilities: ['chat'],
-          description: 'DeepSeek general chat model',
+    // Mirror OpenAI pattern: if no API key, return configured models (or empty) without hardcoded defaults.
+    if (!this.config.apiKey) {
+      return this.config.models || [];
+    }
+    try {
+      const modelsUrl = this._buildModelsUrl(this.config.host);
+      const res = await fetch(modelsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
-        {
-          id: 'deepseek-reasoner',
-          name: 'DeepSeek Reasoner',
-          type: 'chat',
-          capabilities: ['chat', 'reasoning'],
-          description: 'Reasoning-optimized model',
-        },
-      ]
-    );
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch models: ${res.status}`);
+      }
+      const data = await res.json();
+      return Array.isArray(data.data)
+        ? data.data.map(
+            (m: { id: string; object?: string; owned_by?: string }) =>
+              <ModelSetting>{
+                id: m.id,
+                name: m.id,
+                type: 'chat',
+                capabilities: ['chat'],
+                description: `DeepSeek ${m.id} model`,
+              }
+          )
+        : [];
+    } catch (err) {
+      loggerService.error('[DeepSeek]', 'Failed to list models:', err);
+      // On error, don't inject defaults; return configured models or empty.
+      return this.config.models || [];
+    }
+  }
+
+  // Build the models endpoint from the host
+  private _buildModelsUrl(host: string): string {
+    try {
+      const base = this._deriveApiBase(host || DEEPSEEK_DEFAULT_ORIGIN);
+      return `${base}${DEEPSEEK_PATH_MODELS}`;
+    } catch (e) {
+      throw new Error(`Invalid DeepSeek host URL: ${host}`);
+    }
+  }
+
+  // Build chat completions endpoint from host (host can be bare origin)
+  private _buildChatUrl(host: string): string {
+    const base = this._deriveApiBase(host || DEEPSEEK_DEFAULT_ORIGIN);
+    return `${base}${DEEPSEEK_PATH_CHAT_COMPLETIONS}`;
+  }
+
+  private _deriveApiBase(raw: string): string {
+    try {
+      const url = new URL(raw);
+      const parts = url.pathname.split('/').filter(Boolean);
+      const vIndex = parts.indexOf(DEEPSEEK_API_VERSION);
+      let basePath: string;
+      if (vIndex >= 0) {
+        basePath = '/' + parts.slice(0, vIndex + 1).join('/');
+      } else {
+        basePath = '/v1';
+      }
+      url.pathname = basePath.replace(/\/$/, '');
+      return url.origin + url.pathname;
+    } catch (e) {
+      throw new Error(`Invalid DeepSeek host URL: ${raw}`);
+    }
   }
 
   async initialize(config: DeepSeekConfig): Promise<void> {

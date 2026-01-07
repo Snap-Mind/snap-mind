@@ -17,6 +17,7 @@ import {
   LuRotateCcw,
   LuCloud,
 } from 'react-icons/lu';
+import { MdOutlineCleaningServices } from "react-icons/md";
 
 import OpenAI from '@lobehub/icons-static-svg/icons/openai.svg?react';
 import AzureAI from '@lobehub/icons-static-svg/icons/azureai.svg?react';
@@ -50,7 +51,8 @@ type IconType =
   | 'ollama'
   | 'settings'
   | 'rotate-ccw'
-  | 'cloud';
+  | 'cloud'
+  | 'cleaning-services';
 
 interface IconProps {
   className?: string;
@@ -121,6 +123,8 @@ function Icon({
         return <LuRotateCcw className={svgClassName} color={color} size={size} />;
       case 'cloud':
         return <LuCloud className={svgClassName} color={color} size={size} />;
+      case 'cleaning-services':
+        return <MdOutlineCleaningServices className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }

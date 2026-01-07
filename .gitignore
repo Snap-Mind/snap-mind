@@ -42,3 +42,7 @@ settings.json
 
 # TypeScript build info
 *.tsbuildinfo
+
+# Test coverage
+coverage/
+.vitest/

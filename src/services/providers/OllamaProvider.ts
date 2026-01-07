@@ -4,6 +4,11 @@ import { Message } from '@/types/chat';
 import loggerService from '../LoggerService';
 import { ModelSetting } from '@/types/setting';
 
+const OLLAMA_DEFAULT_ORIGIN = 'http://localhost:11434';
+const OLLAMA_PATH_API = '/api';
+const OLLAMA_PATH_CHAT = '/chat';
+const OLLAMA_PATH_TAGS = '/tags';
+
 class OllamaProvider implements Provider {
   config: BaseProviderConfig;
 
@@ -16,7 +21,7 @@ class OllamaProvider implements Provider {
     options?: ProviderOptions,
     onToken?: (token: string) => void
   ): Promise<string> {
-    const endpoint = this.config.host || 'http://localhost:11434/api/chat';
+    const endpoint = this._buildChatUrl(this.config.host || OLLAMA_DEFAULT_ORIGIN);
     const model = options?.model;
 
     if (!model) {
@@ -93,23 +98,31 @@ class OllamaProvider implements Provider {
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
+        let hasError = false;
         try {
           const obj = JSON.parse(trimmed);
-          // If Ollama signals completion, exit early
-          if (obj?.done === true) {
-            return fullText;
-          }
           // Surface mid-stream errors if present
           if (obj?.error) {
+            hasError = true;
             throw new Error(typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error));
           }
+          // Process content first before checking done flag
           if (obj?.message?.content) {
             const token: string = obj.message.content;
             if (typeof onToken === 'function') onToken(token);
             fullText += token;
           }
+          // If Ollama signals completion, exit early
+          if (obj?.done === true) {
+            return fullText;
+          }
           // When done === true the stream will end soon; we don't need to do anything special here
         } catch (e) {
+          // If it's an error from the API response, re-throw it
+          if (hasError) {
+            throw e;
+          }
+          // Otherwise it's a malformed JSON, just skip it
           loggerService.debug?.('[Ollama]', 'Skipping malformed NDJSON line:', trimmed);
         }
       }
@@ -136,8 +149,8 @@ class OllamaProvider implements Provider {
   async listModels(): Promise<ModelSetting[]> {
     try {
       // Derive base URL to call /api/tags
-      const base = this._deriveApiBase(this.config.host || 'http://localhost:11434/api/chat');
-      const tagsUrl = `${base}/tags`;
+      const base = this._deriveApiBase(this.config.host || OLLAMA_DEFAULT_ORIGIN);
+      const tagsUrl = `${base}${OLLAMA_PATH_TAGS}`;
       const res = await fetch(tagsUrl);
       if (!res.ok) {
         throw new Error(`Failed to fetch models: ${res.status}`);
@@ -168,6 +181,11 @@ class OllamaProvider implements Provider {
     this.config = config;
   }
 
+  private _buildChatUrl(host: string): string {
+    const base = this._deriveApiBase(host);
+    return `${base}${OLLAMA_PATH_CHAT}`;
+  }
+
   private _deriveApiBase(host: string): string {
     // Accept host strings like:
     // - http://localhost:11434
@@ -178,11 +196,11 @@ class OllamaProvider implements Provider {
       const parts = url.pathname.split('/').filter(Boolean);
       const apiIndex = parts.indexOf('api');
       const basePath = apiIndex >= 0 ? '/' + parts.slice(0, apiIndex + 1).join('/') : '/api';
-      url.pathname = basePath;
+      url.pathname = basePath.replace(/\/$/, ''); // Remove trailing slash for consistency
       return url.origin + url.pathname;
     } catch {
       // Fallback to default
-      return 'http://localhost:11434/api';
+      return `${OLLAMA_DEFAULT_ORIGIN}${OLLAMA_PATH_API}`;
     }
   }
 }

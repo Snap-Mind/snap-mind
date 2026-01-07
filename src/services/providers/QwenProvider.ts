@@ -4,6 +4,10 @@ import { Message } from '@/types/chat';
 import loggerService from '../LoggerService';
 import { ModelSetting } from '@/types/setting';
 
+const QWEN_DEFAULT_ORIGIN = 'https://dashscope.aliyuncs.com';
+const QWEN_PATH_CHAT_COMPLETIONS = '/chat/completions';
+const QWEN_PATH_MODELS = '/models';
+
 class QwenProvider implements Provider {
   config: QwenConfig;
 
@@ -17,7 +21,7 @@ class QwenProvider implements Provider {
     onToken?: (token: string) => void
   ): Promise<string> {
     const apiKey = this.config.apiKey;
-    const endpoint = this.config.host; // e.g. https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+    const endpoint = this._buildChatUrl(this.config.host || QWEN_DEFAULT_ORIGIN);
     const model = options?.model;
 
     if (!apiKey) {
@@ -104,31 +108,86 @@ class QwenProvider implements Provider {
   }
 
   async listModels(): Promise<ModelSetting[]> {
-    return (
-      this.config.models || [
-        {
-          id: 'qwen-plus',
-          name: 'Qwen Plus',
-          type: 'chat',
-          capabilities: ['chat'],
-          description: 'Balanced Qwen model',
+    // Mirror OpenAI pattern: if no API key, return configured models (or empty) without hardcoded defaults.
+    if (!this.config.apiKey) {
+      return this.config.models || [];
+    }
+    try {
+      const modelsUrl = this._buildModelsUrl(this.config.host || QWEN_DEFAULT_ORIGIN);
+      const res = await fetch(modelsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
-        {
-          id: 'qwen-max',
-          name: 'Qwen Max',
-          type: 'chat',
-          capabilities: ['chat'],
-          description: 'Most capable Qwen model',
-        },
-        {
-          id: 'qwen-turbo',
-          name: 'Qwen Turbo',
-          type: 'chat',
-          capabilities: ['chat'],
-          description: 'Fast and efficient Qwen model',
-        },
-      ]
-    );
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch models: ${res.status}`);
+      }
+      const data = await res.json();
+      return Array.isArray(data.data)
+        ? data.data.map(
+            (m: { id: string; object?: string; owned_by?: string }) =>
+              <ModelSetting>{
+                id: m.id,
+                name: m.id,
+                type: 'chat',
+                capabilities: ['chat'],
+                description: `Qwen ${m.id} model`,
+              }
+          )
+        : [];
+    } catch (err) {
+      loggerService.error('[Qwen]', 'Failed to list models:', err);
+      // On error, don't inject defaults; return configured models or empty.
+      return this.config.models || [];
+    }
+  }
+
+  // Build the models endpoint from the host
+  private _buildModelsUrl(host: string): string {
+    try {
+      const base = this._deriveApiBase(host);
+      return `${base}${QWEN_PATH_MODELS}`;
+    } catch (e) {
+      throw new Error(`Invalid Qwen host URL: ${host}`);
+    }
+  }
+
+  // Build chat completions endpoint from host (host can be bare origin)
+  private _buildChatUrl(host: string): string {
+    const base = this._deriveApiBase(host);
+    return `${base}${QWEN_PATH_CHAT_COMPLETIONS}`;
+  }
+
+  private _deriveApiBase(raw: string): string {
+    try {
+      const url = new URL(raw);
+      const parts = url.pathname.split('/').filter(Boolean);
+
+      // Look for 'compatible-mode' and 'v1' segments
+      const compatIndex = parts.indexOf('compatible-mode');
+      const vIndex = parts.findIndex((p) => /^v\d/.test(p));
+
+      let baseParts: string[];
+
+      if (compatIndex >= 0) {
+        // If we found 'compatible-mode', keep everything up to and including 'v1'
+        if (vIndex > compatIndex) {
+          baseParts = parts.slice(0, vIndex + 1);
+        } else {
+          // compatible-mode exists but no version after it, add v1
+          baseParts = parts.slice(0, compatIndex + 1).concat(['v1']);
+        }
+      } else {
+        // No compatible-mode found, prepend it
+        baseParts = ['compatible-mode', 'v1'];
+      }
+
+      url.pathname = '/' + baseParts.join('/');
+      return url.origin + url.pathname.replace(/\/$/, '');
+    } catch (e) {
+      throw new Error(`Invalid Qwen host URL: ${raw}`);
+    }
   }
 
   async initialize(config: QwenConfig): Promise<void> {
