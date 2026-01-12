@@ -17,7 +17,7 @@ import {
   LuRotateCcw,
   LuCloud,
 } from 'react-icons/lu';
-import { MdOutlineCleaningServices } from "react-icons/md";
+import { MdOutlineCleaningServices } from 'react-icons/md';
 
 import OpenAI from '@lobehub/icons-static-svg/icons/openai.svg?react';
 import AzureAI from '@lobehub/icons-static-svg/icons/azureai.svg?react';
