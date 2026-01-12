@@ -11,6 +11,7 @@ import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
 import { BaseProviderConfig, ProviderType } from '@/types/providers';
+import { electronService } from '../../services/electronService';
 
 interface ChatPopupProps {
   initialMessage?: Message | Message[];
@@ -181,6 +182,12 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
       return;
     }
 
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      electronService.closeChatPopup();
+      return;
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -189,9 +196,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
 
   const handleEscapeKey = (event) => {
     if (event.key === 'Escape') {
-      if (window.electronAPI && window.electronAPI.closeChatPopup) {
-        window.electronAPI.closeChatPopup();
-      }
+      electronService.closeChatPopup();
     }
   };
 
