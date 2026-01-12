@@ -144,11 +144,11 @@ describe('AnthropicProvider', () => {
 
       setupFetchMock(
         mockSSEResponse([
-          { data: { delta: { text: 'One' } } },
-          { data: { delta: { text: ', ' } } },
-          { data: { delta: { text: 'two' } } },
-          { data: { delta: { text: ', ' } } },
-          { data: { delta: { text: 'three' } } },
+          { data: { delta: { type: 'text_delta', text: 'One' } } },
+          { data: { delta: { type: 'text_delta', text: ', ' } } },
+          { data: { delta: { type: 'text_delta', text: 'two' } } },
+          { data: { delta: { type: 'text_delta', text: ', ' } } },
+          { data: { delta: { type: 'text_delta', text: 'three' } } },
         ])
       );
 
@@ -161,6 +161,37 @@ describe('AnthropicProvider', () => {
       expect(result).toBe('One, two, three');
       expect(onToken).toHaveBeenCalledTimes(5);
       expect(tokens).toEqual(['One', ', ', 'two', ', ', 'three']);
+    });
+
+    it('should handle reasoning content in streaming response', async () => {
+      const messages: Message[] = [{ role: 'user', content: 'Count to 3' }];
+      const tokens: string[] = [];
+      const reasonings: string[] = [];
+      const onToken = vi.fn((token: string, reasoning?: string) => {
+        if (token) tokens.push(token);
+        if (reasoning) reasonings.push(reasoning);
+      });
+
+      setupFetchMock(
+        mockSSEResponse([
+          {
+            data: { delta: { type: 'thinking_delta', thinking: 'Thinking' } },
+          },
+          {
+            data: { delta: { type: 'text_delta', text: 'Answer' } },
+          },
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'claude-3-7-sonnet-20250219', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('Answer');
+      expect(tokens).toEqual(['Answer']);
+      expect(reasonings).toEqual(['Thinking']);
     });
 
     it('should handle API errors', async () => {

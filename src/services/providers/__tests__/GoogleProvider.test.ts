@@ -223,6 +223,33 @@ describe('GoogleProvider', () => {
       expect(onToken).toHaveBeenCalledTimes(2);
     });
 
+    it('should parse <think> tags as reasoning content', async () => {
+      const tokens: string[] = [];
+      const reasonings: string[] = [];
+      const onToken = vi.fn((token: string, reasoning?: string) => {
+        if (token) tokens.push(token);
+        if (reasoning) reasonings.push(reasoning);
+      });
+
+      setupFetchMock(
+        mockSSEResponse([
+          { data: { candidates: [{ content: { parts: [{ text: '<think>Deep ' }] } }] } },
+          { data: { candidates: [{ content: { parts: [{ text: 'thinking...</think>' }] } }] } },
+          { data: { candidates: [{ content: { parts: [{ text: 'Answer' }] } }] } },
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gemini-2.0-flash-thinking-exp', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('Answer');
+      expect(tokens).toEqual(['Answer']);
+      expect(reasonings.join('')).toBe('Deep thinking...');
+    });
+
     it('should pass generation config correctly', async () => {
       setupFetchMock(
         mockFetchResponse({

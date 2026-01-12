@@ -24,7 +24,7 @@ class GoogleProvider implements Provider {
   async sendMessage(
     messages: Message[],
     options?: ProviderOptions,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     const apiKey = this.config.apiKey;
     const model = options?.model;
@@ -125,7 +125,7 @@ class GoogleProvider implements Provider {
       const data = await res.json();
       const content = data.candidates[0]?.content?.parts[0]?.text || '';
       if (typeof onToken === 'function') {
-        onToken(content);
+        onToken(content, undefined);
       }
       return content;
     }
@@ -133,13 +133,70 @@ class GoogleProvider implements Provider {
 
   private async _handleStreamingResponse(
     res: Response,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     const reader = res.body!.getReader();
     const decoder = new TextDecoder('utf-8');
     let done = false;
     let fullText = '';
     let buffer = '';
+
+    // State for parsing <think> tags (similar to OllamaProvider)
+    let isThinking = false;
+    let textBuffer = '';
+
+    const processTextBuffer = () => {
+      while (textBuffer.length > 0) {
+        if (!isThinking) {
+          const startTagIndex = textBuffer.indexOf('<think>');
+          if (startTagIndex !== -1) {
+            const normalText = textBuffer.substring(0, startTagIndex);
+            if (normalText) {
+              if (typeof onToken === 'function') onToken(normalText, undefined);
+              fullText += normalText;
+            }
+            textBuffer = textBuffer.substring(startTagIndex + 7);
+            isThinking = true;
+          } else {
+            const partialMatch = textBuffer.match(/<(?:t(?:h(?:i(?:n(?:k)?)?)?)?)?$/);
+            if (partialMatch) {
+              if (partialMatch.index! > 0) {
+                const safeText = textBuffer.substring(0, partialMatch.index);
+                if (typeof onToken === 'function') onToken(safeText, undefined);
+                fullText += safeText;
+                textBuffer = textBuffer.substring(partialMatch.index!);
+              }
+              break;
+            } else {
+              if (typeof onToken === 'function') onToken(textBuffer, undefined);
+              fullText += textBuffer;
+              textBuffer = '';
+            }
+          }
+        } else {
+          const endTagIndex = textBuffer.indexOf('</think>');
+          if (endTagIndex !== -1) {
+            const thoughtText = textBuffer.substring(0, endTagIndex);
+            if (thoughtText && typeof onToken === 'function') onToken('', thoughtText);
+            textBuffer = textBuffer.substring(endTagIndex + 8);
+            isThinking = false;
+          } else {
+            const partialMatch = textBuffer.match(/<\/(?:t(?:h(?:i(?:n(?:k)?)?)?)?)?$/);
+            if (partialMatch) {
+              if (partialMatch.index! > 0) {
+                const safeThought = textBuffer.substring(0, partialMatch.index);
+                if (typeof onToken === 'function') onToken('', safeThought);
+                textBuffer = textBuffer.substring(partialMatch.index!);
+              }
+              break;
+            } else {
+              if (typeof onToken === 'function') onToken('', textBuffer);
+              textBuffer = '';
+            }
+          }
+        }
+      }
+    };
 
     while (!done) {
       const { value, done: doneReading } = await reader.read();
@@ -160,12 +217,11 @@ class GoogleProvider implements Provider {
 
           try {
             const data = JSON.parse(dataMatch[1]);
-            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-              const token = data.candidates[0].content.parts[0].text;
-              if (typeof onToken === 'function') {
-                onToken(token);
-              }
-              fullText += token;
+            const candidate = data.candidates?.[0];
+            if (candidate?.content?.parts?.[0]?.text) {
+              const token = candidate.content.parts[0].text;
+              textBuffer += token;
+              processTextBuffer();
             }
           } catch (err) {
             loggerService.error('[Google]', 'JSON parse error:', err);
@@ -173,6 +229,9 @@ class GoogleProvider implements Provider {
         }
       }
     }
+
+    // Final flush
+    processTextBuffer();
     return fullText;
   }
 

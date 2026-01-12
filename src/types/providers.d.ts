@@ -50,7 +50,7 @@ export interface Provider {
   sendMessage(
     messages: Message[],
     options?: ProviderOptions,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string>;
   listModels(): Promise<ModelSetting[]>;
 }

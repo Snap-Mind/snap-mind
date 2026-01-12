@@ -140,6 +140,33 @@ describe('QwenProvider', () => {
       expect(onToken).toHaveBeenCalledTimes(2);
     });
 
+    it('should handle reasoning content in streaming response', async () => {
+      const tokens: string[] = [];
+      const reasonings: string[] = [];
+      const onToken = vi.fn((token: string, reasoning?: string) => {
+        if (token) tokens.push(token);
+        if (reasoning) reasonings.push(reasoning);
+      });
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"reasoning_content":"Thinking"}}]}\n',
+          'data: {"choices":[{"delta":{"content":"Answer"}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'qwen-max', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('Answer');
+      expect(tokens).toEqual(['Answer']);
+      expect(reasonings).toEqual(['Thinking']);
+    });
+
     it('should pass options correctly', async () => {
       setupFetchMock(
         mockFetchResponse({

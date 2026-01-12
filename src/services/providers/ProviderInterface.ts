@@ -18,7 +18,7 @@ class ProviderInterface implements Provider {
   async sendMessage(
     _messages: Message[],
     _options?: ProviderOptions,
-    _onToken?: (token: string) => void
+    _onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     throw new Error('Method sendMessage must be implemented by subclasses');
   }

@@ -19,7 +19,7 @@ class DeepSeekProvider implements Provider {
   async sendMessage(
     messages: Message[],
     options?: ProviderOptions,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     const apiKey = this.config.apiKey;
     const endpoint = this._buildChatUrl(this.config.host);
@@ -76,7 +76,7 @@ class DeepSeekProvider implements Provider {
 
   private async _handleStreamingResponse(
     res: Response,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     const reader = res.body!.getReader();
     const decoder = new TextDecoder('utf-8');
@@ -94,10 +94,13 @@ class DeepSeekProvider implements Provider {
           if (jsonStr === '[DONE]') continue;
           try {
             const data = JSON.parse(jsonStr);
-            const token = data.choices?.[0]?.delta?.content;
-            if (token) {
-              if (typeof onToken === 'function') onToken(token);
-              fullText += token;
+            const delta = data.choices?.[0]?.delta;
+            const token = delta?.content;
+            const reasoning = delta?.reasoning_content;
+
+            if (token || reasoning) {
+              if (typeof onToken === 'function') onToken(token || '', reasoning);
+              if (token) fullText += token;
             }
           } catch (err) {
             loggerService.error('[DeepSeek] JSON parse error:', err, jsonStr);

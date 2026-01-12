@@ -19,7 +19,7 @@ class AnthropicProvider implements Provider {
   async sendMessage(
     messages: Message[],
     options?: ProviderOptions,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     const apiKey = this.config.apiKey;
     const endpoint = this._buildMessagesUrl(this.config.host || ANTHROPIC_DEFAULT_ORIGIN);
@@ -99,7 +99,7 @@ class AnthropicProvider implements Provider {
 
   private async _handleStreamingResponse(
     res: Response,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     const reader = res.body!.getReader();
     const decoder = new TextDecoder('utf-8');
@@ -125,13 +125,21 @@ class AnthropicProvider implements Provider {
 
           try {
             const data = JSON.parse(dataMatch[1]);
-            // Anthropic sends different event types
-            if (data.type === 'content_block_delta' && data.delta?.text) {
-              const token = data.delta.text;
-              if (typeof onToken === 'function') {
-                onToken(token);
+
+            // Handle content block deltas
+            if (data.type === 'content_block_delta') {
+              if (data.delta?.type === 'text_delta' && data.delta?.text) {
+                const token = data.delta.text;
+                if (typeof onToken === 'function') {
+                  onToken(token, undefined);
+                }
+                fullText += token;
+              } else if (data.delta?.type === 'thinking_delta' && data.delta?.thinking) {
+                const reasoning = data.delta.thinking;
+                if (typeof onToken === 'function') {
+                  onToken('', reasoning);
+                }
               }
-              fullText += token;
             }
           } catch (err) {
             loggerService.error('[Anthropic]', 'JSON parse error:', err, event);

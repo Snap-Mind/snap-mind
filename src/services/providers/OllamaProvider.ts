@@ -19,7 +19,7 @@ class OllamaProvider implements Provider {
   async sendMessage(
     messages: Message[],
     options?: ProviderOptions,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     const endpoint = this._buildChatUrl(this.config.host || OLLAMA_DEFAULT_ORIGIN);
     const model = options?.model;
@@ -77,12 +77,85 @@ class OllamaProvider implements Provider {
 
   private async _handleStreamingResponse(
     res: Response,
-    onToken?: (token: string) => void
+    onToken?: (token: string, reasoning?: string) => void
   ): Promise<string> {
     const reader = res.body!.getReader();
     const decoder = new TextDecoder('utf-8');
     let fullText = '';
     let buffer = '';
+
+    // State for parsing <think> tags
+    let isThinking = false;
+    let textBuffer = '';
+
+    // Helper to process textBuffer statefully
+    const processTextBuffer = () => {
+      while (textBuffer.length > 0) {
+        if (!isThinking) {
+          const startTagIndex = textBuffer.indexOf('<think>');
+          if (startTagIndex !== -1) {
+            // Found <think>, emit text before it
+            const normalText = textBuffer.substring(0, startTagIndex);
+            if (normalText) {
+              if (typeof onToken === 'function') onToken(normalText, undefined);
+              fullText += normalText;
+            }
+            // Switch to thinking mode
+            textBuffer = textBuffer.substring(startTagIndex + 7);
+            isThinking = true;
+          } else {
+            // No full <think> tag. Check for partial tag at end.
+            // Matches <, <t, <th, ... <think
+            const partialMatch = textBuffer.match(/<(?:t(?:h(?:i(?:n(?:k)?)?)?)?)?$/);
+            if (partialMatch) {
+              // We have a possible partial tag at the end
+              if (partialMatch.index! > 0) {
+                // Emit safe part
+                const safeText = textBuffer.substring(0, partialMatch.index);
+                if (typeof onToken === 'function') onToken(safeText, undefined);
+                fullText += safeText;
+                textBuffer = textBuffer.substring(partialMatch.index!);
+              }
+              // Stop processing and wait for more data to resolve the tag
+              break;
+            } else {
+              // No tag at all, emit everything
+              if (typeof onToken === 'function') onToken(textBuffer, undefined);
+              fullText += textBuffer;
+              textBuffer = '';
+            }
+          }
+        } else {
+          // Inside <think>
+          const endTagIndex = textBuffer.indexOf('</think>');
+          if (endTagIndex !== -1) {
+            // Found </think>, emit thought before it
+            const thoughtText = textBuffer.substring(0, endTagIndex);
+            if (thoughtText && typeof onToken === 'function') onToken('', thoughtText);
+
+            // Switch back to normal mode
+            textBuffer = textBuffer.substring(endTagIndex + 8);
+            isThinking = false;
+          } else {
+            // Check for partial </think>
+            const partialMatch = textBuffer.match(/<\/(?:t(?:h(?:i(?:n(?:k)?)?)?)?)?$/);
+            if (partialMatch) {
+              // Emit safe thought part
+              if (partialMatch.index! > 0) {
+                const safeThought = textBuffer.substring(0, partialMatch.index);
+                if (typeof onToken === 'function') onToken('', safeThought);
+                textBuffer = textBuffer.substring(partialMatch.index!);
+              }
+              break;
+            } else {
+              // Emit all as thought
+              if (typeof onToken === 'function') onToken('', textBuffer);
+              textBuffer = '';
+            }
+          }
+        }
+      }
+    };
 
     while (true) {
       const { value, done } = await reader.read();
@@ -108,40 +181,34 @@ class OllamaProvider implements Provider {
           }
           // Process content first before checking done flag
           if (obj?.message?.content) {
-            const token: string = obj.message.content;
-            if (typeof onToken === 'function') onToken(token);
-            fullText += token;
+            textBuffer += obj.message.content;
+            processTextBuffer();
           }
           // If Ollama signals completion, exit early
           if (obj?.done === true) {
             return fullText;
           }
-          // When done === true the stream will end soon; we don't need to do anything special here
         } catch (e) {
-          // If it's an error from the API response, re-throw it
-          if (hasError) {
-            throw e;
-          }
-          // Otherwise it's a malformed JSON, just skip it
+          if (hasError) throw e;
           loggerService.debug?.('[Ollama]', 'Skipping malformed NDJSON line:', trimmed);
         }
       }
     }
 
-    // Attempt to parse any remaining buffered JSON (just in case)
-    const tail = buffer.trim();
-    if (tail) {
+    // Flush remaining buffer
+    const tailLine = buffer.trim();
+    if (tailLine) {
       try {
-        const obj = JSON.parse(tail);
+        const obj = JSON.parse(tailLine);
         if (obj?.message?.content) {
-          const token: string = obj.message.content;
-          if (typeof onToken === 'function') onToken(token);
-          fullText += token;
+          textBuffer += obj.message.content;
         }
-      } catch {
-        // ignore
+      } catch (e) {
+        /* ignore */
       }
     }
+    // Final flush of text buffer
+    processTextBuffer();
 
     return fullText;
   }

@@ -51,7 +51,7 @@ export class AIService {
 
   public async sendMessageToAI(
     messages: Message[],
-    onToken: (token: string) => void,
+    onToken: (token: string, reasoning?: string) => void,
     options?: {
       temperature?: number;
       maxTokens?: number;

@@ -257,6 +257,35 @@ describe('OllamaProvider', () => {
       // Should skip invalid JSON and continue
       expect(result).toBe('Valid more');
     });
+
+    it('should parse <think> tags as reasoning content', async () => {
+      const tokens: string[] = [];
+      const reasonings: string[] = [];
+      const onToken = vi.fn((token: string, reasoning?: string) => {
+        if (token) tokens.push(token);
+        if (reasoning) reasonings.push(reasoning);
+      });
+
+      // Mock streaming response with split <think> tags
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          '{"message":{"content":"<thin"}}\n',
+          '{"message":{"content":"k>Deep thinking..."}}\n',
+          '{"message":{"content":"</think>"}}\n',
+          '{"message":{"content":"Answer"}}\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'deepseek-r1', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('Answer');
+      expect(reasonings.join('')).toBe('Deep thinking...');
+      expect(tokens.join('')).toBe('Answer');
+    });
   });
 
   describe('listModels', () => {

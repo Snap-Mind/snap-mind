@@ -57,15 +57,19 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
         // Use the streaming capability with onToken callback
         await aiService.sendMessageToAI(
           messagesToSend,
-          (token) => {
+          (token, reasoning) => {
             // Update the last message (assistant) with the new token
             setMessages((currentMsgs) => {
               const updatedMsgs = [...currentMsgs];
               const lastIndex = updatedMsgs.length - 1;
               if (lastIndex >= 0 && updatedMsgs[lastIndex].role === 'assistant') {
+                const currentMsg = updatedMsgs[lastIndex];
                 updatedMsgs[lastIndex] = {
-                  ...updatedMsgs[lastIndex],
-                  content: updatedMsgs[lastIndex].content + token,
+                  ...currentMsg,
+                  content: currentMsg.content + token,
+                  reasoning_content: reasoning
+                    ? (currentMsg.reasoning_content || '') + reasoning
+                    : currentMsg.reasoning_content,
                 };
               }
               return updatedMsgs;
