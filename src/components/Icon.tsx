@@ -16,6 +16,7 @@ import {
   LuSettings,
   LuRotateCcw,
   LuCloud,
+  LuSend,
 } from 'react-icons/lu';
 import { MdOutlineCleaningServices } from 'react-icons/md';
 
@@ -52,7 +53,8 @@ type IconType =
   | 'settings'
   | 'rotate-ccw'
   | 'cloud'
-  | 'cleaning-services';
+  | 'cleaning-services'
+  | 'send';
 
 interface IconProps {
   className?: string;
@@ -125,6 +127,8 @@ function Icon({
         return <LuCloud className={svgClassName} color={color} size={size} />;
       case 'cleaning-services':
         return <MdOutlineCleaningServices className={svgClassName} color={color} size={size} />;
+      case 'send':
+        return <LuSend className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }

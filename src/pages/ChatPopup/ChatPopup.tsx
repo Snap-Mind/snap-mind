@@ -242,59 +242,73 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               {loading && <ChatMessage message={{ role: 'assistant', content: '...' }} />}
               <div ref={chatEndRef} />
             </div>
-            <div className="flex items-end p-3 bg-background gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]">
-              <Textarea
-                className="flex-1"
-                aria-label="Message input"
-                placeholder={t('chat.sendMessage')}
-                value={input}
-                minRows={1}
-                maxRows={5}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                ref={inputRef}
-              />
-              <div className="basis-[200px] flex flex-row items-center gap-2">
-                <Select
-                  className="flex-1 max-w-xs"
-                  size="md"
-                  placeholder="model"
-                  aria-label="Select AI model"
-                  selectionMode="single"
-                  disallowEmptySelection={true}
-                  defaultSelectedKeys={[settings.chat.defaultModel]}
-                  onChange={handleModelChange}
-                  popoverProps={{
-                    classNames: {
-                      content: 'w-[210px]',
-                    },
+            <div className="flex flex-col p-3 bg-background gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]">
+              <div className="flex w-full gap-2 items-end">
+                <Textarea
+                  className="flex-1"
+                  aria-label="Message input"
+                  placeholder={t('chat.sendMessage')}
+                  value={input}
+                  variant="flat"
+                  minRows={1}
+                  maxRows={5}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  ref={inputRef}
+                  classNames={{
+                    inputWrapper:
+                      'bg-background data-[hover=true]:bg-background group-data-[focus=true]:bg-background shadow-none',
+                    input: 'bg-background',
                   }}
-                >
-                  {renderAvailableModels()}
-                </Select>
-
-                {loading ? (
-                  <Button
-                    color="danger"
-                    onPress={() => {
-                      if (abortControllerRef.current) {
-                        abortControllerRef.current.abort();
-                      }
+                />
+                <Button isIconOnly size="md" variant="light" aria-label="more functions">
+                  <Icon icon="plus" />
+                </Button>
+              </div>
+              <div className="flex w-full items-center justify-between flex-row-reverse">
+                <div className="flex flex-row items-end gap-2">
+                  <Select
+                    className="w-40"
+                    size="md"
+                    placeholder="model"
+                    aria-label="Select AI model"
+                    selectionMode="single"
+                    disallowEmptySelection={true}
+                    defaultSelectedKeys={[settings.chat.defaultModel]}
+                    onChange={handleModelChange}
+                    popoverProps={{
+                      classNames: {
+                        content: 'w-[210px]',
+                      },
                     }}
-                    aria-label="Stop response"
                   >
-                    <Icon icon="square"></Icon>
-                  </Button>
-                ) : (
-                  <Button
-                    color="primary"
-                    onPress={handleSend}
-                    disabled={loading || !input.trim()}
-                    aria-label="Send message"
-                  >
-                    {t('chat.send')}
-                  </Button>
-                )}
+                    {renderAvailableModels()}
+                  </Select>
+
+                  {loading ? (
+                    <Button
+                      color="danger"
+                      onPress={() => {
+                        if (abortControllerRef.current) {
+                          abortControllerRef.current.abort();
+                        }
+                      }}
+                      aria-label="Stop response"
+                    >
+                      <Icon icon="square"></Icon>
+                    </Button>
+                  ) : (
+                    <Button
+                      isIconOnly
+                      color="primary"
+                      onPress={handleSend}
+                      disabled={loading || !input.trim()}
+                      aria-label="Send message"
+                    >
+                      <Icon icon="send" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
