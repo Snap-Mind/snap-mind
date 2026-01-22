@@ -14,12 +14,9 @@
   </br>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue.svg" alt="License"></a>
   <a href="https://github.com/Snap-Mind/snap-mind/releases"><img src="https://img.shields.io/github/v/release/Snap-Mind/snap-mind" alt="Release"></a>
+  <a href="https://github.com/Snap-Mind/snap-mind/releases"><img src="https://img.shields.io/github/downloads/snap-mind/snap-mind/total" alt="Download"></a>
   <a href="https://github.com/conventional-branch/conventional-branch"><img src="https://img.shields.io/badge/Conventional%20Branch-1.0.0-blue" alt="Conventional Branch"/></a>
   <a href="https://github.com/Snap-Mind/snap-mind/actions/workflows/build.yml"><img src="https://github.com/Snap-Mind/snap-mind/actions/workflows/build.yml/badge.svg?branch=main" alt="Build and Release"></a>
-</p>
-
-<p align="center">
-  <a href="https://www.producthunt.com/products/snapmind?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-snapmind" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1013860&theme=dark&t=1758464414199" alt="SnapMind - A&#0032;quick&#0032;prompt&#0032;launcher | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
 SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs** from anywhere in your system. Select text + hit a hotkey, and get translations, rewrites, summaries, explanations, and more — all without switching apps, keeping your workflow smooth and uninterrupted.
