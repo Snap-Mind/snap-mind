@@ -13,7 +13,8 @@
     "max_tokens": 2048,
     "top_p": 0.95,
     "streamingEnabled": true,
-    "defaultModel": null
+    "defaultModel": null,
+    "defaultProvider": null
   },
   "providers": [
     {

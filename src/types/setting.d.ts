@@ -31,6 +31,7 @@ export interface ChatSetting {
   top_p: number;
   streamingEnabled: boolean;
   defaultModel: string;
+  defaultProvider: string;
 }
 
 export interface Hotkey {
