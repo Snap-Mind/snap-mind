@@ -263,7 +263,12 @@ function executeHotkey(prompt) {
       if (result.success && result.selectedText) {
         logService.debug('Selected text from helper:', result.selectedText);
         // Use text selection service instead of directly sending to settings window
-        textSelectionService.handleTextSelection(result.selectedText, prompt, 'hotkey');
+        textSelectionService.handleTextSelection(
+          result.selectedText,
+          prompt,
+          'hotkey',
+          settingsService.getSettings().chat?.defaultProvider
+        );
       } else {
         logService.warn('No selected text found:', result.error || 'Unknown error');
       }
@@ -457,7 +462,12 @@ ipcMain.handle('settings:update-path', async (event, { path, value }) => {
 
 // IPC handler to trigger text selection (for testing or manual triggers)
 ipcMain.handle('text-selection:trigger', (event, text, prompt) => {
-  textSelectionService.handleTextSelection(text, prompt, 'manual');
+  textSelectionService.handleTextSelection(
+    text,
+    prompt,
+    'manual',
+    settingsService.getSettings().chat?.defaultProvider
+  );
   return { success: true };
 });
 

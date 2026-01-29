@@ -29,6 +29,48 @@ class SettingsService {
     this.encryptedFields = ['general.azureApiKey'];
   }
 
+  private ensureDefaultChatModel(settings) {
+    if (!settings.chat) settings.chat = {};
+    const providers = Array.isArray(settings.providers) ? settings.providers : [];
+
+    const resolveByProviderAndModel = (providerId, modelId) => {
+      const provider = providers.find((p) => p.id === providerId);
+      if (!provider || !Array.isArray(provider.models)) return { provider: undefined, model: undefined };
+      const model = provider.models.find((m) => m.id === modelId);
+      if (!model) return { provider: undefined, model: undefined };
+      return { provider, model };
+    };
+
+    let provider;
+    let model;
+
+    if (settings.chat.defaultProvider && settings.chat.defaultModel) {
+      const resolved = resolveByProviderAndModel(
+        settings.chat.defaultProvider,
+        settings.chat.defaultModel
+      );
+      provider = resolved.provider;
+      model = resolved.model;
+    }
+
+    if (!provider && settings.chat.defaultModel) {
+      provider = providers.find((p) => p.models?.some((m) => m.id === settings.chat.defaultModel));
+      model = provider?.models?.find((m) => m.id === settings.chat.defaultModel);
+    }
+
+    if (!provider) {
+      provider = providers.find((p) => Array.isArray(p.models) && p.models.length > 0);
+      model = provider?.models?.[0];
+    }
+
+    if (provider && model) {
+      settings.chat.defaultProvider = provider.id;
+      settings.chat.defaultModel = model.id;
+    }
+
+    return { settings };
+  }
+
   /**
    * Ensure default config file exists
    * @param {string} fileName
@@ -89,12 +131,14 @@ class SettingsService {
       // Don't merge providers.*.models; keep user's models array if present
       preservePaths: ['providers.*.models'],
     });
+
+    const { settings: normalizedSettings } = this.ensureDefaultChatModel(mergedSettings);
     // Add app info to the settings
-    mergedSettings.general.app = {
+    normalizedSettings.general.app = {
       version: app.getVersion(),
     };
     // Encrypt any API keys
-    this.settings = this.processApiKeys(mergedSettings, false);
+    this.settings = this.processApiKeys(normalizedSettings, false);
 
     // Load hotkeys
     this.loadHotkeys();

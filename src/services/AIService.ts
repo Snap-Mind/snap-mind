@@ -29,16 +29,36 @@ export class AIService {
     this.streamingEnabled = DEFAULT_STREAMING_ENABLED;
 
     const defaultModelId = this.settings.chat.defaultModel;
-    this.providerSetting = this.findProviderByModelId(defaultModelId);
+    const defaultProviderId = this.settings.chat.defaultProvider;
 
-    if (!this.providerSetting) {
-      throw new Error(`No provider found for model ${defaultModelId}`);
+    if (defaultProviderId && defaultModelId) {
+      const provider = this.settings.providers.find((p) => p.id === defaultProviderId);
+      const model = provider?.models.find((m) => m.id === defaultModelId);
+      if (provider && model) {
+        this.providerSetting = provider;
+        this.modelSetting = model;
+      }
     }
 
-    this.modelSetting = this.providerSetting.models.find((m) => m.id === defaultModelId) || null;
+    if (!this.providerSetting && defaultModelId) {
+      const provider = this.findProviderByModelId(defaultModelId);
+      const model = provider?.models.find((m) => m.id === defaultModelId);
+      if (provider && model) {
+        this.providerSetting = provider;
+        this.modelSetting = model;
+      }
+    }
 
-    if (!this.modelSetting) {
-      throw new Error(`Model ${defaultModelId} not found in provider ${this.providerSetting.id}`);
+    if (!this.providerSetting) {
+      const provider = this.settings.providers.find((p) => p.models?.length);
+      if (provider) {
+        this.providerSetting = provider;
+        this.modelSetting = provider.models[0] || null;
+      }
+    }
+
+    if (!this.providerSetting || !this.modelSetting) {
+      throw new Error(`No provider/model found for default selection ${defaultProviderId}:${defaultModelId}`);
     }
 
     this.activeProvider = ProviderFactory.createProvider(this.providerSetting);

@@ -36,6 +36,31 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
     inputRef.current?.focus();
   }, []);
 
+  const buildModelKey = (providerId: string, modelId: string) => `${providerId}::${modelId}`;
+
+  const parseModelKey = (value: string) => {
+    const [providerId, ...modelParts] = value.split('::');
+    return { providerId, modelId: modelParts.join('::') };
+  };
+
+  const findProviderByModelId = (modelId: string) =>
+    settings.providers.find((provider) => provider.models.some((model) => model.id === modelId));
+
+  const getSelectedModelKey = () => {
+    if (settings.chat.defaultProvider && settings.chat.defaultModel) {
+      return buildModelKey(settings.chat.defaultProvider, settings.chat.defaultModel);
+    }
+
+    if (settings.chat.defaultModel) {
+      const provider = findProviderByModelId(settings.chat.defaultModel);
+      if (provider) {
+        return buildModelKey(provider.id, settings.chat.defaultModel);
+      }
+    }
+
+    return undefined;
+  };
+
   // Helper function to handle sending messages to AI and processing responses
   const processAIMessage = useCallback(
     async (messagesToSend: Message[]) => {
@@ -155,7 +180,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
       .map((provider) => (
         <SelectSection key={provider.name} title={provider.name}>
           {provider.models.map((model) => (
-            <SelectItem key={model.id} title={model.id}>
+            <SelectItem key={buildModelKey(provider.id, model.id)} title={model.id}>
               {model.id}
             </SelectItem>
           ))}
@@ -196,8 +221,14 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   };
 
   const handleModelChange = (e) => {
-    setSettings(['chat', 'defaultModel'], e.target.value);
+    const value = e.target.value;
+    if (!value) return;
+    const { providerId, modelId } = parseModelKey(value);
+    setSettings(['chat', 'defaultProvider'], providerId);
+    setSettings(['chat', 'defaultModel'], modelId);
   };
+
+  const selectedModelKey = getSelectedModelKey();
 
   // // Set window title
   // useEffect(() => {
@@ -253,7 +284,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                   aria-label="Select AI model"
                   selectionMode="single"
                   disallowEmptySelection={true}
-                  defaultSelectedKeys={[settings.chat.defaultModel]}
+                  defaultSelectedKeys={selectedModelKey ? [selectedModelKey] : []}
                   onChange={handleModelChange}
                   popoverProps={{
                     classNames: {

@@ -15,15 +15,16 @@ class TextSelectionService {
   }
 
   // Handle text selection from hotkeys or clipboard
-  handleTextSelection(text, customPrompt = null, source = 'hotkey') {
+  handleTextSelection(text, customPrompt = null, source = 'hotkey', providerId = null) {
     logService.debug(`Processing text from ${source}:`, text);
 
     // Use custom prompt if provided, otherwise use default
     const prompt = customPrompt || '';
+    const promptRole = providerId === 'azure-openai' ? 'user' : 'system';
 
     // Create the chat message
     const initialMessages = [
-      { role: 'system', content: `${prompt}` },
+      { role: promptRole, content: `${prompt}` },
       { role: 'user', content: `${text}` },
     ];
 
