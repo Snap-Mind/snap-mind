@@ -58,7 +58,9 @@ export class AIService {
     }
 
     if (!this.providerSetting || !this.modelSetting) {
-      throw new Error(`No provider/model found for default selection ${defaultProviderId}:${defaultModelId}`);
+      throw new Error(
+        `No provider/model found for default selection ${defaultProviderId}:${defaultModelId}`
+      );
     }
 
     this.activeProvider = ProviderFactory.createProvider(this.providerSetting);
