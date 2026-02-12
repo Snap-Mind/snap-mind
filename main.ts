@@ -6,6 +6,7 @@ import {
   Tray,
   Menu,
   nativeImage,
+  nativeTheme,
   screen,
   shell,
 } from 'electron';
@@ -600,12 +601,27 @@ app.whenReady().then(() => {
     tray = new Tray(trayIcon);
     logService.info('Tray icon created (macOS template):', trayIconPath);
   } else if (process.platform === 'win32') {
-    const trayIconPath = isDev()
-      ? path.join(__dirname, '..', 'electron/assets/mind_tray_windows.ico')
-      : path.join(__dirname, 'electron/assets/mind_tray_windows.ico');
+    const getWindowsTrayIcon = () => {
+      const useWhiteIcon = nativeTheme.shouldUseDarkColors;
+      const iconName = useWhiteIcon ? 'mind_tray_windows_white.ico' : 'mind_tray_windows.ico';
+      return isDev()
+        ? path.join(__dirname, '..', 'electron', 'assets', iconName)
+        : path.join(__dirname, 'electron', 'assets', iconName);
+    };
+
+    const trayIconPath = getWindowsTrayIcon();
     trayIcon = nativeImage.createFromPath(trayIconPath);
     tray = new Tray(trayIcon);
     logService.info('Tray icon created (Windows):', trayIconPath);
+
+    // Update icon when theme changes
+    nativeTheme.on('updated', () => {
+      const newIconPath = getWindowsTrayIcon();
+      const newIcon = nativeImage.createFromPath(newIconPath);
+      tray.setImage(newIcon);
+      logService.info('Tray icon updated (Windows theme change):', newIconPath);
+    });
+
     // Add double-click handler to open settings window
     tray.on('double-click', () => {
       const win = settingsWindow || createSettingsWindow();
