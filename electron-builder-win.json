@@ -49,7 +49,7 @@
         "arch": ["x64"]
       }
     ],
-    "signAndEditExecutable": false,
+    "signAndEditExecutable": true,
     "icon": "electron/assets/snap-mind-app-icon-Win.ico"
   },
   "portable": {
