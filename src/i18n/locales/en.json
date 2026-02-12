@@ -17,7 +17,9 @@
         "statusNone": "You are up to date.",
         "statusError": "Update error",
         "statusDownloaded": "Update downloaded",
-        "autoUpdate": "Auto Update"
+        "autoUpdate": "Auto Update",
+        "beta": "Beta",
+        "betaDescription": "Join the beta channel to get early access to new features and improvements. Please note that beta versions are not thoroughly tested, may be less stable than official releases, and may contain critical bugs. Downgrade is not supported. Use with caution."
       },
       "permission": {
         "title": "Permissions",

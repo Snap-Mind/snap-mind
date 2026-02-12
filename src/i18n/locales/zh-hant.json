@@ -17,7 +17,9 @@
         "statusNone": "目前已是最新版本。",
         "statusError": "更新錯誤",
         "statusDownloaded": "更新已下載",
-        "autoUpdate": "自動更新"
+        "autoUpdate": "自動更新",
+        "beta": "Beta版",
+        "betaDescription": "開啟Beta版本的更新，提前體驗新功能和改進。請注意，Beta版沒有經過充分測試，可能不如正式版穩定，並可能出現嚴重錯誤。不支援降級。請謹慎使用。"
       },
       "permission": {
         "title": "權限",
