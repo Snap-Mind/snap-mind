@@ -196,7 +196,7 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
     } finally {
       setDiscovering(false);
     }
-  }
+  };
 
   // Use HeroUI controlled pattern so clear button works reliably
   const handleSearchValueChange = (value: string) => {
@@ -272,16 +272,16 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
               </Tooltip>
             )}
             <Tooltip content={t('settings.providers.cleanModels')} delay={500}>
-                <Button
-                  isIconOnly
-                  variant='ghost'
-                  isLoading={discovering}
-                  isDisabled={discovering}
-                  onPress={handleCleanModels}
-                >
-                  <Icon icon="cleaning-services" />
-                </Button>
-              </Tooltip>
+              <Button
+                isIconOnly
+                variant="ghost"
+                isLoading={discovering}
+                isDisabled={discovering}
+                onPress={handleCleanModels}
+              >
+                <Icon icon="cleaning-services" />
+              </Button>
+            </Tooltip>
           </ButtonGroup>
         </div>
       </div>

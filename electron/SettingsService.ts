@@ -35,7 +35,8 @@ class SettingsService {
 
     const resolveByProviderAndModel = (providerId, modelId) => {
       const provider = providers.find((p) => p.id === providerId);
-      if (!provider || !Array.isArray(provider.models)) return { provider: undefined, model: undefined };
+      if (!provider || !Array.isArray(provider.models))
+        return { provider: undefined, model: undefined };
       const model = provider.models.find((m) => m.id === modelId);
       if (!model) return { provider: undefined, model: undefined };
       return { provider, model };
