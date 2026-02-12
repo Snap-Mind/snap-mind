@@ -219,6 +219,27 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
             </div>
           </CardBody>
         </Card>
+        <Card className="w-full my-5 border-1 border-gray-100" shadow="none">
+          <CardHeader className="flex gap-3 justify-between items-center">
+            <h4 className="font-bold">{t('settings.general.update.beta')}</h4>
+            <Switch
+              size="sm"
+              defaultSelected={settings.autoUpdate?.betaChannel}
+              onValueChange={(value) =>
+                onSettingsChange(['general', 'autoUpdate', 'betaChannel'], value)
+              }
+            >
+              {t('common.enabled')}
+            </Switch>
+          </CardHeader>
+          <CardBody className="flex flex-col gap-4">
+            <div className="grid grid-cols-[1fr_auto] items-center gap-4">
+              <div className="text-xs text-gray-500">
+                {t('settings.general.update.betaDescription')}
+              </div>
+            </div>
+          </CardBody>
+        </Card>
       </div>
     </div>
   );
