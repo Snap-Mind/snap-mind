@@ -32,13 +32,7 @@ if (!gotTheLock) {
 } else {
   app.on('second-instance', (_event, _argv, _workingDirectory) => {
     // Show or focus the settings window when a second instance is launched
-    const win = settingsWindow || createSettingsWindow();
-    if (win.isVisible()) {
-      win.focus();
-    } else {
-      win.show();
-      win.focus();
-    }
+    showSettingsWindow();
   });
 }
 
@@ -86,6 +80,7 @@ function isDev() {
 // }
 
 function createChatPopupWindow(position, initialMessages) {
+  const chatWindowTitle = 'SnapMind - Chat';
   chatPopupWindow = new BrowserWindow({
     width: 500,
     height: 700,
@@ -97,6 +92,7 @@ function createChatPopupWindow(position, initialMessages) {
     resizable: true,
     focusable: true,
     show: true,
+    title: chatWindowTitle,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -119,6 +115,11 @@ function createChatPopupWindow(position, initialMessages) {
   }
   chatPopupWindow.on('show', () => {
     updateActivationPolicy();
+  });
+
+  chatPopupWindow.on('page-title-updated', (event) => {
+    event.preventDefault();
+    chatPopupWindow?.setTitle(chatWindowTitle);
   });
 
   chatPopupWindow.on('hide', () => {
@@ -153,6 +154,7 @@ function createChatPopupWindow(position, initialMessages) {
 
 function createSettingsWindow() {
   if (settingsWindow) return settingsWindow;
+  const settingsWindowTitle = 'SnapMind - Settings';
   settingsWindow = new BrowserWindow({
     width: 900,
     height: 600,
@@ -164,7 +166,7 @@ function createSettingsWindow() {
     skipTaskbar: false,
     show: false,
     transparent: false,
-    title: 'Settings',
+    title: settingsWindowTitle,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -191,6 +193,11 @@ function createSettingsWindow() {
     updateActivationPolicy();
   });
 
+  settingsWindow.on('page-title-updated', (event) => {
+    event.preventDefault();
+    settingsWindow?.setTitle(settingsWindowTitle);
+  });
+
   settingsWindow.on('hide', () => {
     updateActivationPolicy();
   });
@@ -206,6 +213,18 @@ function createSettingsWindow() {
   });
 
   return settingsWindow;
+}
+
+function showSettingsWindow() {
+  const win = settingsWindow || createSettingsWindow();
+  if (win.isMinimized()) {
+    win.restore();
+  }
+  if (!win.isVisible()) {
+    win.show();
+  }
+  win.focus();
+  return win;
 }
 
 // Function to register hotkeys
@@ -305,8 +324,7 @@ function showChatPopup(position, initialMessages) {
 
 function updateActivationPolicy() {
   if (process.platform === 'darwin' && app.setActivationPolicy) {
-    const hasVisibleWindows = BrowserWindow.getAllWindows().some((win) => win.isVisible());
-    app.setActivationPolicy(hasVisibleWindows ? 'regular' : 'accessory');
+    app.setActivationPolicy('regular');
   }
 }
 
@@ -556,9 +574,9 @@ app.on('window-all-closed', function () {
 });
 
 app.whenReady().then(() => {
-  // Set activation policy for true menu bar app on macOS (must be first!)
+  // Keep app visible in Dock on macOS
   if (process.platform === 'darwin' && app.setActivationPolicy) {
-    app.setActivationPolicy('accessory');
+    app.setActivationPolicy('regular');
   }
 
   // Log system info at startup
@@ -588,6 +606,7 @@ app.whenReady().then(() => {
   }
 
   createSettingsWindow();
+  showSettingsWindow();
 
   // Use platform-specific tray icons with template and retina support
   let trayIcon;
@@ -624,13 +643,7 @@ app.whenReady().then(() => {
 
     // Add double-click handler to open settings window
     tray.on('double-click', () => {
-      const win = settingsWindow || createSettingsWindow();
-      if (win.isVisible()) {
-        win.focus();
-      } else {
-        win.show();
-        win.focus();
-      }
+      showSettingsWindow();
     });
   } else {
     const trayIconPath = isDev()
@@ -646,13 +659,7 @@ app.whenReady().then(() => {
     {
       label: 'Settings  ',
       click: () => {
-        const win = settingsWindow || createSettingsWindow();
-        if (win.isVisible()) {
-          win.focus(); // Just focus if already visible
-        } else {
-          win.show();
-          win.focus();
-        }
+        showSettingsWindow();
       },
     },
     {
@@ -677,4 +684,8 @@ app.whenReady().then(() => {
 
   // Listen for changes to Accessibility/trust state
   listenToSystemAccessibilityPermissionChange();
+});
+
+app.on('activate', () => {
+  showSettingsWindow();
 });
