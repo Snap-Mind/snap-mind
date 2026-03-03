@@ -20,6 +20,7 @@ import SettingsService from './electron/SettingsService';
 import SystemPermissionService from './electron/SystemPermissionService';
 import logService from './electron/LogService';
 import AutoUpdateService from './electron/AutoUpdateService';
+import OpenAtLoginService from './electron/OpenAtLoginService';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +38,7 @@ if (!gotTheLock) {
 }
 
 const settingsService = new SettingsService();
+const openAtLoginService = new OpenAtLoginService();
 let autoUpdateService: AutoUpdateService | null = null;
 
 let tray = null;
@@ -569,6 +571,8 @@ ipcMain.handle('update:get-status', () => {
 });
 ipcMain.handle('app:get-version', () => app.getVersion());
 
+openAtLoginService.registerIpcHandlers();
+
 app.on('window-all-closed', function () {
   // do nothing, so app stays active in tray
 });
@@ -604,9 +608,6 @@ app.whenReady().then(() => {
   } catch (e) {
     logService.error('[main] failed to init auto update service', e);
   }
-
-  createSettingsWindow();
-  showSettingsWindow();
 
   // Use platform-specific tray icons with template and retina support
   let trayIcon;
@@ -678,6 +679,11 @@ app.whenReady().then(() => {
 
   // Set the context menu
   tray.setContextMenu(contextMenu);
+
+  createSettingsWindow();
+  if (!openAtLoginService.isLoginLaunch()) {
+    showSettingsWindow();
+  }
 
   // Register hotkeys
   registerHotkeys();

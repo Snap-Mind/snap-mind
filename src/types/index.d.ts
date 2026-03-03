@@ -71,6 +71,13 @@ interface ElectronAPI {
   installUpdateNow: () => Promise<boolean>;
   getUpdateStatus: () => Promise<UpdateEvent | { type: 'idle' }>;
   getAppVersion: () => Promise<string>;
+  getOpenAtLogin: () => Promise<{ success: boolean; openAtLogin: boolean; supported: boolean }>;
+  setOpenAtLogin: (enabled: boolean) => Promise<{
+    success: boolean;
+    openAtLogin: boolean;
+    supported: boolean;
+    error?: string;
+  }>;
 }
 
 export type SettingsChangeHandler = (

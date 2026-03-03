@@ -53,4 +53,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   installUpdateNow: () => ipcRenderer.invoke('update:install'),
   getUpdateStatus: () => ipcRenderer.invoke('update:get-status'),
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+  getOpenAtLogin: () => ipcRenderer.invoke('app:get-open-at-login'),
+  setOpenAtLogin: (enabled) => ipcRenderer.invoke('app:set-open-at-login', enabled),
 });
