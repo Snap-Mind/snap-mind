@@ -60,7 +60,7 @@ function SettingsCategory({
           type="button"
           className="flex items-center gap-2 cursor-pointer"
           onClick={onToggleCollapse}
-          aria-label={isCollapsed ? t('common.brand') : `${t('common.brand')} Toggle`}
+          aria-label="logo"
         >
           <img src={MindSvg} alt="SnapMind Logo" className="w-8 h-8 shrink-0 ml-1" />
           <h1
