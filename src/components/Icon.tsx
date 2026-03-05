@@ -19,6 +19,7 @@ import {
   LuSun,
   LuMoon,
   LuMonitor,
+  LuPaintRoller,
 } from 'react-icons/lu';
 import { MdOutlineCleaningServices } from 'react-icons/md';
 
@@ -58,7 +59,8 @@ type IconType =
   | 'sun'
   | 'moon'
   | 'monitor'
-  | 'cleaning-services';
+  | 'cleaning-services'
+  | 'paint-roller';
 
 interface IconProps {
   className?: string;
@@ -137,6 +139,8 @@ function Icon({
         return <LuMonitor className={svgClassName} color={color} size={size} />;
       case 'cleaning-services':
         return <MdOutlineCleaningServices className={svgClassName} color={color} size={size} />;
+      case 'paint-roller':
+        return <LuPaintRoller className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }
