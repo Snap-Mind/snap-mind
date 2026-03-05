@@ -2,9 +2,8 @@ import { Listbox, ListboxItem } from '@heroui/listbox';
 import { Divider } from '@heroui/divider';
 import { useTranslation } from 'react-i18next';
 
-import MindSvg from '../../assets/mind.svg';
-
 import Icon from '@/components/Icon';
+import LogoSvg from '@/components/LogoSvg';
 
 interface SettingsCategoryProps {
   categories: {
@@ -62,7 +61,7 @@ function SettingsCategory({
           onClick={onToggleCollapse}
           aria-label="logo"
         >
-          <img src={MindSvg} alt="SnapMind Logo" className="w-8 h-8 shrink-0 ml-1" />
+          <LogoSvg className="w-8 h-8 shrink-0 ml-1" />
           <h1
             className={`font-bold text-2xl leading-none tracking-tight whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
           >
