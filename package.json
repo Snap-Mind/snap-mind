@@ -87,6 +87,11 @@
     "vitest": "^3.0.6",
     "wait-on": "^7.0.1"
   },
+  "overrides": {
+    "electron-builder": {
+      "minimatch": "10.2.2"
+    }
+  },
   "main": "dist-electron/main.js",
   "engines": {
     "node": ">=22.0.0"
