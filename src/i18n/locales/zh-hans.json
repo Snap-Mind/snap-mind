@@ -104,6 +104,7 @@
     "sendMessage": "发送消息..."
   },
   "common": {
+    "brand": "SnapMind",
     "create": "创建",
     "save": "保存",
     "cancel": "取消",
