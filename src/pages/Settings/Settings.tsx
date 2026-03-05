@@ -31,6 +31,7 @@ function Settings() {
   }, [location.pathname, categories]);
 
   const [activeCategory, setActiveCategory] = useState(getCurrentCategory());
+  const [isCategoryCollapsed, setIsCategoryCollapsed] = useState(false);
   const { settings, hotkeys, permissions, setSettings, setHotkeys } = useSettings();
 
   const logger = useLogService();
@@ -57,13 +58,19 @@ function Settings() {
     return activeCategory.id === 'models' ? '' : 'px-3 py-3';
   }, [activeCategory]);
 
+  const sidebarWidthStyle = useMemo(() => {
+    return isCategoryCollapsed ? 'grid-cols-[68px_1fr]' : 'grid-cols-[230px_1fr]';
+  }, [isCategoryCollapsed]);
+
   return (
-    <div className="setting-container grid grid-cols-[250px_1fr] grid-rows-1 h-[100vh]">
+    <div className={`setting-container grid ${sidebarWidthStyle} grid-rows-1 h-[100vh]`}>
       <div className="setting-category bg-background px-3 py-3 border-r-1 border-default">
         <SettingsCategory
           categories={categories}
           activeCategory={activeCategory}
           onCategoryChange={onCategoryChange}
+          isCollapsed={isCategoryCollapsed}
+          onToggleCollapse={() => setIsCategoryCollapsed((prev) => !prev)}
         />
       </div>
       <div className={`setting-details bg-background ${settingDetailsStyle}`}>

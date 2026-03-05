@@ -104,6 +104,7 @@
     "sendMessage": "Send a message..."
   },
   "common": {
+    "brand": "SnapMind",
     "create": "Create",
     "save": "Save",
     "cancel": "Cancel",
