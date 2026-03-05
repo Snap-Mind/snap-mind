@@ -63,7 +63,9 @@ function Settings() {
   }, [isCategoryCollapsed]);
 
   return (
-    <div className={`setting-container grid ${sidebarWidthStyle} grid-rows-1 h-[100vh]`}>
+    <div
+      className={`setting-container grid ${sidebarWidthStyle} grid-rows-1 h-[100vh] transition-all duration-200 ease-in-out`}
+    >
       <div className="setting-category bg-background px-3 py-3 border-r-1 border-default">
         <SettingsCategory
           categories={categories}

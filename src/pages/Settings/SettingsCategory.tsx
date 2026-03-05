@@ -31,8 +31,8 @@ function SettingsCategory({
   const { t } = useTranslation();
   const renderIcon = (categoryId: string) => {
     const iconClass = isCollapsed
-      ? 'flex items-center justify-center leading-none'
-      : 'ml-2 flex items-center justify-center leading-none';
+      ? 'flex items-center justify-center leading-none transition-all duration-200 ease-in-out'
+      : 'ml-2 flex items-center justify-center leading-none transition-all duration-200 ease-in-out';
 
     if (categoryId === 'general')
       return <Icon icon="cog" className={iconClass} size={18} />;
@@ -58,12 +58,16 @@ function SettingsCategory({
       <div className="header">
         <button
           type="button"
-          className={`flex items-center gap-2 cursor-pointer`}
+          className="flex items-center gap-2 cursor-pointer"
           onClick={onToggleCollapse}
           aria-label={isCollapsed ? t('common.brand') : `${t('common.brand')} Toggle`}
         >
           <img src={MindSvg} alt="SnapMind Logo" className="w-8 h-8 shrink-0 ml-1" />
-          {!isCollapsed && <h1 className="font-bold text-2xl leading-none tracking-tight">{t('common.brand')}</h1>}
+          <h1
+            className={`font-bold text-2xl leading-none tracking-tight whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
+          >
+            {t('common.brand')}
+          </h1>
         </button>
         <Divider className="my-4" />
       </div>
@@ -76,7 +80,11 @@ function SettingsCategory({
               href={category.path}
               startContent={renderIcon(category.id)}
             >
-              {isCollapsed ? '\u00A0' : category.name}
+              <span
+                className={`block whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
+              >
+                {category.name}
+              </span>
             </ListboxItem>
           ))}
         </Listbox>
