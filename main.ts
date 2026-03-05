@@ -21,6 +21,7 @@ import SystemPermissionService from './electron/SystemPermissionService';
 import logService from './electron/LogService';
 import AutoUpdateService from './electron/AutoUpdateService';
 import OpenAtLoginService from './electron/OpenAtLoginService';
+import ThemeService from './electron/ThemeService';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,6 +40,9 @@ if (!gotTheLock) {
 
 const settingsService = new SettingsService();
 const openAtLoginService = new OpenAtLoginService();
+const themeService = new ThemeService({
+  getAppearanceMode: () => settingsService.getSettings()?.appearance?.theme,
+});
 let autoUpdateService: AutoUpdateService | null = null;
 
 let tray = null;
@@ -432,6 +436,7 @@ ipcMain.handle('hotkeys:update-path', async (event, { path, value }) => {
 ipcMain.handle('settings:get', () => {
   return settingsService.getSettings();
 });
+themeService.registerIpcHandlers();
 
 ipcMain.handle('settings:update', async (event, newSettings) => {
   try {
@@ -441,6 +446,7 @@ ipcMain.handle('settings:update', async (event, newSettings) => {
     }
 
     const updated = await settingsService.updateSettings(newSettings);
+    themeService.applyNativeThemeFromSettings(updated?.appearance?.theme);
     logService.debug('[main] Settings updated:', updated);
 
     const senderId = event.sender.id;
@@ -466,6 +472,7 @@ ipcMain.handle('settings:update-path', async (event, { path, value }) => {
     }
 
     const updated = await settingsService.updateSetting(path, value);
+    themeService.applyNativeThemeFromSettings(updated?.appearance?.theme);
     logService.debug('[main] Settings updated:', updated);
 
     const senderId = event.sender.id;
@@ -587,6 +594,7 @@ app.whenReady().then(() => {
   logService.logSystemInfo();
 
   settingsService.initializeConfigs();
+  themeService.initialize();
 
   // Initialize auto update service based on settings (general.autoUpdate)
   try {

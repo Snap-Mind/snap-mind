@@ -36,6 +36,20 @@
       "launchAtLoginDescription": "Start SnapMind automatically when you sign in. It launches in tray mode and does not open the Settings window.",
       "launchAtLoginUnsupported": "Launch at login is not supported on this platform."
     },
+    "appearance": {
+      "title": "Appearance",
+      "themeMode": "Theme",
+      "options": {
+        "light": "Light",
+        "dark": "Dark",
+        "auto": "Auto"
+      },
+      "hints": {
+        "light": "Always use light mode",
+        "dark": "Always use dark mode",
+        "auto": "Follow system appearance"
+      }
+    },
     "providers": {
       "title": "Providers",
       "searchModels": "Search models...",

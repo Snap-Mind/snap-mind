@@ -36,6 +36,20 @@
       "launchAtLoginDescription": "登入系統後自動啟動 SnapMind。啟動後僅常駐托盤，不會自動打開設定視窗。",
       "launchAtLoginUnsupported": "目前平台不支援開機啟動。"
     },
+    "appearance": {
+      "title": "外觀",
+      "themeMode": "主題",
+      "options": {
+        "light": "淺色",
+        "dark": "深色",
+        "auto": "自動"
+      },
+      "hints": {
+        "light": "始終使用淺色模式",
+        "dark": "始終使用深色模式",
+        "auto": "跟隨系統主題"
+      }
+    },
     "providers": {
       "title": "AI模型",
       "searchModels": "搜尋模型...",

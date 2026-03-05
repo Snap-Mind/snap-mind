@@ -16,6 +16,11 @@ export interface SystemPermission {
   isGranted: boolean;
 }
 
+export interface NativeThemeState {
+  mode: 'light' | 'dark' | 'auto';
+  theme: 'light' | 'dark';
+}
+
 interface ElectronAPI {
   // Chat popup events
   showChatPopup: (position: { x: number; y: number }) => void;
@@ -43,6 +48,9 @@ interface ElectronAPI {
   ) => Promise<{ setting: Setting; success: boolean }>;
   onSettingsUpdated: (callback: (updatedSettings: Setting) => void) => void;
   offSettingsUpdated: () => void;
+  getNativeTheme: () => Promise<NativeThemeState>;
+  onNativeThemeChanged: (callback: (state: NativeThemeState) => void) => void;
+  offNativeThemeChanged: () => void;
 
   // Log management
   getLogPath: () => Promise<string>;

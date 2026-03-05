@@ -26,6 +26,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onSettingsUpdated: (callback) =>
     ipcRenderer.on('settings:updated', (_event, updatedSettings) => callback(updatedSettings)),
   offSettingsUpdated: () => ipcRenderer.removeAllListeners('settings:updated'),
+  getNativeTheme: () => ipcRenderer.invoke('theme:get'),
+  onNativeThemeChanged: (callback) =>
+    ipcRenderer.on('theme:changed', (_event, payload) => callback(payload)),
+  offNativeThemeChanged: () => ipcRenderer.removeAllListeners('theme:changed'),
   // Log management
   getLogPath: () => ipcRenderer.invoke('logs:get-path'),
   openLogFile: () => ipcRenderer.invoke('logs:open-file'),

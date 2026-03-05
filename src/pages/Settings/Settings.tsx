@@ -10,12 +10,14 @@ import SettingsModel from './Models/SettingsModels';
 import SettingsChat from './SettingsChat';
 import SettingsHotkeys from './SettingsHotkeys';
 import SettingsOther from './SettingsOther';
+import SettingsAppearance from './SettingsAppearance';
 
 function Settings() {
   const { t } = useTranslation();
   const categories = useMemo(
     () => [
       { id: 'general', name: t('settings.general.title'), path: '/settings/general' },
+      { id: 'appearance', name: t('settings.appearance.title'), path: '/settings/appearance' },
       { id: 'models', name: t('settings.providers.title'), path: '/settings/models' },
       { id: 'chat', name: t('settings.chat.title'), path: '/settings/chat' },
       { id: 'hotkeys', name: t('settings.hotkeys.title'), path: '/settings/hotkeys' },
@@ -85,6 +87,12 @@ function Settings() {
               ></SettingsModel>
             }
           ></Route>
+          <Route
+            path="appearance"
+            element={
+              <SettingsAppearance settings={settings.appearance} onSettingsChange={setSettings} />
+            }
+          />
           <Route
             path="chat"
             element={<SettingsChat settings={settings.chat} onSettingsChange={setSettings} />}

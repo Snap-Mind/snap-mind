@@ -9,14 +9,20 @@ import {
 
 export type Setting = {
   general: GeneralSetting;
+  appearance: AppearanceSetting;
   chat: ChatSetting;
   providers: ProviderSetting[];
 };
 
 export interface GeneralSetting {
+  language: string;
   clipboardEnabled: boolean;
   app: App;
   autoUpdate?: AutoUpdateSetting;
+}
+
+export interface AppearanceSetting {
+  theme: 'light' | 'dark' | 'auto';
 }
 
 export interface AutoUpdateSetting {
