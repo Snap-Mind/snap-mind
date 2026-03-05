@@ -6,10 +6,12 @@ type ThemeChangeHandler = (theme: ThemeMode) => void;
 export class ThemeService {
   private active: boolean;
   private onThemeChanged: ThemeChangeHandler;
+  private mediaQueryList: MediaQueryList | null;
 
   constructor() {
     this.active = false;
     this.onThemeChanged = null;
+    this.mediaQueryList = null;
   }
 
   private emitTheme(theme: ThemeMode) {
@@ -19,6 +21,10 @@ export class ThemeService {
 
   private handleNativeThemeChanged = (state: NativeThemeState) => {
     this.emitTheme(state.theme);
+  };
+
+  private handleMediaQueryChange = (event: MediaQueryListEvent) => {
+    this.emitTheme(event.matches ? 'dark' : 'light');
   };
 
   private async initTheme() {
@@ -40,6 +46,10 @@ export class ThemeService {
 
     if (window.electronAPI?.onNativeThemeChanged) {
       window.electronAPI.onNativeThemeChanged(this.handleNativeThemeChanged);
+    } else {
+      // Fallback: listen to system theme changes via matchMedia
+      this.mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+      this.mediaQueryList.addEventListener('change', this.handleMediaQueryChange);
     }
   }
 
@@ -49,6 +59,12 @@ export class ThemeService {
 
     if (window.electronAPI?.offNativeThemeChanged) {
       window.electronAPI.offNativeThemeChanged();
+    }
+
+    // Clean up matchMedia listener
+    if (this.mediaQueryList) {
+      this.mediaQueryList.removeEventListener('change', this.handleMediaQueryChange);
+      this.mediaQueryList = null;
     }
   }
 }
