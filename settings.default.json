@@ -8,6 +8,9 @@
       "betaChannel": false
     }
   },
+  "appearance": {
+    "theme": "auto"
+  },
   "chat": {
     "temperature": 0.7,
     "max_tokens": 2048,

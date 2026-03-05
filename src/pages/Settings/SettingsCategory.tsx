@@ -3,6 +3,7 @@ import { Divider } from '@heroui/divider';
 import { useTranslation } from 'react-i18next';
 
 import Icon from '@/components/Icon';
+import LogoSvg from '@/components/LogoSvg';
 
 interface SettingsCategoryProps {
   categories: {
@@ -16,46 +17,73 @@ interface SettingsCategoryProps {
     path: string;
   };
   onCategoryChange?: (id: string) => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 function SettingsCategory({
   categories,
-  activeCategory /*onCategoryChange*/,
+  activeCategory,
+  isCollapsed = false,
+  onToggleCollapse,
 }: SettingsCategoryProps) {
   const { t } = useTranslation();
-  const renderIcon = (categoryId) => {
+  const renderIcon = (categoryId: string) => {
+    const iconClass = isCollapsed
+      ? 'flex items-center justify-center leading-none transition-all duration-200 ease-in-out'
+      : 'ml-2 flex items-center justify-center leading-none transition-all duration-200 ease-in-out';
+
     if (categoryId === 'general')
-      return <Icon icon="cog" className="inline-block ml-2" size={18} />;
-    if (categoryId === 'models') return <Icon icon="bot" className="inline-block ml-2" size={18} />;
+      return <Icon icon="cog" className={iconClass} size={18} />;
+    if (categoryId === 'appearance')
+      return <Icon icon="paint-roller" className={iconClass} size={18} />;
+    if (categoryId === 'models')
+      return <Icon icon="bot" className={iconClass} size={18} />;
     if (categoryId === 'chat')
-      return <Icon icon="message-circle" className="inline-block ml-2" size={18} />;
+      return <Icon icon="message-circle" className={iconClass} size={18} />;
     if (categoryId === 'hotkeys')
-      return <Icon icon="flame" className="inline-block ml-2" size={18} />;
+      return <Icon icon="flame" className={iconClass} size={18} />;
     if (categoryId === 'others')
-      return <Icon icon="square-dashed" className="inline-block ml-2" size={18} />;
+      return <Icon icon="square-dashed" className={iconClass} size={18} />;
     return null;
   };
 
-  const activeStyle = (category) => {
+  const activeStyle = (category: { id: string }) => {
     return category.id === activeCategory.id ? 'bg-default' : '';
   };
 
   return (
-    <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
+    <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
       <div className="header">
-        <h1 className="font-bold text-2xl">{t('settings.title')}</h1>
+        <button
+          type="button"
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={onToggleCollapse}
+          aria-label="logo"
+        >
+          <LogoSvg className="w-8 h-8 shrink-0 ml-1" />
+          <h1
+            className={`font-bold text-2xl leading-none tracking-tight whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
+          >
+            {t('common.brand')}
+          </h1>
+        </button>
         <Divider className="my-4" />
       </div>
-      <div className="body overflow-y-auto">
-        <Listbox aria-label="Actions">
+      <div className="body min-w-0 overflow-y-auto">
+        <Listbox aria-label="Settings Categories">
           {categories.map((category) => (
             <ListboxItem
-              className={activeStyle(category)}
+              className={`${activeStyle(category)}`}
               key={category.id}
               href={category.path}
               startContent={renderIcon(category.id)}
             >
-              {category.name}
+              <span
+                className={`block whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
+              >
+                {category.name}
+              </span>
             </ListboxItem>
           ))}
         </Listbox>

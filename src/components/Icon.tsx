@@ -16,6 +16,10 @@ import {
   LuSettings,
   LuRotateCcw,
   LuCloud,
+  LuSun,
+  LuMoon,
+  LuMonitor,
+  LuPaintRoller,
 } from 'react-icons/lu';
 import { MdOutlineCleaningServices } from 'react-icons/md';
 
@@ -52,7 +56,11 @@ type IconType =
   | 'settings'
   | 'rotate-ccw'
   | 'cloud'
-  | 'cleaning-services';
+  | 'sun'
+  | 'moon'
+  | 'monitor'
+  | 'cleaning-services'
+  | 'paint-roller';
 
 interface IconProps {
   className?: string;
@@ -123,8 +131,16 @@ function Icon({
         return <LuRotateCcw className={svgClassName} color={color} size={size} />;
       case 'cloud':
         return <LuCloud className={svgClassName} color={color} size={size} />;
+      case 'sun':
+        return <LuSun className={svgClassName} color={color} size={size} />;
+      case 'moon':
+        return <LuMoon className={svgClassName} color={color} size={size} />;
+      case 'monitor':
+        return <LuMonitor className={svgClassName} color={color} size={size} />;
       case 'cleaning-services':
         return <MdOutlineCleaningServices className={svgClassName} color={color} size={size} />;
+      case 'paint-roller':
+        return <LuPaintRoller className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }

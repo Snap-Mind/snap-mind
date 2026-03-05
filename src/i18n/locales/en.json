@@ -31,7 +31,24 @@
         "administratorNotGranted": "For optimal text selection, please run this app with Administrator permission. To do this, <0>Open installation folder</0>. Or enable <1>Clipboard Fallback</1>."
       },
       "clipboardFallback": "Clipboard Fallback",
-      "clipboardFallbackDescription": "If this option is not enabled, you will not be able to use this app in applications such as Chrome."
+      "clipboardFallbackDescription": "If this option is not enabled, you will not be able to use this app in applications such as Chrome.",
+      "launchAtLogin": "Launch at Login",
+      "launchAtLoginDescription": "Start SnapMind automatically when you sign in. It launches in tray mode and does not open the Settings window.",
+      "launchAtLoginUnsupported": "Launch at login is not supported on this platform."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "themeMode": "Theme",
+      "options": {
+        "light": "Light",
+        "dark": "Dark",
+        "auto": "Auto"
+      },
+      "hints": {
+        "light": "Always use light mode",
+        "dark": "Always use dark mode",
+        "auto": "Follow system appearance"
+      }
     },
     "providers": {
       "title": "Providers",
@@ -87,6 +104,7 @@
     "sendMessage": "Send a message..."
   },
   "common": {
+    "brand": "SnapMind",
     "create": "Create",
     "save": "Save",
     "cancel": "Cancel",

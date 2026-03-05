@@ -5,24 +5,19 @@ import { HeroUIProvider } from '@heroui/react';
 
 import ChatPopup from './pages/ChatPopup/ChatPopup';
 import Settings from './pages/Settings/Settings';
+import { ThemeService } from './services/ThemeService';
 
 function App() {
   const navigate = useNavigate();
   const { setTheme } = useTheme();
 
   useEffect(() => {
-    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      setTheme(e.matches ? 'dark' : 'light');
+    const themeService = new ThemeService();
+    void themeService.initialize(setTheme);
+
+    return () => {
+      themeService.dispose();
     };
-
-    // Set initial theme
-    setTheme(darkModeMediaQuery.matches ? 'dark' : 'light');
-
-    // Listen for changes
-    darkModeMediaQuery.addEventListener('change', handleChange);
-
-    return () => darkModeMediaQuery.removeEventListener('change', handleChange);
   }, [setTheme]);
 
   // const toggleTheme = () => {

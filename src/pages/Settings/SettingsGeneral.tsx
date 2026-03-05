@@ -1,4 +1,13 @@
-import { Divider, Card, CardBody, CardHeader, Switch, Link, Button, Progress } from '@heroui/react';
+import {
+  Divider,
+  Card,
+  CardBody,
+  CardHeader,
+  Switch,
+  Link,
+  Button,
+  Progress,
+} from '@heroui/react';
 import { Trans, useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import Icon from '../../components/Icon';
@@ -6,6 +15,7 @@ import Icon from '../../components/Icon';
 import { SettingsChangeHandler, SystemPermission } from '@/types';
 import { GeneralSetting } from '@/types/setting';
 import { useAutoUpdate } from '@/hooks/useAutoUpdate';
+import { useOpenAtLogin } from '@/hooks/useOpenAtLogin';
 
 export interface SettingsGeneralProps {
   settings: GeneralSetting;
@@ -16,6 +26,12 @@ export interface SettingsGeneralProps {
 function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGeneralProps) {
   const { t } = useTranslation();
   const { status: updateStatus, checkForUpdates, installUpdateNow } = useAutoUpdate();
+  const {
+    openAtLogin,
+    isSupported: openAtLoginSupported,
+    isLoading: openAtLoginLoading,
+    toggleOpenAtLogin,
+  } = useOpenAtLogin();
 
   const renderPermissionCard = (permission: SystemPermission) => {
     const accessibilityInfo = () => (
@@ -122,16 +138,37 @@ function SettingsGeneral({ settings, permissions, onSettingsChange }: SettingsGe
   };
 
   return (
-    <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
+    <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
       <div className="header">
         <h1 className="font-bold text-2xl">{t('settings.general.title')}</h1>
         <Divider className="my-4" />
       </div>
-      <div className="body overflow-y-auto">
+      <div className="body min-w-0 overflow-y-auto">
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">{t('settings.general.language')}</label>
           <LanguageSelector />
         </div>
+
+        <Card className="w-full my-5 border-1 border-gray-100" shadow="none">
+          <CardHeader className="flex gap-3 justify-between items-center">
+            <h4 className="font-bold">{t('settings.general.launchAtLogin')}</h4>
+            <Switch
+              size="sm"
+              isSelected={openAtLogin}
+              isDisabled={openAtLoginLoading || !openAtLoginSupported}
+              onValueChange={toggleOpenAtLogin}
+            >
+              {t('common.enabled')}
+            </Switch>
+          </CardHeader>
+          <CardBody className="flex flex-col gap-5">
+            <div className="text-xs text-gray-500">
+              {openAtLoginSupported
+                ? t('settings.general.launchAtLoginDescription')
+                : t('settings.general.launchAtLoginUnsupported')}
+            </div>
+          </CardBody>
+        </Card>
 
         <Divider className="my-4" />
         <h2 className="font-bold text-xl">{t('settings.general.permission.title')}</h2>

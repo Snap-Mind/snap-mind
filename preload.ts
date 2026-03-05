@@ -26,6 +26,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onSettingsUpdated: (callback) =>
     ipcRenderer.on('settings:updated', (_event, updatedSettings) => callback(updatedSettings)),
   offSettingsUpdated: () => ipcRenderer.removeAllListeners('settings:updated'),
+  getNativeTheme: () => ipcRenderer.invoke('theme:get'),
+  onNativeThemeChanged: (callback) =>
+    ipcRenderer.on('theme:changed', (_event, payload) => callback(payload)),
+  offNativeThemeChanged: () => ipcRenderer.removeAllListeners('theme:changed'),
   // Log management
   getLogPath: () => ipcRenderer.invoke('logs:get-path'),
   openLogFile: () => ipcRenderer.invoke('logs:open-file'),
@@ -53,4 +57,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   installUpdateNow: () => ipcRenderer.invoke('update:install'),
   getUpdateStatus: () => ipcRenderer.invoke('update:get-status'),
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
+  getOpenAtLogin: () => ipcRenderer.invoke('app:get-open-at-login'),
+  setOpenAtLogin: (enabled) => ipcRenderer.invoke('app:set-open-at-login', enabled),
 });

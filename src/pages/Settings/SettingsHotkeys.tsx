@@ -58,12 +58,12 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
   };
 
   return (
-    <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
+    <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
       <div className="header">
         <h1 className="font-bold text-2xl">{t('settings.hotkeys.title')}</h1>
         <Divider className="my-4" />
       </div>
-      <div className="body overflow-y-auto">
+      <div className="body min-w-0 overflow-y-auto">
         <div className="flex items-center justify-center w-full">
           <Alert description={description} title={title} />
         </div>

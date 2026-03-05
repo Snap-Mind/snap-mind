@@ -34,7 +34,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@heroui/react": "^2.8.2",
+    "@heroui/react": "^2.8.9",
     "@heroui/use-theme": "^2.1.10",
     "@lobehub/icons-static-svg": "^1.66.0",
     "@tailwindcss/vite": "^4.1.11",

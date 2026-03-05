@@ -31,7 +31,24 @@
         "administratorNotGranted": "为获得最佳的文本选择体验，请以管理员权限运行此应用。要执行此操作, <0>打开安装文件夹</0>。或启用<1>剪贴板备用</1>功能。"
       },
       "clipboardFallback": "剪贴板备用",
-      "clipboardFallbackDescription": "不开启此选项将无法在Chrome等应用中使用本软件。"
+      "clipboardFallbackDescription": "不开启此选项将无法在Chrome等应用中使用本软件。",
+      "launchAtLogin": "开机启动",
+      "launchAtLoginDescription": "登录系统后自动启动 SnapMind。启动后仅驻留托盘，不会自动打开设置窗口。",
+      "launchAtLoginUnsupported": "当前平台不支持开机启动。"
+    },
+    "appearance": {
+      "title": "外观",
+      "themeMode": "主题",
+      "options": {
+        "light": "浅色",
+        "dark": "深色",
+        "auto": "自动"
+      },
+      "hints": {
+        "light": "始终使用浅色模式",
+        "dark": "始终使用深色模式",
+        "auto": "跟随系统主题"
+      }
     },
     "providers": {
       "title": "AI模型",
@@ -87,6 +104,7 @@
     "sendMessage": "发送消息..."
   },
   "common": {
+    "brand": "SnapMind",
     "create": "创建",
     "save": "保存",
     "cancel": "取消",
