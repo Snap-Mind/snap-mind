@@ -54,7 +54,7 @@ function SettingsCategory({
   };
 
   return (
-    <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
+    <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
       <div className="header">
         <button
           type="button"
@@ -71,7 +71,7 @@ function SettingsCategory({
         </button>
         <Divider className="my-4" />
       </div>
-      <div className="body overflow-y-auto">
+      <div className="body min-w-0 overflow-y-auto">
         <Listbox aria-label="Settings Categories">
           {categories.map((category) => (
             <ListboxItem

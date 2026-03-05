@@ -19,12 +19,12 @@ function SettingsAppearance({ settings, onSettingsChange }: SettingsAppearancePr
   };
 
   return (
-    <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
+    <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
       <div className="header">
         <h1 className="font-bold text-2xl">{t('settings.appearance.title')}</h1>
         <Divider className="my-4" />
       </div>
-      <div className="body overflow-y-auto">
+      <div className="body min-w-0 overflow-y-auto">
         <label className="block text-sm font-medium mb-2">
           {t('settings.appearance.themeMode')}
         </label>

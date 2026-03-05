@@ -59,14 +59,14 @@ function Settings() {
   }, [activeCategory]);
 
   const sidebarWidthStyle = useMemo(() => {
-    return isCategoryCollapsed ? 'grid-cols-[68px_1fr]' : 'grid-cols-[230px_1fr]';
+    return isCategoryCollapsed ? 'grid-cols-[68px_minmax(0,1fr)]' : 'grid-cols-[230px_minmax(0,1fr)]';
   }, [isCategoryCollapsed]);
 
   return (
     <div
-      className={`setting-container grid ${sidebarWidthStyle} grid-rows-1 h-[100vh] transition-all duration-200 ease-in-out`}
+      className={`setting-container grid w-full min-w-0 ${sidebarWidthStyle} grid-rows-1 h-[100vh] overflow-hidden transition-all duration-200 ease-in-out`}
     >
-      <div className="setting-category bg-background px-3 py-3 border-r-1 border-default">
+      <div className="setting-category bg-background min-w-0 px-3 py-3 border-r-1 border-default">
         <SettingsCategory
           categories={categories}
           activeCategory={activeCategory}
@@ -75,7 +75,7 @@ function Settings() {
           onToggleCollapse={() => setIsCategoryCollapsed((prev) => !prev)}
         />
       </div>
-      <div className={`setting-details bg-background ${settingDetailsStyle}`}>
+      <div className={`setting-details bg-background min-w-0 ${settingDetailsStyle}`}>
         <Routes>
           <Route
             path="general"

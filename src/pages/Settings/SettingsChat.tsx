@@ -13,12 +13,12 @@ interface SettingsChatProps {
 function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
   const { t } = useTranslation();
   return (
-    <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
+    <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
       <div className="header">
         <h1 className="font-bold text-2xl">{t('settings.chat.title')}</h1>
         <Divider className="my-4" />
       </div>
-      <div className="body overflow-y-auto flex flex-col gap-4 max-w-[calc(100%_-_theme(spacing.3))]">
+      <div className="body min-w-0 overflow-y-auto flex flex-col gap-4 max-w-[calc(100%_-_theme(spacing.3))]">
         <Slider
           className="max-w-full"
           defaultValue={settings.max_tokens}

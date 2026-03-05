@@ -15,12 +15,12 @@ function SettingsOther() {
     }
   };
   return (
-    <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full">
+    <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
       <div className="header">
         <h1 className="font-bold text-2xl">{t('settings.others.title')}</h1>
         <Divider className="my-4" />
       </div>
-      <div className="body overflow-y-auto">
+      <div className="body min-w-0 overflow-y-auto">
         <Button
           color="primary"
           startContent={<Icon icon="file-text" size={18} />}
