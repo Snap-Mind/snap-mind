@@ -1,50 +1,43 @@
-// Provider Factory for creating provider instances
-import AzureOpenAIProvider from './AzureOpenAIProvider';
-import OpenAIProvider from './OpenAIProvider';
-import AnthropicProvider from './AnthropicProvider';
-import GoogleProvider from './GoogleProvider';
-import DeepSeekProvider from './DeepSeekProvider';
-import QwenProvider from './QwenProvider';
-import OllamaProvider from './OllamaProvider';
-import { ProviderType } from '@/types/providers';
-import {
-  Provider,
-  BaseProviderConfig,
-  OpenAIConfig,
-  AzureOpenAIConfig,
-  AnthropicConfig,
-  GoogleConfig,
-  DeepSeekConfig,
-  QwenConfig,
-  OllamaConfig,
-} from '@/types/providers';
+// Provider Factory — maps provider IDs to composed adapter + UnifiedProvider.
+//
+// Adding a new provider only requires:
+// 1. Creating an adapter (or reusing createOpenAICompatibleAdapter)
+// 2. Adding one entry to the adapterMap below
+
+import { UnifiedProvider } from './UnifiedProvider';
+import { ProviderType, Provider, BaseProviderConfig } from '@/types/providers';
+import { ProviderAdapter } from './core/types';
+import { openaiAdapter } from './adapters/openaiAdapter';
+import { azureOpenaiAdapter } from './adapters/azureAdapter';
+import { anthropicAdapter } from './adapters/anthropicAdapter';
+import { googleAdapter } from './adapters/googleAdapter';
+import { deepseekAdapter } from './adapters/deepseekAdapter';
+import { qwenAdapter } from './adapters/qwenAdapter';
+import { ollamaAdapter } from './adapters/ollamaAdapter';
 import loggerService from '../LoggerService';
+
+const adapterMap: Record<string, ProviderAdapter> = {
+  openai: openaiAdapter,
+  'azure-openai': azureOpenaiAdapter,
+  anthropic: anthropicAdapter,
+  google: googleAdapter,
+  deepseek: deepseekAdapter,
+  qwen: qwenAdapter,
+  ollama: ollamaAdapter,
+};
 
 class ProviderFactory {
   static createProvider(config: BaseProviderConfig): Provider {
-    switch (config.id) {
-      case 'openai':
-        return new OpenAIProvider(config as OpenAIConfig);
-      case 'azure-openai':
-        return new AzureOpenAIProvider(config as AzureOpenAIConfig);
-      case 'anthropic':
-        return new AnthropicProvider(config as AnthropicConfig);
-      case 'google':
-        return new GoogleProvider(config as GoogleConfig);
-      case 'deepseek':
-        return new DeepSeekProvider(config as DeepSeekConfig);
-      case 'qwen':
-        return new QwenProvider(config as QwenConfig);
-      case 'ollama':
-        return new OllamaProvider(config as OllamaConfig);
-      default:
-        loggerService.error('[ProviderFactory]', `Unknown provider: ${config.id}`);
-        throw new Error(`Unknown provider: ${config.id}`);
+    const adapter = adapterMap[config.id];
+    if (!adapter) {
+      loggerService.error('[ProviderFactory]', `Unknown provider: ${config.id}`);
+      throw new Error(`Unknown provider: ${config.id}`);
     }
+    return new UnifiedProvider(config, adapter);
   }
 
   static getAvailableProviders(): ProviderType[] {
-    return ['openai', 'azure-openai', 'anthropic', 'google', 'deepseek', 'qwen', 'ollama'];
+    return Object.keys(adapterMap) as ProviderType[];
   }
 }
 

@@ -242,7 +242,7 @@ describe('OpenAIProvider', () => {
     it('should handle API errors gracefully', async () => {
       setupFetchMock(mockFetchResponse({ error: 'Failed' }, { ok: false, status: 500 }));
       const models = await provider.listModels();
-      expect(models).toBeUndefined();
+      expect(models).toEqual([]);
     });
   });
 
