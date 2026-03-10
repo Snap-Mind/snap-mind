@@ -88,7 +88,7 @@ describe('AzureOpenAIProvider', () => {
     });
 
     it('should handle different API versions', async () => {
-      provider.config.apiVersion = '2024-02-01';
+      (provider.config as AzureOpenAIConfig).apiVersion = '2024-02-01';
 
       setupFetchMock(
         mockFetchResponse({
