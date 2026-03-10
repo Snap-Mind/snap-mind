@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import QwenProvider from '../QwenProvider';
+import { UnifiedProvider } from '../UnifiedProvider';
+import { adapterMap } from '../ProviderFactory';
+import { deriveQwenApiBase } from '../urlResolvers';
 import { QwenConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {
@@ -8,8 +10,12 @@ import {
   setupFetchMock,
 } from '../../../../test/utils/mockFetch';
 
+// URL helpers (previously private methods on the wrapper class)
+const buildChatUrl = (host: string) => deriveQwenApiBase(host) + '/chat/completions';
+const buildModelsUrl = (host: string) => deriveQwenApiBase(host) + '/models';
+
 describe('QwenProvider', () => {
-  let provider: QwenProvider;
+  let provider: UnifiedProvider;
   let config: QwenConfig;
 
   beforeEach(() => {
@@ -22,57 +28,57 @@ describe('QwenProvider', () => {
       host: 'https://dashscope.aliyuncs.com',
       models: [],
     };
-    provider = new QwenProvider(config);
+    provider = new UnifiedProvider(config, adapterMap.qwen);
   });
 
   describe('URL building with various host formats', () => {
     it('should handle default Qwen/DashScope host', () => {
-      const url = (provider as any)._buildChatUrl('https://dashscope.aliyuncs.com');
+      const url = buildChatUrl('https://dashscope.aliyuncs.com');
       expect(url).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
     });
 
     it('should handle host with compatible-mode already', () => {
-      const url = (provider as any)._buildChatUrl('https://dashscope.aliyuncs.com/compatible-mode');
+      const url = buildChatUrl('https://dashscope.aliyuncs.com/compatible-mode');
       expect(url).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
     });
 
     it('should handle host with compatible-mode/v1 already', () => {
-      const url = (provider as any)._buildChatUrl(
+      const url = buildChatUrl(
         'https://dashscope.aliyuncs.com/compatible-mode/v1'
       );
       expect(url).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
     });
 
     it('should handle custom proxy without compatible-mode', () => {
-      const url = (provider as any)._buildChatUrl('https://my-proxy.com');
+      const url = buildChatUrl('https://my-proxy.com');
       expect(url).toBe('https://my-proxy.com/compatible-mode/v1/chat/completions');
     });
 
     it('should handle host with nested path and compatible-mode', () => {
-      const url = (provider as any)._buildChatUrl(
+      const url = buildChatUrl(
         'https://api.example.com/qwen/compatible-mode/v1'
       );
       expect(url).toBe('https://api.example.com/qwen/compatible-mode/v1/chat/completions');
     });
 
     it('should handle host with port', () => {
-      const url = (provider as any)._buildChatUrl('https://localhost:8080/compatible-mode/v1');
+      const url = buildChatUrl('https://localhost:8080/compatible-mode/v1');
       expect(url).toBe('https://localhost:8080/compatible-mode/v1/chat/completions');
     });
 
     it('should add compatible-mode when only base URL is provided', () => {
-      const url = (provider as any)._buildChatUrl('https://custom-qwen.com');
+      const url = buildChatUrl('https://custom-qwen.com');
       expect(url).toContain('/compatible-mode/v1');
     });
 
     it('should throw error for invalid URL', () => {
       expect(() => {
-        (provider as any)._deriveApiBase('not-a-valid-url');
+        deriveQwenApiBase('not-a-valid-url');
       }).toThrow('Invalid Qwen host URL');
     });
 
     it('should build models URL correctly', () => {
-      const url = (provider as any)._buildModelsUrl('https://dashscope.aliyuncs.com');
+      const url = buildModelsUrl('https://dashscope.aliyuncs.com');
       expect(url).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/models');
     });
   });

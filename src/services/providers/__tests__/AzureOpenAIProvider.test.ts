@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import AzureOpenAIProvider from '../AzureOpenAIProvider';
+import { UnifiedProvider } from '../UnifiedProvider';
+import { adapterMap } from '../ProviderFactory';
 import { AzureOpenAIConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {
@@ -9,7 +10,7 @@ import {
 } from '../../../../test/utils/mockFetch';
 
 describe('AzureOpenAIProvider', () => {
-  let provider: AzureOpenAIProvider;
+  let provider: UnifiedProvider;
   let config: AzureOpenAIConfig;
 
   beforeEach(() => {
@@ -23,7 +24,7 @@ describe('AzureOpenAIProvider', () => {
       apiVersion: '2023-05-15',
       models: [],
     };
-    provider = new AzureOpenAIProvider(config);
+    provider = new UnifiedProvider(config, adapterMap['azure-openai']);
   });
 
   describe('URL building with various host formats', () => {

@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import OllamaProvider from '../OllamaProvider';
+import { UnifiedProvider } from '../UnifiedProvider';
+import { adapterMap } from '../ProviderFactory';
+import { deriveOllamaApiBase } from '../urlResolvers';
 import { BaseProviderConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {
@@ -8,8 +10,11 @@ import {
   setupFetchMock,
 } from '../../../../test/utils/mockFetch';
 
+// URL helpers (previously private methods on the wrapper class)
+const buildChatUrl = (host: string) => deriveOllamaApiBase(host) + '/chat';
+
 describe('OllamaProvider', () => {
-  let provider: OllamaProvider;
+  let provider: UnifiedProvider;
   let config: BaseProviderConfig;
 
   beforeEach(() => {
@@ -22,57 +27,57 @@ describe('OllamaProvider', () => {
       host: 'http://localhost:11434',
       models: [],
     };
-    provider = new OllamaProvider(config);
+    provider = new UnifiedProvider(config, adapterMap.ollama);
   });
 
   describe('URL building with various host formats', () => {
     it('should handle default localhost host', () => {
-      const url = (provider as any)._buildChatUrl('http://localhost:11434');
+      const url = buildChatUrl('http://localhost:11434');
       expect(url).toBe('http://localhost:11434/api/chat');
     });
 
     it('should handle host with /api already', () => {
-      const url = (provider as any)._buildChatUrl('http://localhost:11434/api');
+      const url = buildChatUrl('http://localhost:11434/api');
       expect(url).toBe('http://localhost:11434/api/chat');
     });
 
     it('should handle host with /api/chat already', () => {
-      const url = (provider as any)._buildChatUrl('http://localhost:11434/api/chat');
+      const url = buildChatUrl('http://localhost:11434/api/chat');
       expect(url).toBe('http://localhost:11434/api/chat');
     });
 
     it('should handle custom host without /api', () => {
-      const url = (provider as any)._buildChatUrl('http://my-ollama-server.com');
+      const url = buildChatUrl('http://my-ollama-server.com');
       expect(url).toBe('http://my-ollama-server.com/api/chat');
     });
 
     it('should handle custom host with custom path', () => {
-      const url = (provider as any)._buildChatUrl('http://my-server.com/ollama/api');
+      const url = buildChatUrl('http://my-server.com/ollama/api');
       expect(url).toBe('http://my-server.com/ollama/api/chat');
     });
 
     it('should handle host with port and path', () => {
-      const url = (provider as any)._buildChatUrl('http://192.168.1.100:8080/api');
+      const url = buildChatUrl('http://192.168.1.100:8080/api');
       expect(url).toBe('http://192.168.1.100:8080/api/chat');
     });
 
     it('should handle HTTPS protocol', () => {
-      const url = (provider as any)._buildChatUrl('https://ollama.example.com');
+      const url = buildChatUrl('https://ollama.example.com');
       expect(url).toBe('https://ollama.example.com/api/chat');
     });
 
     it('should fallback to default on invalid URL', () => {
-      const base = (provider as any)._deriveApiBase('not-a-valid-url');
+      const base = deriveOllamaApiBase('not-a-valid-url');
       expect(base).toBe('http://localhost:11434/api');
     });
 
     it('should handle IPv4 addresses', () => {
-      const url = (provider as any)._buildChatUrl('http://127.0.0.1:11434');
+      const url = buildChatUrl('http://127.0.0.1:11434');
       expect(url).toBe('http://127.0.0.1:11434/api/chat');
     });
 
     it('should handle IPv6 addresses', () => {
-      const url = (provider as any)._buildChatUrl('http://[::1]:11434');
+      const url = buildChatUrl('http://[::1]:11434');
       expect(url).toBe('http://[::1]:11434/api/chat');
     });
   });

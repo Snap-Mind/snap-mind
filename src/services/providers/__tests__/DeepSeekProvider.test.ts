@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import DeepSeekProvider from '../DeepSeekProvider';
+import { UnifiedProvider } from '../UnifiedProvider';
+import { adapterMap } from '../ProviderFactory';
+import { deriveV1ApiBase } from '../urlResolvers';
 import { DeepSeekConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {
@@ -8,8 +10,12 @@ import {
   setupFetchMock,
 } from '../../../../test/utils/mockFetch';
 
+// URL helpers (previously private methods on the wrapper class)
+const buildChatUrl = (host: string) => deriveV1ApiBase(host, 'DeepSeek') + '/chat/completions';
+const buildModelsUrl = (host: string) => deriveV1ApiBase(host, 'DeepSeek') + '/models';
+
 describe('DeepSeekProvider', () => {
-  let provider: DeepSeekProvider;
+  let provider: UnifiedProvider;
   let config: DeepSeekConfig;
 
   beforeEach(() => {
@@ -22,43 +28,43 @@ describe('DeepSeekProvider', () => {
       host: 'https://api.deepseek.com',
       models: [],
     };
-    provider = new DeepSeekProvider(config);
+    provider = new UnifiedProvider(config, adapterMap.deepseek);
   });
 
   describe('URL building with various host formats', () => {
     it('should handle default DeepSeek host', () => {
-      const url = (provider as any)._buildChatUrl('https://api.deepseek.com');
+      const url = buildChatUrl('https://api.deepseek.com');
       expect(url).toBe('https://api.deepseek.com/v1/chat/completions');
     });
 
     it('should handle host with /v1 already', () => {
-      const url = (provider as any)._buildChatUrl('https://api.deepseek.com/v1');
+      const url = buildChatUrl('https://api.deepseek.com/v1');
       expect(url).toBe('https://api.deepseek.com/v1/chat/completions');
     });
 
     it('should handle host without version', () => {
-      const url = (provider as any)._buildChatUrl('https://custom-deepseek.com');
+      const url = buildChatUrl('https://custom-deepseek.com');
       expect(url).toBe('https://custom-deepseek.com/v1/chat/completions');
     });
 
     it('should handle custom proxy with nested paths', () => {
-      const url = (provider as any)._buildChatUrl('https://proxy.com/deepseek/v1');
+      const url = buildChatUrl('https://proxy.com/deepseek/v1');
       expect(url).toBe('https://proxy.com/deepseek/v1/chat/completions');
     });
 
     it('should handle host with port', () => {
-      const url = (provider as any)._buildChatUrl('https://localhost:8080/v1');
+      const url = buildChatUrl('https://localhost:8080/v1');
       expect(url).toBe('https://localhost:8080/v1/chat/completions');
     });
 
     it('should throw error for invalid URL', () => {
       expect(() => {
-        (provider as any)._deriveApiBase('not-a-valid-url');
+        deriveV1ApiBase('not-a-valid-url', 'DeepSeek');
       }).toThrow('Invalid DeepSeek host URL');
     });
 
     it('should build models URL correctly', () => {
-      const url = (provider as any)._buildModelsUrl('https://api.deepseek.com/v1');
+      const url = buildModelsUrl('https://api.deepseek.com/v1');
       expect(url).toBe('https://api.deepseek.com/v1/models');
     });
   });

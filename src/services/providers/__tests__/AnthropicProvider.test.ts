@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import AnthropicProvider from '../AnthropicProvider';
+import { UnifiedProvider } from '../UnifiedProvider';
+import { adapterMap } from '../ProviderFactory';
+import { deriveV1ApiBase } from '../urlResolvers';
 import { AnthropicConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {
@@ -9,8 +11,12 @@ import {
   setupFetchError,
 } from '../../../../test/utils/mockFetch';
 
+// URL helpers (previously private methods on the wrapper class)
+const buildMessagesUrl = (host: string) => deriveV1ApiBase(host, 'Anthropic') + '/messages';
+const buildModelsUrl = (host: string) => deriveV1ApiBase(host, 'Anthropic') + '/models';
+
 describe('AnthropicProvider', () => {
-  let provider: AnthropicProvider;
+  let provider: UnifiedProvider;
   let config: AnthropicConfig;
 
   beforeEach(() => {
@@ -23,48 +29,48 @@ describe('AnthropicProvider', () => {
       host: 'https://api.anthropic.com',
       models: [],
     };
-    provider = new AnthropicProvider(config);
+    provider = new UnifiedProvider(config, adapterMap.anthropic);
   });
 
   describe('URL building with various host formats', () => {
     it('should handle default Anthropic host', () => {
-      const url = (provider as any)._buildMessagesUrl('https://api.anthropic.com');
+      const url = buildMessagesUrl('https://api.anthropic.com');
       expect(url).toBe('https://api.anthropic.com/v1/messages');
     });
 
     it('should handle host with /v1 already', () => {
-      const url = (provider as any)._buildMessagesUrl('https://api.anthropic.com/v1');
+      const url = buildMessagesUrl('https://api.anthropic.com/v1');
       expect(url).toBe('https://api.anthropic.com/v1/messages');
     });
 
     it('should handle host without version', () => {
-      const url = (provider as any)._buildMessagesUrl('https://custom-anthropic.com');
+      const url = buildMessagesUrl('https://custom-anthropic.com');
       expect(url).toBe('https://custom-anthropic.com/v1/messages');
     });
 
     it('should handle custom proxy with nested paths', () => {
-      const url = (provider as any)._buildMessagesUrl('https://proxy.com/anthropic/v1');
+      const url = buildMessagesUrl('https://proxy.com/anthropic/v1');
       expect(url).toBe('https://proxy.com/anthropic/v1/messages');
     });
 
     it('should handle host with port', () => {
-      const url = (provider as any)._buildMessagesUrl('https://localhost:8080/v1');
+      const url = buildMessagesUrl('https://localhost:8080/v1');
       expect(url).toBe('https://localhost:8080/v1/messages');
     });
 
     it('should handle host with trailing slash', () => {
-      const url = (provider as any)._buildMessagesUrl('https://api.anthropic.com/');
+      const url = buildMessagesUrl('https://api.anthropic.com/');
       expect(url).toBe('https://api.anthropic.com/v1/messages');
     });
 
     it('should handle custom path without v1', () => {
-      const url = (provider as any)._buildMessagesUrl('https://custom.com/api/anthropic');
+      const url = buildMessagesUrl('https://custom.com/api/anthropic');
       expect(url).toBe('https://custom.com/api/anthropic/v1/messages');
     });
 
     it('should throw error on invalid URL', () => {
       expect(() => {
-        (provider as any)._buildMessagesUrl('not-a-valid-url');
+        buildMessagesUrl('not-a-valid-url');
       }).toThrow('Invalid Anthropic host URL');
     });
   });
@@ -305,30 +311,30 @@ describe('AnthropicProvider', () => {
 
   describe('URL building', () => {
     it('should build correct URLs with default host', () => {
-      const messagesUrl = (provider as any)._buildMessagesUrl('https://api.anthropic.com');
-      const modelsUrl = (provider as any)._buildModelsUrl('https://api.anthropic.com');
+      const messagesUrl = buildMessagesUrl('https://api.anthropic.com');
+      const modelsUrl = buildModelsUrl('https://api.anthropic.com');
 
       expect(messagesUrl).toBe('https://api.anthropic.com/v1/messages');
       expect(modelsUrl).toBe('https://api.anthropic.com/v1/models');
     });
 
     it('should build correct URLs with custom host', () => {
-      const messagesUrl = (provider as any)._buildMessagesUrl('https://custom.api.com/anthropic');
-      const modelsUrl = (provider as any)._buildModelsUrl('https://custom.api.com/anthropic');
+      const messagesUrl = buildMessagesUrl('https://custom.api.com/anthropic');
+      const modelsUrl = buildModelsUrl('https://custom.api.com/anthropic');
 
       expect(messagesUrl).toBe('https://custom.api.com/anthropic/v1/messages');
       expect(modelsUrl).toBe('https://custom.api.com/anthropic/v1/models');
     });
 
     it('should handle host with existing /v1 path', () => {
-      const messagesUrl = (provider as any)._buildMessagesUrl('https://api.anthropic.com/v1');
+      const messagesUrl = buildMessagesUrl('https://api.anthropic.com/v1');
 
       expect(messagesUrl).toBe('https://api.anthropic.com/v1/messages');
     });
 
     it('should throw error for invalid host URL', () => {
       expect(() => {
-        (provider as any)._deriveApiBase('not-a-valid-url');
+        deriveV1ApiBase('not-a-valid-url', 'Anthropic');
       }).toThrow('Invalid Anthropic host URL');
     });
   });

@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import GoogleProvider from '../GoogleProvider';
+import { UnifiedProvider } from '../UnifiedProvider';
+import { adapterMap } from '../ProviderFactory';
+import { deriveGoogleApiBase } from '../urlResolvers';
 import { GoogleConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {
@@ -8,8 +10,14 @@ import {
   setupFetchMock,
 } from '../../../../test/utils/mockFetch';
 
+// URL helpers (previously private methods on the wrapper class)
+const buildGenerateContentUrl = (host: string, model: string, apiKey: string, streaming: boolean) =>
+  `${deriveGoogleApiBase(host)}/models/${model}:generateContent?key=${apiKey}${streaming ? '&alt=sse' : ''}`;
+const buildModelsUrl = (host: string, apiKey: string) =>
+  `${deriveGoogleApiBase(host)}/models?key=${apiKey}`;
+
 describe('GoogleProvider', () => {
-  let provider: GoogleProvider;
+  let provider: UnifiedProvider;
   let config: GoogleConfig;
 
   beforeEach(() => {
@@ -23,12 +31,12 @@ describe('GoogleProvider', () => {
       models: [],
       config: { topK: 40 },
     };
-    provider = new GoogleProvider(config);
+    provider = new UnifiedProvider(config, adapterMap.google);
   });
 
   describe('URL building with various host formats', () => {
     it('should handle default Google host', () => {
-      const url = (provider as any)._buildGenerateContentUrl(
+      const url = buildGenerateContentUrl(
         'https://generativelanguage.googleapis.com',
         'gemini-pro',
         'test-key',
@@ -39,7 +47,7 @@ describe('GoogleProvider', () => {
     });
 
     it('should handle host with v1beta already', () => {
-      const url = (provider as any)._buildGenerateContentUrl(
+      const url = buildGenerateContentUrl(
         'https://generativelanguage.googleapis.com/v1beta',
         'gemini-pro',
         'test-key',
@@ -49,7 +57,7 @@ describe('GoogleProvider', () => {
     });
 
     it('should handle host with v1', () => {
-      const url = (provider as any)._buildGenerateContentUrl(
+      const url = buildGenerateContentUrl(
         'https://generativelanguage.googleapis.com/v1',
         'gemini-pro',
         'test-key',
@@ -59,7 +67,7 @@ describe('GoogleProvider', () => {
     });
 
     it('should add streaming parameter when streaming', () => {
-      const url = (provider as any)._buildGenerateContentUrl(
+      const url = buildGenerateContentUrl(
         'https://generativelanguage.googleapis.com',
         'gemini-pro',
         'test-key',
@@ -69,7 +77,7 @@ describe('GoogleProvider', () => {
     });
 
     it('should handle custom proxy URL', () => {
-      const url = (provider as any)._buildGenerateContentUrl(
+      const url = buildGenerateContentUrl(
         'https://my-proxy.com/google',
         'gemini-pro',
         'test-key',
@@ -79,7 +87,7 @@ describe('GoogleProvider', () => {
     });
 
     it('should handle host with port', () => {
-      const url = (provider as any)._buildGenerateContentUrl(
+      const url = buildGenerateContentUrl(
         'https://localhost:8080',
         'gemini-pro',
         'test-key',
@@ -90,12 +98,12 @@ describe('GoogleProvider', () => {
 
     it('should throw error for invalid URL', () => {
       expect(() => {
-        (provider as any)._deriveApiBase('invalid-url');
+        deriveGoogleApiBase('invalid-url');
       }).toThrow('Invalid Google host URL');
     });
 
     it('should build models URL correctly', () => {
-      const url = (provider as any)._buildModelsUrl(
+      const url = buildModelsUrl(
         'https://generativelanguage.googleapis.com',
         'test-key'
       );
