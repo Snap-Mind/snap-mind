@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UnifiedProvider } from '../UnifiedProvider';
 import { adapterMap } from '../ProviderFactory';
-import { deriveV1ApiBase } from '../urlResolvers';
+import { deriveV1ApiBase } from '../core/urlResolvers';
 import { OpenAIConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {

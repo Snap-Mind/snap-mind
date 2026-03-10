@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UnifiedProvider } from '../UnifiedProvider';
 import { adapterMap } from '../ProviderFactory';
-import { deriveGoogleApiBase } from '../urlResolvers';
+import { deriveGoogleApiBase } from '../core/urlResolvers';
 import { GoogleConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {

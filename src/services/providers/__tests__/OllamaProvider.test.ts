@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UnifiedProvider } from '../UnifiedProvider';
 import { adapterMap } from '../ProviderFactory';
-import { deriveOllamaApiBase } from '../urlResolvers';
+import { deriveOllamaApiBase } from '../core/urlResolvers';
 import { BaseProviderConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {

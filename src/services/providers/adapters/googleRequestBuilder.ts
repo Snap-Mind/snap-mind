@@ -10,7 +10,7 @@
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, GoogleConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '../core/types';
-import { deriveGoogleApiBase } from '../urlResolvers';
+import { deriveGoogleApiBase } from '../core/urlResolvers';
 
 interface GoogleMessage {
   role: string;

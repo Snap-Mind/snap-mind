@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UnifiedProvider } from '../UnifiedProvider';
 import { adapterMap } from '../ProviderFactory';
-import { deriveQwenApiBase } from '../urlResolvers';
+import { deriveQwenApiBase } from '../core/urlResolvers';
 import { QwenConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {

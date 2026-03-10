@@ -17,7 +17,7 @@ import { createOpenAIResponseParser } from './parsers/openaiResponseParser';
 import { anthropicResponseParser } from './parsers/anthropicResponseParser';
 import { googleResponseParser } from './parsers/googleResponseParser';
 import { ollamaResponseParser } from './parsers/ollamaResponseParser';
-import { deriveV1ApiBase, deriveQwenApiBase } from './urlResolvers';
+import { deriveV1ApiBase, deriveQwenApiBase } from './core/urlResolvers';
 import loggerService from '../LoggerService';
 
 /** Merge a RequestBuilder and ResponseParser into a single ProviderAdapter. */
