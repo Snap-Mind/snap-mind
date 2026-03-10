@@ -1,13 +1,13 @@
-// Azure OpenAI Provider — thin wrapper around UnifiedProvider for backward compatibility.
-// All business logic is in adapters/azureAdapter.ts and UnifiedProvider.ts.
+// Azure OpenAI Provider — thin wrapper for backward compatibility.
+// All logic is composed from adapters/azureRequestBuilder + parsers/openaiResponseParser.
 
 import { AzureOpenAIConfig } from '@/types/providers';
 import { UnifiedProvider } from './UnifiedProvider';
-import { azureOpenaiAdapter } from './adapters/azureAdapter';
+import { adapterMap } from './ProviderFactory';
 
 class AzureOpenAIProvider extends UnifiedProvider {
   constructor(config: AzureOpenAIConfig) {
-    super(config, azureOpenaiAdapter);
+    super(config, adapterMap['azure-openai']);
   }
 }
 

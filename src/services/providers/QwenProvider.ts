@@ -1,14 +1,14 @@
-// Qwen Provider — thin wrapper around UnifiedProvider for backward compatibility.
-// All business logic is in adapters/qwenAdapter.ts and UnifiedProvider.ts.
+// Qwen Provider — thin wrapper for backward compatibility.
+// All logic is composed from adapters/openaiRequestBuilder + parsers/openaiResponseParser.
 
 import { QwenConfig } from '@/types/providers';
 import { UnifiedProvider } from './UnifiedProvider';
-import { qwenAdapter } from './adapters/qwenAdapter';
-import { deriveQwenApiBase } from './core/urlResolvers';
+import { adapterMap } from './ProviderFactory';
+import { deriveQwenApiBase } from './urlResolvers';
 
 class QwenProvider extends UnifiedProvider {
   constructor(config: QwenConfig) {
-    super(config, qwenAdapter);
+    super(config, adapterMap.qwen);
   }
 
   // URL helpers exposed for tests

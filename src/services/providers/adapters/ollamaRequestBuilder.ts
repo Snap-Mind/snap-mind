@@ -1,22 +1,19 @@
-// Ollama adapter — local models via Ollama REST API.
+// Ollama request builder — local models via Ollama REST API.
 //
 // Key differences from all other providers:
 // - No API key required
-// - NDJSON streaming (not SSE)
 // - Options bag for temperature/top_p/num_predict
 // - /api/* URL scheme instead of /v1/*
 // - /api/tags for model listing (not /models)
 
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
-import { ModelSetting } from '@/types/setting';
-import { ProviderAdapter } from '../core/types';
-import { parseNDJSONStream } from '../core/streamParsers';
-import { deriveOllamaApiBase } from '../core/urlResolvers';
+import { RequestBuilder } from '../core/types';
+import { deriveOllamaApiBase } from '../urlResolvers';
 
 const OLLAMA_DEFAULT_ORIGIN = 'http://localhost:11434';
 
-export const ollamaAdapter: ProviderAdapter = {
+export const ollamaRequestBuilder: RequestBuilder = {
   providerName: 'Ollama',
   requiresApiKey: false,
 
@@ -54,52 +51,11 @@ export const ollamaAdapter: ProviderAdapter = {
     return body;
   },
 
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
-    return parseNDJSONStream(
-      res,
-      (obj) => obj?.message?.content || null,
-      onToken,
-      {
-        logTag: 'Ollama',
-        extractError: (obj) => {
-          if (obj?.error) {
-            return typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error);
-          }
-          return null;
-        },
-        isDone: (obj) => obj?.done === true,
-      }
-    );
-  },
-
-  extractContentFromResponse(data: any): string {
-    return data?.message?.content || '';
-  },
-
   buildListModelsRequest(config: BaseProviderConfig) {
     const base = deriveOllamaApiBase(config.host || OLLAMA_DEFAULT_ORIGIN);
     return {
       url: `${base}/tags`,
       headers: {},
     };
-  },
-
-  parseModelsResponse(data: any): ModelSetting[] {
-    const models = data?.models;
-    if (!Array.isArray(models)) return [];
-    return models.map(
-      (m: { name: string; details?: { family?: string; parameter_size?: string } }) => ({
-        id: m.name,
-        name: m.name,
-        type: 'chat' as const,
-        capabilities: ['chat' as const],
-        description: m.details?.family
-          ? `Ollama ${m.details.family}${m.details.parameter_size ? ' ' + m.details.parameter_size : ''}`
-          : 'Ollama local model',
-      })
-    );
   },
 };

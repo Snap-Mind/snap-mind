@@ -1,29 +1,80 @@
-// Provider Factory — maps provider IDs to composed adapter + UnifiedProvider.
+// Provider Factory — the single wiring point for all providers.
 //
-// Adding a new provider only requires:
-// 1. Creating an adapter (or reusing createOpenAICompatibleAdapter)
+// Composes RequestBuilder + ResponseParser into ProviderAdapter,
+// then wraps in UnifiedProvider. Adding a new provider only requires:
+// 1. Creating a request builder and/or response parser
 // 2. Adding one entry to the adapterMap below
 
 import { UnifiedProvider } from './UnifiedProvider';
 import { ProviderType, Provider, BaseProviderConfig } from '@/types/providers';
-import { ProviderAdapter } from './core/types';
-import { openaiAdapter } from './adapters/openaiAdapter';
-import { azureOpenaiAdapter } from './adapters/azureAdapter';
-import { anthropicAdapter } from './adapters/anthropicAdapter';
-import { googleAdapter } from './adapters/googleAdapter';
-import { deepseekAdapter } from './adapters/deepseekAdapter';
-import { qwenAdapter } from './adapters/qwenAdapter';
-import { ollamaAdapter } from './adapters/ollamaAdapter';
+import { ProviderAdapter, RequestBuilder, ResponseParser } from './core/types';
+import { createOpenAIRequestBuilder } from './adapters/openaiRequestBuilder';
+import { anthropicRequestBuilder } from './adapters/anthropicRequestBuilder';
+import { googleRequestBuilder } from './adapters/googleRequestBuilder';
+import { ollamaRequestBuilder } from './adapters/ollamaRequestBuilder';
+import { azureRequestBuilder } from './adapters/azureRequestBuilder';
+import { createOpenAIResponseParser } from './parsers/openaiResponseParser';
+import { anthropicResponseParser } from './parsers/anthropicResponseParser';
+import { googleResponseParser } from './parsers/googleResponseParser';
+import { ollamaResponseParser } from './parsers/ollamaResponseParser';
+import { deriveV1ApiBase, deriveQwenApiBase } from './urlResolvers';
 import loggerService from '../LoggerService';
 
-const adapterMap: Record<string, ProviderAdapter> = {
-  openai: openaiAdapter,
-  'azure-openai': azureOpenaiAdapter,
-  anthropic: anthropicAdapter,
-  google: googleAdapter,
-  deepseek: deepseekAdapter,
-  qwen: qwenAdapter,
-  ollama: ollamaAdapter,
+/** Merge a RequestBuilder and ResponseParser into a single ProviderAdapter. */
+function composeAdapter(builder: RequestBuilder, parser: ResponseParser): ProviderAdapter {
+  return { ...builder, ...parser };
+}
+
+export const adapterMap: Record<string, ProviderAdapter> = {
+  openai: composeAdapter(
+    createOpenAIRequestBuilder({
+      providerName: 'OpenAI',
+      defaultOrigin: 'https://api.openai.com',
+      deriveApiBase: (host) => deriveV1ApiBase(host, 'OpenAI'),
+    }),
+    createOpenAIResponseParser({
+      providerName: 'OpenAI',
+      modelFilter: (model: any) => model.id.includes('gpt'),
+      modelDescription: (model: any) => `OpenAI ${model.id} model`,
+    })
+  ),
+
+  'azure-openai': composeAdapter(
+    azureRequestBuilder,
+    createOpenAIResponseParser({
+      providerName: 'Azure OpenAI',
+    })
+  ),
+
+  anthropic: composeAdapter(anthropicRequestBuilder, anthropicResponseParser),
+
+  google: composeAdapter(googleRequestBuilder, googleResponseParser),
+
+  deepseek: composeAdapter(
+    createOpenAIRequestBuilder({
+      providerName: 'DeepSeek',
+      defaultOrigin: 'https://api.deepseek.com',
+      deriveApiBase: (host) => deriveV1ApiBase(host, 'DeepSeek'),
+    }),
+    createOpenAIResponseParser({
+      providerName: 'DeepSeek',
+      modelDescription: (model: any) => `DeepSeek ${model.id} model`,
+    })
+  ),
+
+  qwen: composeAdapter(
+    createOpenAIRequestBuilder({
+      providerName: 'Qwen',
+      defaultOrigin: 'https://dashscope.aliyuncs.com',
+      deriveApiBase: (host) => deriveQwenApiBase(host),
+    }),
+    createOpenAIResponseParser({
+      providerName: 'Qwen',
+      modelDescription: (model: any) => `Qwen ${model.id} model`,
+    })
+  ),
+
+  ollama: composeAdapter(ollamaRequestBuilder, ollamaResponseParser),
 };
 
 class ProviderFactory {

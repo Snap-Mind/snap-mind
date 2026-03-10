@@ -1,14 +1,14 @@
-// Ollama Provider — thin wrapper around UnifiedProvider for backward compatibility.
-// All business logic is in adapters/ollamaAdapter.ts and UnifiedProvider.ts.
+// Ollama Provider — thin wrapper for backward compatibility.
+// All logic is composed from adapters/ollamaRequestBuilder + parsers/ollamaResponseParser.
 
 import { BaseProviderConfig } from '@/types/providers';
 import { UnifiedProvider } from './UnifiedProvider';
-import { ollamaAdapter } from './adapters/ollamaAdapter';
-import { deriveOllamaApiBase } from './core/urlResolvers';
+import { adapterMap } from './ProviderFactory';
+import { deriveOllamaApiBase } from './urlResolvers';
 
 class OllamaProvider extends UnifiedProvider {
   constructor(config: BaseProviderConfig) {
-    super(config, ollamaAdapter);
+    super(config, adapterMap.ollama);
   }
 
   // URL helpers exposed for tests

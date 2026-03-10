@@ -1,14 +1,14 @@
-// Google (Gemini) Provider — thin wrapper around UnifiedProvider for backward compatibility.
-// All business logic is in adapters/googleAdapter.ts and UnifiedProvider.ts.
+// Google (Gemini) Provider — thin wrapper for backward compatibility.
+// All logic is composed from adapters/googleRequestBuilder + parsers/googleResponseParser.
 
 import { GoogleConfig } from '@/types/providers';
 import { UnifiedProvider } from './UnifiedProvider';
-import { googleAdapter } from './adapters/googleAdapter';
-import { deriveGoogleApiBase } from './core/urlResolvers';
+import { adapterMap } from './ProviderFactory';
+import { deriveGoogleApiBase } from './urlResolvers';
 
 class GoogleProvider extends UnifiedProvider {
   constructor(config: GoogleConfig) {
-    super(config, googleAdapter);
+    super(config, adapterMap.google);
   }
 
   // URL helpers exposed for tests

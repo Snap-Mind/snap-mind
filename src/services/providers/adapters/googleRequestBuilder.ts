@@ -1,4 +1,4 @@
-// Google (Gemini) adapter — completely different API format from OpenAI.
+// Google (Gemini) request builder — completely different API format from OpenAI.
 //
 // Key differences:
 // - Message format: contents[] with role (user/model), parts[{text}]
@@ -9,10 +9,8 @@
 
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, GoogleConfig, ProviderOptions } from '@/types/providers';
-import { ModelSetting } from '@/types/setting';
-import { ProviderAdapter } from '../core/types';
-import { parseSSEStream } from '../core/streamParsers';
-import { deriveGoogleApiBase } from '../core/urlResolvers';
+import { RequestBuilder } from '../core/types';
+import { deriveGoogleApiBase } from '../urlResolvers';
 
 interface GoogleMessage {
   role: string;
@@ -21,7 +19,7 @@ interface GoogleMessage {
 
 const GOOGLE_DEFAULT_ORIGIN = 'https://generativelanguage.googleapis.com';
 
-export const googleAdapter: ProviderAdapter = {
+export const googleRequestBuilder: RequestBuilder = {
   providerName: 'Google AI',
   requiresApiKey: true,
 
@@ -84,22 +82,6 @@ export const googleAdapter: ProviderAdapter = {
     };
   },
 
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
-    return parseSSEStream(
-      res,
-      (data) => data.candidates?.[0]?.content?.parts?.[0]?.text || null,
-      onToken,
-      'Google'
-    );
-  },
-
-  extractContentFromResponse(data: any): string {
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  },
-
   buildListModelsRequest(config: BaseProviderConfig) {
     if (!config.apiKey) return null;
     const base = deriveGoogleApiBase(config.host || GOOGLE_DEFAULT_ORIGIN);
@@ -107,19 +89,5 @@ export const googleAdapter: ProviderAdapter = {
       url: `${base}/models?key=${config.apiKey}`,
       headers: { Accept: 'application/json' },
     };
-  },
-
-  parseModelsResponse(data: any): ModelSetting[] {
-    if (!Array.isArray(data.models)) return [];
-    return data.models.map(
-      (model: { name: string; displayName?: string; description?: string }) =>
-        ({
-          id: model.name.split('/').pop(),
-          name: model.displayName || model.name,
-          type: 'chat',
-          capabilities: ['chat'],
-          description: model.description || `Google ${model.name} model`,
-        }) as ModelSetting
-    );
   },
 };

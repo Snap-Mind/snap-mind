@@ -1,14 +1,14 @@
-// OpenAI Provider — thin wrapper around UnifiedProvider for backward compatibility.
-// All business logic is in adapters/openaiAdapter.ts and UnifiedProvider.ts.
+// OpenAI Provider — thin wrapper for backward compatibility.
+// All logic is composed from adapters/openaiRequestBuilder + parsers/openaiResponseParser.
 
 import { OpenAIConfig } from '@/types/providers';
 import { UnifiedProvider } from './UnifiedProvider';
-import { openaiAdapter } from './adapters/openaiAdapter';
-import { deriveV1ApiBase } from './core/urlResolvers';
+import { adapterMap } from './ProviderFactory';
+import { deriveV1ApiBase } from './urlResolvers';
 
 class OpenAIProvider extends UnifiedProvider {
   constructor(config: OpenAIConfig) {
-    super(config, openaiAdapter);
+    super(config, adapterMap.openai);
   }
 
   // URL helpers exposed for tests

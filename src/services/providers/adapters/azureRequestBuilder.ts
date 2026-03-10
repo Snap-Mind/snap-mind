@@ -1,4 +1,4 @@
-// Azure OpenAI adapter — similar to OpenAI but with key differences:
+// Azure OpenAI request builder — similar to OpenAI but with key differences:
 // - Model is in the URL path (not the request body)
 // - Uses `api-key` header instead of `Authorization: Bearer`
 // - Requires both host AND apiKey for validation
@@ -6,11 +6,9 @@
 
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, AzureOpenAIConfig, ProviderOptions } from '@/types/providers';
-import { ModelSetting } from '@/types/setting';
-import { ProviderAdapter } from '../core/types';
-import { parseSSEStream } from '../core/streamParsers';
+import { RequestBuilder } from '../core/types';
 
-export const azureOpenaiAdapter: ProviderAdapter = {
+export const azureRequestBuilder: RequestBuilder = {
   providerName: 'Azure OpenAI',
   requiresApiKey: true,
 
@@ -55,28 +53,8 @@ export const azureOpenaiAdapter: ProviderAdapter = {
     };
   },
 
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
-    return parseSSEStream(
-      res,
-      (data) => data.choices?.[0]?.delta?.content || null,
-      onToken,
-      'AzureOpenAI'
-    );
-  },
-
-  extractContentFromResponse(data: any): string {
-    return data.choices?.[0]?.message?.content || '';
-  },
-
   buildListModelsRequest(): null {
     // Azure OpenAI doesn't support listing models via API easily
     return null;
-  },
-
-  parseModelsResponse(): ModelSetting[] {
-    return [];
   },
 };

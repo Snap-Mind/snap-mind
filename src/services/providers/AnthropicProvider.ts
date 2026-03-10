@@ -1,14 +1,14 @@
-// Anthropic Provider — thin wrapper around UnifiedProvider for backward compatibility.
-// All business logic is in adapters/anthropicAdapter.ts and UnifiedProvider.ts.
+// Anthropic Provider — thin wrapper for backward compatibility.
+// All logic is composed from adapters/anthropicRequestBuilder + parsers/anthropicResponseParser.
 
 import { AnthropicConfig } from '@/types/providers';
 import { UnifiedProvider } from './UnifiedProvider';
-import { anthropicAdapter } from './adapters/anthropicAdapter';
-import { deriveV1ApiBase } from './core/urlResolvers';
+import { adapterMap } from './ProviderFactory';
+import { deriveV1ApiBase } from './urlResolvers';
 
 class AnthropicProvider extends UnifiedProvider {
   constructor(config: AnthropicConfig) {
-    super(config, anthropicAdapter);
+    super(config, adapterMap.anthropic);
   }
 
   // URL helpers exposed for tests

@@ -1,14 +1,14 @@
-// DeepSeek Provider — thin wrapper around UnifiedProvider for backward compatibility.
-// All business logic is in adapters/deepseekAdapter.ts and UnifiedProvider.ts.
+// DeepSeek Provider — thin wrapper for backward compatibility.
+// All logic is composed from adapters/openaiRequestBuilder + parsers/openaiResponseParser.
 
 import { DeepSeekConfig } from '@/types/providers';
 import { UnifiedProvider } from './UnifiedProvider';
-import { deepseekAdapter } from './adapters/deepseekAdapter';
-import { deriveV1ApiBase } from './core/urlResolvers';
+import { adapterMap } from './ProviderFactory';
+import { deriveV1ApiBase } from './urlResolvers';
 
 class DeepSeekProvider extends UnifiedProvider {
   constructor(config: DeepSeekConfig) {
-    super(config, deepseekAdapter);
+    super(config, adapterMap.deepseek);
   }
 
   // URL helpers exposed for tests

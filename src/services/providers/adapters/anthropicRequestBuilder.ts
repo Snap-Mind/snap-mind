@@ -1,22 +1,18 @@
-// Anthropic adapter — custom message format, headers, and streaming.
+// Anthropic request builder — custom message format, headers, and system prompt handling.
 //
 // Key differences from OpenAI:
 // - System prompt is a separate top-level field (not in messages array)
 // - Uses X-API-Key header + Anthropic-Version header
-// - SSE streaming with content_block_delta events
-// - Non-streaming response: content[0].text
 
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
-import { ModelSetting } from '@/types/setting';
-import { ProviderAdapter } from '../core/types';
-import { parseSSEStream } from '../core/streamParsers';
-import { deriveV1ApiBase } from '../core/urlResolvers';
+import { RequestBuilder } from '../core/types';
+import { deriveV1ApiBase } from '../urlResolvers';
 
 const ANTHROPIC_DEFAULT_ORIGIN = 'https://api.anthropic.com';
 const ANTHROPIC_API_VERSION = '2023-06-01';
 
-export const anthropicAdapter: ProviderAdapter = {
+export const anthropicRequestBuilder: RequestBuilder = {
   providerName: 'Anthropic',
   requiresApiKey: true,
 
@@ -60,23 +56,6 @@ export const anthropicAdapter: ProviderAdapter = {
     };
   },
 
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
-    return parseSSEStream(
-      res,
-      (data) =>
-        data.type === 'content_block_delta' ? data.delta?.text || null : null,
-      onToken,
-      'Anthropic'
-    );
-  },
-
-  extractContentFromResponse(data: any): string {
-    return data.content?.[0]?.text || '';
-  },
-
   buildListModelsRequest(config: BaseProviderConfig) {
     if (!config.apiKey) return null;
     const base = deriveV1ApiBase(config.host || ANTHROPIC_DEFAULT_ORIGIN, 'Anthropic');
@@ -88,19 +67,5 @@ export const anthropicAdapter: ProviderAdapter = {
         Accept: 'application/json',
       },
     };
-  },
-
-  parseModelsResponse(data: any): ModelSetting[] {
-    if (!Array.isArray(data.data)) return [];
-    return data.data.map(
-      (m: { id: string; display_name?: string; description?: string }) =>
-        ({
-          id: m.id,
-          name: m.display_name || m.id,
-          type: 'chat',
-          capabilities: ['chat'],
-          description: m.description || `Anthropic ${m.id} model`,
-        }) as ModelSetting
-    );
   },
 };
