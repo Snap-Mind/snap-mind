@@ -39,7 +39,7 @@ function ProviderAnthropic({ settings, onSettingsChange }: ProviderAnthropicProp
         <Input
           label="Host"
           labelPlacement="outside"
-          placeholder="e.g. https://api.anthropic.com/v1/messages"
+          placeholder="e.g. https://api.anthropic.com"
           value={localSetting.host ?? ''}
           type="url"
           onValueChange={handleHostChange}

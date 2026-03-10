@@ -39,7 +39,7 @@ function ProviderDeepSeek({ settings, onSettingsChange }: ProviderDeepSeekProps)
         <Input
           label="Host"
           labelPlacement="outside"
-          placeholder="e.g. https://api.deepseek.com/chat/completions"
+          placeholder="e.g. https://api.deepseek.com"
           value={localSetting.host ?? ''}
           type="url"
           onValueChange={handleHostChange}

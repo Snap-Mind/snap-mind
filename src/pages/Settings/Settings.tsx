@@ -59,7 +59,9 @@ function Settings() {
   }, [activeCategory]);
 
   const sidebarWidthStyle = useMemo(() => {
-    return isCategoryCollapsed ? 'grid-cols-[68px_minmax(0,1fr)]' : 'grid-cols-[230px_minmax(0,1fr)]';
+    return isCategoryCollapsed
+      ? 'grid-cols-[68px_minmax(0,1fr)]'
+      : 'grid-cols-[230px_minmax(0,1fr)]';
   }, [isCategoryCollapsed]);
 
   return (
