@@ -6,7 +6,7 @@
 // - Model listing: /api/tags with models[] array
 
 import { ModelSetting } from '@/types/setting';
-import { ResponseParser } from '../core/types';
+import { ResponseParser } from '@/types/providers';
 import { parseNDJSONStream } from '../core/ndjsonStreamParser';
 
 export const ollamaResponseParser: ResponseParser = {

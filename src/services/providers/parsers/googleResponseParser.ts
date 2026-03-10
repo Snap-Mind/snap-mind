@@ -4,7 +4,7 @@
 // Model listing: models[] with name like "models/gemini-pro"
 
 import { ModelSetting } from '@/types/setting';
-import { ResponseParser } from '../core/types';
+import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
 
 export const googleResponseParser: ResponseParser = {

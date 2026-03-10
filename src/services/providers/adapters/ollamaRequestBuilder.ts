@@ -8,7 +8,7 @@
 
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
-import { RequestBuilder } from '../core/types';
+import { RequestBuilder } from '@/types/providers';
 import { deriveOllamaApiBase } from '../core/urlResolvers';
 
 const OLLAMA_DEFAULT_ORIGIN = 'http://localhost:11434';

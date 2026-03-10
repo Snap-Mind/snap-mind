@@ -3,7 +3,7 @@
 // Parameterized to support OpenAI, DeepSeek, Qwen, and Azure with shared logic.
 
 import { ModelSetting } from '@/types/setting';
-import { ResponseParser } from '../core/types';
+import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
 
 export interface OpenAIResponseParserOptions {

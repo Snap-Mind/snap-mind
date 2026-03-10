@@ -7,7 +7,7 @@
 
 import { UnifiedProvider } from './UnifiedProvider';
 import { ProviderType, Provider, BaseProviderConfig } from '@/types/providers';
-import { ProviderAdapter, RequestBuilder, ResponseParser } from './core/types';
+import { ProviderAdapter, RequestBuilder, ResponseParser } from '@/types/providers';
 import { createOpenAIRequestBuilder } from './adapters/openaiRequestBuilder';
 import { anthropicRequestBuilder } from './adapters/anthropicRequestBuilder';
 import { googleRequestBuilder } from './adapters/googleRequestBuilder';

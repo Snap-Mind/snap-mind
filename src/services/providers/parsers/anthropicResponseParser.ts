@@ -5,7 +5,7 @@
 // - Non-streaming response: content[0].text
 
 import { ModelSetting } from '@/types/setting';
-import { ResponseParser } from '../core/types';
+import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
 
 export const anthropicResponseParser: ResponseParser = {

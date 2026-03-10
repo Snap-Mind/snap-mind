@@ -6,7 +6,7 @@
 
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
-import { RequestBuilder } from '../core/types';
+import { RequestBuilder } from '@/types/providers';
 import { deriveV1ApiBase } from '../core/urlResolvers';
 
 const ANTHROPIC_DEFAULT_ORIGIN = 'https://api.anthropic.com';

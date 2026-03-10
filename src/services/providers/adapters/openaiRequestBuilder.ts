@@ -3,7 +3,7 @@
 
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
-import { RequestBuilder } from '../core/types';
+import { RequestBuilder } from '@/types/providers';
 
 export interface OpenAIRequestBuilderOptions {
   /** Human-readable name (e.g. "OpenAI", "DeepSeek"). */

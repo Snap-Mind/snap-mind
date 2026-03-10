@@ -10,7 +10,7 @@ import { Provider, ProviderOptions, BaseProviderConfig } from '@/types/providers
 import { Message } from '@/types/chat';
 import { ModelSetting } from '@/types/setting';
 import loggerService from '../LoggerService';
-import { ProviderAdapter } from './core/types';
+import { ProviderAdapter } from '@/types/providers';
 
 export class UnifiedProvider implements Provider {
   config: BaseProviderConfig;

@@ -6,7 +6,7 @@
 
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, AzureOpenAIConfig, ProviderOptions } from '@/types/providers';
-import { RequestBuilder } from '../core/types';
+import { RequestBuilder } from '@/types/providers';
 
 export const azureRequestBuilder: RequestBuilder = {
   providerName: 'Azure OpenAI',
