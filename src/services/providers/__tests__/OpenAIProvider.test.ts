@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import OpenAIProvider from '../OpenAIProvider';
+import { UnifiedProvider } from '../UnifiedProvider';
+import { adapterMap } from '../ProviderFactory';
+import { deriveV1ApiBase } from '../core/urlResolvers';
 import { OpenAIConfig } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {
@@ -8,8 +10,12 @@ import {
   setupFetchMock,
 } from '../../../../test/utils/mockFetch';
 
+// URL helpers (previously private methods on the wrapper class)
+const buildChatCompletionsUrl = (host: string) => deriveV1ApiBase(host, 'OpenAI') + '/chat/completions';
+const buildModelsUrl = (host: string) => deriveV1ApiBase(host, 'OpenAI') + '/models';
+
 describe('OpenAIProvider', () => {
-  let provider: OpenAIProvider;
+  let provider: UnifiedProvider;
   let config: OpenAIConfig;
 
   beforeEach(() => {
@@ -22,44 +28,44 @@ describe('OpenAIProvider', () => {
       host: 'https://api.openai.com/v1',
       models: [],
     };
-    provider = new OpenAIProvider(config);
+    provider = new UnifiedProvider(config, adapterMap.openai);
   });
 
   describe('URL building with various host formats', () => {
     it('should handle default OpenAI host', () => {
-      const url = (provider as any)._buildChatCompletionsUrl('https://api.openai.com/v1');
+      const url = buildChatCompletionsUrl('https://api.openai.com/v1');
       expect(url).toBe('https://api.openai.com/v1/chat/completions');
     });
 
     it('should handle host without /v1 suffix', () => {
-      const url = (provider as any)._buildChatCompletionsUrl('https://api.openai.com');
+      const url = buildChatCompletionsUrl('https://api.openai.com');
       expect(url).toBe('https://api.openai.com/v1/chat/completions');
     });
 
     it('should handle host with /v1 in middle of path', () => {
-      const url = (provider as any)._buildChatCompletionsUrl('https://custom.api.com/openai/v1');
+      const url = buildChatCompletionsUrl('https://custom.api.com/openai/v1');
       expect(url).toBe('https://custom.api.com/openai/v1/chat/completions');
     });
 
     it('should handle host with full path already', () => {
-      const url = (provider as any)._buildChatCompletionsUrl(
+      const url = buildChatCompletionsUrl(
         'https://api.openai.com/v1/chat/completions'
       );
       expect(url).toBe('https://api.openai.com/v1/chat/completions');
     });
 
     it('should handle custom proxy URL', () => {
-      const url = (provider as any)._buildChatCompletionsUrl('https://my-proxy.com/api/v1');
+      const url = buildChatCompletionsUrl('https://my-proxy.com/api/v1');
       expect(url).toBe('https://my-proxy.com/api/v1/chat/completions');
     });
 
     it('should handle host with port', () => {
-      const url = (provider as any)._buildChatCompletionsUrl('https://localhost:8080/v1');
+      const url = buildChatCompletionsUrl('https://localhost:8080/v1');
       expect(url).toBe('https://localhost:8080/v1/chat/completions');
     });
 
     it('should handle complex nested paths', () => {
-      const url = (provider as any)._buildChatCompletionsUrl(
+      const url = buildChatCompletionsUrl(
         'https://api.company.com/services/openai/v1'
       );
       expect(url).toBe('https://api.company.com/services/openai/v1/chat/completions');
@@ -67,12 +73,12 @@ describe('OpenAIProvider', () => {
 
     it('should throw error for invalid URL', () => {
       expect(() => {
-        (provider as any)._deriveApiBase('not-a-valid-url');
+        deriveV1ApiBase('not-a-valid-url', 'OpenAI');
       }).toThrow('Invalid OpenAI host URL');
     });
 
     it('should build models URL correctly', () => {
-      const url = (provider as any)._buildModelsUrl('https://api.openai.com/v1');
+      const url = buildModelsUrl('https://api.openai.com/v1');
       expect(url).toBe('https://api.openai.com/v1/models');
     });
   });
@@ -242,7 +248,7 @@ describe('OpenAIProvider', () => {
     it('should handle API errors gracefully', async () => {
       setupFetchMock(mockFetchResponse({ error: 'Failed' }, { ok: false, status: 500 }));
       const models = await provider.listModels();
-      expect(models).toBeUndefined();
+      expect(models).toEqual([]);
     });
   });
 
