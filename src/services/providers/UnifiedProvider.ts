@@ -83,12 +83,12 @@ export class UnifiedProvider implements Provider {
   }
 
   async listModels(): Promise<ModelSetting[]> {
-    const req = this.adapter.buildListModelsRequest(this.config);
-    if (!req) {
-      return this.config.models || [];
-    }
-
     try {
+      const req = this.adapter.buildListModelsRequest(this.config);
+      if (!req) {
+        return this.config.models || [];
+      }
+
       const res = await fetch(req.url, { headers: req.headers });
       if (!res.ok) {
         throw new Error(`Failed to fetch models: ${res.status}`);

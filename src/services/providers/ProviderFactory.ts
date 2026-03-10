@@ -25,7 +25,7 @@ function composeAdapter(builder: RequestBuilder, parser: ResponseParser): Provid
   return { ...builder, ...parser };
 }
 
-export const adapterMap: Record<string, ProviderAdapter> = {
+export const adapterMap: Record<ProviderType, ProviderAdapter> = {
   openai: composeAdapter(
     createOpenAIRequestBuilder({
       providerName: 'OpenAI',
