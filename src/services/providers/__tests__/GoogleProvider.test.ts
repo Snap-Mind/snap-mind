@@ -103,10 +103,7 @@ describe('GoogleProvider', () => {
     });
 
     it('should build models URL correctly', () => {
-      const url = buildModelsUrl(
-        'https://generativelanguage.googleapis.com',
-        'test-key'
-      );
+      const url = buildModelsUrl('https://generativelanguage.googleapis.com', 'test-key');
       expect(url).toContain('/v1beta/models');
       expect(url).toContain('key=test-key');
     });

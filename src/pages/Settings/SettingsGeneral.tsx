@@ -1,13 +1,4 @@
-import {
-  Divider,
-  Card,
-  CardBody,
-  CardHeader,
-  Switch,
-  Link,
-  Button,
-  Progress,
-} from '@heroui/react';
+import { Divider, Card, CardBody, CardHeader, Switch, Link, Button, Progress } from '@heroui/react';
 import { Trans, useTranslation } from 'react-i18next';
 import { LanguageSelector } from '../../components/LanguageSelector';
 import Icon from '../../components/Icon';

@@ -36,11 +36,7 @@ export const googleRequestBuilder: RequestBuilder = {
     };
   },
 
-  buildChatBody(
-    messages: Message[],
-    options: ProviderOptions,
-    config: BaseProviderConfig
-  ): any {
+  buildChatBody(messages: Message[], options: ProviderOptions, config: BaseProviderConfig): any {
     const googleConfig = config as GoogleConfig;
     const topK = googleConfig.config?.topK;
 

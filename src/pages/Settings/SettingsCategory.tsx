@@ -33,16 +33,13 @@ function SettingsCategory({
       ? 'flex items-center justify-center leading-none transition-all duration-200 ease-in-out'
       : 'ml-2 flex items-center justify-center leading-none transition-all duration-200 ease-in-out';
 
-    if (categoryId === 'general')
-      return <Icon icon="cog" className={iconClass} size={18} />;
+    if (categoryId === 'general') return <Icon icon="cog" className={iconClass} size={18} />;
     if (categoryId === 'appearance')
       return <Icon icon="paint-roller" className={iconClass} size={18} />;
-    if (categoryId === 'models')
-      return <Icon icon="bot" className={iconClass} size={18} />;
+    if (categoryId === 'models') return <Icon icon="bot" className={iconClass} size={18} />;
     if (categoryId === 'chat')
       return <Icon icon="message-circle" className={iconClass} size={18} />;
-    if (categoryId === 'hotkeys')
-      return <Icon icon="flame" className={iconClass} size={18} />;
+    if (categoryId === 'hotkeys') return <Icon icon="flame" className={iconClass} size={18} />;
     if (categoryId === 'others')
       return <Icon icon="square-dashed" className={iconClass} size={18} />;
     return null;

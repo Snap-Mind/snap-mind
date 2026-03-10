@@ -9,14 +9,10 @@ import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
 
 export const anthropicResponseParser: ResponseParser = {
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
+  async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
     return parseSSEStream(
       res,
-      (data) =>
-        data.type === 'content_block_delta' ? data.delta?.text || null : null,
+      (data) => (data.type === 'content_block_delta' ? data.delta?.text || null : null),
       onToken,
       'Anthropic'
     );

@@ -10,25 +10,17 @@ import { ResponseParser } from '@/types/providers';
 import { parseNDJSONStream } from '../core/ndjsonStreamParser';
 
 export const ollamaResponseParser: ResponseParser = {
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
-    return parseNDJSONStream(
-      res,
-      (obj) => obj?.message?.content || null,
-      onToken,
-      {
-        logTag: 'Ollama',
-        extractError: (obj) => {
-          if (obj?.error) {
-            return typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error);
-          }
-          return null;
-        },
-        isDone: (obj) => obj?.done === true,
-      }
-    );
+  async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
+    return parseNDJSONStream(res, (obj) => obj?.message?.content || null, onToken, {
+      logTag: 'Ollama',
+      extractError: (obj) => {
+        if (obj?.error) {
+          return typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error);
+        }
+        return null;
+      },
+      isDone: (obj) => obj?.done === true,
+    });
   },
 
   extractContentFromResponse(data: any): string {

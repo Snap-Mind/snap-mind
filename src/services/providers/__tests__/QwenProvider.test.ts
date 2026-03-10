@@ -43,9 +43,7 @@ describe('QwenProvider', () => {
     });
 
     it('should handle host with compatible-mode/v1 already', () => {
-      const url = buildChatUrl(
-        'https://dashscope.aliyuncs.com/compatible-mode/v1'
-      );
+      const url = buildChatUrl('https://dashscope.aliyuncs.com/compatible-mode/v1');
       expect(url).toBe('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions');
     });
 
@@ -55,9 +53,7 @@ describe('QwenProvider', () => {
     });
 
     it('should handle host with nested path and compatible-mode', () => {
-      const url = buildChatUrl(
-        'https://api.example.com/qwen/compatible-mode/v1'
-      );
+      const url = buildChatUrl('https://api.example.com/qwen/compatible-mode/v1');
       expect(url).toBe('https://api.example.com/qwen/compatible-mode/v1/chat/completions');
     });
 

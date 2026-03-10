@@ -90,11 +90,7 @@ export interface RequestBuilder {
   buildChatHeaders(config: BaseProviderConfig): Record<string, string>;
 
   /** Build the request body for chat completions. */
-  buildChatBody(
-    messages: Message[],
-    options: ProviderOptions,
-    config: BaseProviderConfig
-  ): any;
+  buildChatBody(messages: Message[], options: ProviderOptions, config: BaseProviderConfig): any;
 
   /**
    * Build the request for listing available models.

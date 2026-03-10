@@ -31,10 +31,7 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
   } = opts;
 
   return {
-    async parseStreamResponse(
-      res: Response,
-      onToken?: (token: string) => void
-    ): Promise<string> {
+    async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
       return parseSSEStream(
         res,
         (data) => data.choices?.[0]?.delta?.content || null,

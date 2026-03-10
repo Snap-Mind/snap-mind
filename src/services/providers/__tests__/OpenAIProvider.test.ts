@@ -11,7 +11,8 @@ import {
 } from '../../../../test/utils/mockFetch';
 
 // URL helpers (previously private methods on the wrapper class)
-const buildChatCompletionsUrl = (host: string) => deriveV1ApiBase(host, 'OpenAI') + '/chat/completions';
+const buildChatCompletionsUrl = (host: string) =>
+  deriveV1ApiBase(host, 'OpenAI') + '/chat/completions';
 const buildModelsUrl = (host: string) => deriveV1ApiBase(host, 'OpenAI') + '/models';
 
 describe('OpenAIProvider', () => {
@@ -48,9 +49,7 @@ describe('OpenAIProvider', () => {
     });
 
     it('should handle host with full path already', () => {
-      const url = buildChatCompletionsUrl(
-        'https://api.openai.com/v1/chat/completions'
-      );
+      const url = buildChatCompletionsUrl('https://api.openai.com/v1/chat/completions');
       expect(url).toBe('https://api.openai.com/v1/chat/completions');
     });
 
@@ -65,9 +64,7 @@ describe('OpenAIProvider', () => {
     });
 
     it('should handle complex nested paths', () => {
-      const url = buildChatCompletionsUrl(
-        'https://api.company.com/services/openai/v1'
-      );
+      const url = buildChatCompletionsUrl('https://api.company.com/services/openai/v1');
       expect(url).toBe('https://api.company.com/services/openai/v1/chat/completions');
     });
 

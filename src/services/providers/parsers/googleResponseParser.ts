@@ -8,10 +8,7 @@ import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
 
 export const googleResponseParser: ResponseParser = {
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
+  async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
     return parseSSEStream(
       res,
       (data) => data.candidates?.[0]?.content?.parts?.[0]?.text || null,
