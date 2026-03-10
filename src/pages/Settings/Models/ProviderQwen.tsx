@@ -39,7 +39,7 @@ function ProviderQwen({ settings, onSettingsChange }: ProviderQwenProps) {
         <Input
           label="Host"
           labelPlacement="outside"
-          placeholder="e.g. https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+          placeholder="e.g. https://dashscope.aliyuncs.com/compatible-mode/v1"
           value={localSetting.host ?? ''}
           type="url"
           onValueChange={handleHostChange}

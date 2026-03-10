@@ -19,7 +19,7 @@ function ProviderAzureOpenAI({ settings, onSettingsChange }: ProviderAzureOpenAI
         <Input
           label="Host"
           labelPlacement="outside"
-          placeholder="e.g. http://openai.com/chat/completion"
+          placeholder="e.g. https://{your-resource-name}.openai.azure.com"
           defaultValue={settings.host ? settings.host : ''}
           type="url"
           onValueChange={(value) => onSettingsChange(['providers', 1, 'host'], value)}

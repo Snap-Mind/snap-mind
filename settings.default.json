@@ -47,8 +47,8 @@
       "name": "Azure OpenAI",
       "apiKey": "",
       "apiVersion": "",
-      "host": "https://your-resource.openai.azure.com",
-      "description": "For Azure OpenAI, you can provide either a base endpoint (e.g., https://your-resource.openai.azure.com) or a complete endpoint URL (e.g., https://your-resource.openai.azure.com/openai/deployments/your-deployment-name/chat/completions?api-version=2023-05-15)",
+      "host": "https://{your-resource-name}.openai.azure.com",
+      "description": "For Azure OpenAI, you can provide either a base endpoint (e.g., https://{your-resource-name}.openai.azure.com)",
       "models": [
         {
           "id": "gpt-4o",
@@ -63,7 +63,7 @@
       "id": "anthropic",
       "name": "Anthropic",
       "apiKey": "",
-      "host": "https://api.anthropic.com/v1/messages",
+      "host": "https://api.anthropic.com",
       "models": [
         {
           "id": "claude-3-opus-20240229",
@@ -117,7 +117,7 @@
       "id": "deepseek",
       "name": "DeepSeek",
       "apiKey": "",
-      "host": "https://api.deepseek.com/chat/completions",
+      "host": "https://api.deepseek.com",
       "models": [
         {
           "id": "deepseek-chat",
@@ -139,7 +139,7 @@
       "id": "qwen",
       "name": "Qwen",
       "apiKey": "",
-      "host": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "host": "https://dashscope.aliyuncs.com/compatible-mode/v1",
       "models": [
         {
           "id": "qwen-plus",
