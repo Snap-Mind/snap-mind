@@ -34,7 +34,6 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
     async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
       // Track whether we're inside a reasoning block
       let inReasoning = false;
-      let reasoningClosed = false;
 
       return parseSSEStream(
         res,
@@ -54,9 +53,8 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
           }
 
           if (content) {
-            if (inReasoning && !reasoningClosed) {
+            if (inReasoning) {
               inReasoning = false;
-              reasoningClosed = true;
               token += '\n</think>\n\n';
             }
             token += content;

@@ -211,6 +211,31 @@ describe('OpenAIProvider', () => {
       expect(result).toBe('<think>\nInternal reasoning.\n</think>\n\nThe response.');
     });
 
+    it('should handle multiple reasoning-to-content transitions in streaming', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"reasoning_content":"First thought."}}]}\n',
+          'data: {"choices":[{"delta":{"content":"First answer."}}]}\n',
+          'data: {"choices":[{"delta":{"reasoning_content":"Second thought."}}]}\n',
+          'data: {"choices":[{"delta":{"content":"Second answer."}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gpt-4', stream: true },
+        onToken
+      );
+
+      expect(result).toBe(
+        '<think>\nFirst thought.\n</think>\n\nFirst answer.<think>\nSecond thought.\n</think>\n\nSecond answer.'
+      );
+    });
+
     it('should handle streaming without reasoning_content', async () => {
       const tokens: string[] = [];
       const onToken = vi.fn((token: string) => tokens.push(token));

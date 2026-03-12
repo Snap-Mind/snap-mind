@@ -300,6 +300,42 @@ describe('GoogleProvider', () => {
       expect(result).toBe('<think>\nReasoning here.\n</think>\n\nFinal answer.');
     });
 
+    it('should handle multiple thought-to-content transitions in streaming', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockSSEResponse([
+          {
+            data: {
+              candidates: [{ content: { parts: [{ thought: true, text: 'First thought.' }] } }],
+            },
+          },
+          {
+            data: { candidates: [{ content: { parts: [{ text: 'First answer.' }] } }] },
+          },
+          {
+            data: {
+              candidates: [{ content: { parts: [{ thought: true, text: 'Second thought.' }] } }],
+            },
+          },
+          {
+            data: { candidates: [{ content: { parts: [{ text: 'Second answer.' }] } }] },
+          },
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gemini-pro', stream: true },
+        onToken
+      );
+
+      expect(result).toBe(
+        '<think>\nFirst thought.\n</think>\n\nFirst answer.<think>\nSecond thought.\n</think>\n\nSecond answer.'
+      );
+    });
+
     it('should handle streaming without thought parts', async () => {
       const tokens: string[] = [];
       const onToken = vi.fn((token: string) => tokens.push(token));

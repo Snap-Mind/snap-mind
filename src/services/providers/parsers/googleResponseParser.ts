@@ -11,7 +11,6 @@ export const googleResponseParser: ResponseParser = {
   async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
     // Track whether we're inside a thought block
     let inThought = false;
-    let thoughtClosed = false;
 
     return parseSSEStream(
       res,
@@ -30,9 +29,8 @@ export const googleResponseParser: ResponseParser = {
             token += part.text || '';
           } else if (part.text) {
             // Regular text part
-            if (inThought && !thoughtClosed) {
+            if (inThought) {
               inThought = false;
-              thoughtClosed = true;
               token += '\n</think>\n\n';
             }
             token += part.text;
