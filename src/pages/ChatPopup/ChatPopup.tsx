@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button, Select, SelectSection, SelectItem, Textarea, Switch, Tooltip } from '@heroui/react';
+import { Button, Select, SelectSection, SelectItem, Textarea } from '@heroui/react';
 
 import { useSettings } from '../../hooks/useSettings';
 
@@ -10,6 +10,7 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
+import ReasoningToggle from '@/components/ReasoningToggle';
 import { BaseProviderConfig, ProviderType } from '@/types/providers';
 
 interface ChatPopupProps {
@@ -288,22 +289,13 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 ref={inputRef}
               />
               <div className="basis-[200px] flex flex-row justify-end gap-2 items-center">
-                <Tooltip content={t('settings.chat.reasoning')} placement="top">
-                  <div className="flex items-center gap-1">
-                    <Switch
-                      size="sm"
-                      isSelected={reasoningEnabled}
-                      onValueChange={(checked) => {
-                        setReasoningEnabled(checked);
-                        setSettings(['chat', 'reasoningEnabled'], checked);
-                      }}
-                      aria-label={t('settings.chat.reasoning')}
-                    />
-                    <span className="text-xs text-default-500 whitespace-nowrap">
-                      <Icon icon="lightbulb" />
-                    </span>
-                  </div>
-                </Tooltip>
+                <ReasoningToggle
+                  isSelected={reasoningEnabled}
+                  onValueChange={(checked) => {
+                    setReasoningEnabled(checked);
+                    setSettings(['chat', 'reasoningEnabled'], checked);
+                  }}
+                />
                 <Select
                   className="flex-1 max-w-xs"
                   size="md"
