@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Slider } from '@heroui/react';
 import { Divider } from '@heroui/react';
 import BooleanInput from '../../components/BooleanInput';
@@ -12,6 +13,13 @@ interface SettingsChatProps {
 
 function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
   const { t } = useTranslation();
+  const [reasoningEnabled, setReasoningEnabled] = useState(settings.reasoningEnabled ?? false);
+
+  // Sync local state when settings change externally (e.g. from ChatPopup window)
+  useEffect(() => {
+    setReasoningEnabled(settings.reasoningEnabled ?? false);
+  }, [settings]); // It only works when deps is set to `settings. Set it to `settings.reasoningEnabled` will have sync between diff windows issue.
+
   return (
     <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
       <div className="header">
@@ -79,8 +87,11 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
           id="reasoning"
           label={t('settings.chat.reasoning')}
           description={t('settings.chat.reasoningDescription')}
-          defaultSelected={settings.reasoningEnabled}
-          onValueChange={(checked) => onSettingsChange(['chat', 'reasoningEnabled'], checked)}
+          isSelected={reasoningEnabled}
+          onValueChange={(checked) => {
+            setReasoningEnabled(checked);
+            onSettingsChange(['chat', 'reasoningEnabled'], checked);
+          }}
         />
       </div>
     </div>

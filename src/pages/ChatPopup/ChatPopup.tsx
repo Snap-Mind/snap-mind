@@ -31,6 +31,13 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastScrollTopRef = useRef<number>(0);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [reasoningEnabled, setReasoningEnabled] = useState(settings.chat.reasoningEnabled ?? false);
+
+  // Sync local state when settings change externally (e.g. from Settings page)
+  useEffect(() => {
+    setReasoningEnabled(settings.chat.reasoningEnabled ?? false);
+  }, [settings]); // It only works when deps is set to `settings. Set it to `settings.chat.reasoningEnabled` will have sync between diff windows issue.
+
   // Focus the input when ChatPopup mounts
   useEffect(() => {
     inputRef.current?.focus();
@@ -285,8 +292,11 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                   <div className="flex items-center gap-1">
                     <Switch
                       size="sm"
-                      isSelected={settings.chat.reasoningEnabled}
-                      onValueChange={(checked) => setSettings(['chat', 'reasoningEnabled'], checked)}
+                      isSelected={reasoningEnabled}
+                      onValueChange={(checked) => {
+                        setReasoningEnabled(checked);
+                        setSettings(['chat', 'reasoningEnabled'], checked);
+                      }}
                       aria-label={t('settings.chat.reasoning')}
                     />
                     <span className="text-xs text-default-500 whitespace-nowrap">
