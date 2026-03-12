@@ -4,6 +4,7 @@ import Icon from './Icon';
 interface ReasoningToggleProps {
   isSelected: boolean;
   onValueChange: (checked: boolean) => void;
+  'aria-label': string;
 }
 
 export default function ReasoningToggle(props: ReasoningToggleProps) {
@@ -14,7 +15,7 @@ export default function ReasoningToggle(props: ReasoningToggleProps) {
     <div className="flex flex-col gap-2">
       <Component {...getBaseProps()}>
         <VisuallyHidden>
-          <input {...getInputProps()} />
+          <input {...getInputProps()} aria-label={props['aria-label']} />
         </VisuallyHidden>
         <div
           {...getWrapperProps()}
