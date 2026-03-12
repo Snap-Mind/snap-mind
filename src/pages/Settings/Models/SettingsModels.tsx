@@ -90,6 +90,7 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
                   href={provider?.path ? provider.path : ''}
                   startContent={renderIcon(provider)}
                   onClick={() => setActiveProvider(provider)}
+                  textValue={provider.name}
                 >
                   {provider.name}
                 </ListboxItem>

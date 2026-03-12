@@ -188,7 +188,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
       .map((provider) => (
         <SelectSection key={provider.name} title={provider.name}>
           {provider.models.map((model) => (
-            <SelectItem key={buildModelKey(provider.id, model.id)} title={model.id}>
+            <SelectItem key={buildModelKey(provider.id, model.id)} textValue={model.id} title={model.id}>
               {model.id}
             </SelectItem>
           ))}
