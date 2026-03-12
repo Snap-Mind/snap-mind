@@ -104,7 +104,8 @@
   "chat": {
     "send": "发送",
     "sendMessage": "发送消息...",
-    "thinking": "思考过程"
+    "thinking": "思考过程",
+    "thought": "思考过程"
   },
   "common": {
     "brand": "SnapMind",

@@ -104,7 +104,8 @@
   "chat": {
     "send": "Send",
     "sendMessage": "Send a message...",
-    "thinking": "Thinking"
+    "thinking": "Thinking",
+    "thought": "Thought"
   },
   "common": {
     "brand": "SnapMind",
