@@ -79,7 +79,6 @@ describe('BooleanInput', () => {
             id="controlled-switch"
             label="Controlled Switch"
             isSelected={selected}
-            defaultSelected={false}
             onValueChange={setSelected}
           />
           <span>{selected ? 'ON' : 'OFF'}</span>
