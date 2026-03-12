@@ -106,8 +106,7 @@ describe('parseThinkingBlocks', () => {
     });
 
     it('handles many short interleaved blocks', () => {
-      const content =
-        '<think>a</think>1<think>b</think>2<think>c</think>3<think>d</think>4';
+      const content = '<think>a</think>1<think>b</think>2<think>c</think>3<think>d</think>4';
       const result = parseThinkingBlocks(content);
       expect(result.thinking).toBe('a\n\nb\n\nc\n\nd');
       expect(result.main).toBe('1234');
