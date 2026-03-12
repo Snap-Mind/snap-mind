@@ -78,6 +78,7 @@ function SettingsCategory({
               key={category.id}
               href={category.path}
               startContent={renderIcon(category.id)}
+              textValue={category.name}
             >
               <span
                 className={`block whitespace-nowrap overflow-hidden transition-all duration-200 ease-in-out ${isCollapsed ? 'max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
