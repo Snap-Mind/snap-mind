@@ -34,7 +34,7 @@ export function parseThinkingBlocks(content: string): ParsedChatMessage {
     isThinking = true;
   }
 
-  return { thinking: thinking.trim(), main: main.trim(), isThinking };
+  return { thinking: thinking.trim(), main: main, isThinking };
 }
 
 /**
