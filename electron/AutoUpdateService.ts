@@ -32,20 +32,28 @@ export default class AutoUpdateService {
     const { autoUpdater } = electronUpdater as any;
     this.updater = autoUpdater as AppUpdater;
 
-    this.updater.autoDownload = true;
     this.updater.allowPrerelease = this.options.allowPrerelease;
     // Enable update checks in development with dev-app-update.yml
     if (!app.isPackaged) {
+      // In dev mode the running app has Electron's default bundle ID
+      // (com.github.Electron) which differs from the packaged app's ID
+      // (com.snap-mind.app). Squirrel.Mac will fail to locate the update
+      // bundle after downloading because of this mismatch.
+      // Allow checking & notifying, but skip the actual download to avoid
+      // the "Could not locate update bundle" error.
+      this.updater.autoDownload = false;
       try {
         (this.updater as any).forceDevUpdateConfig = true;
         // When running from source, main is executed from dist-electron/main.js.
         // Use project root as CWD to locate dev-app-update.yml reliably.
         const devConfigPath = path.join(__rootdir, 'dev-app-update.yml');
         (this.updater as any).updateConfigPath = devConfigPath;
-        logService.info('[update] dev mode: forceDevUpdateConfig enabled, path =', devConfigPath);
+        logService.info('[update] dev mode: forceDevUpdateConfig enabled (autoDownload disabled), path =', devConfigPath);
       } catch (e) {
         logService.warn('[update] dev mode: failed to enable forceDevUpdateConfig', e);
       }
+    } else {
+      this.updater.autoDownload = true;
     }
     // Let electron-builder manage feed (via app-update.yml)
 
