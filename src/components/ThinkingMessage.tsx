@@ -24,17 +24,11 @@ export default function ThinkingMessage({ thinking, isThinking }: ThinkingMessag
     : `${t('chat.thought', 'Thought')}`;
 
   return (
-    <Accordion
-      className="mb-2 px-0"
-    >
+    <Accordion className="mb-2 px-0">
       <AccordionItem
         key="thinking"
         aria-label={title}
-        title={
-          <span className="text-sm font-medium text-default-500">
-            {title}
-          </span>
-        }
+        title={<span className="text-sm font-medium text-default-500">{title}</span>}
         indicator={
           <LuLightbulb
             className={isThinking ? 'text-warning animate-pulse' : 'text-default-400'}

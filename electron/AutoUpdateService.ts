@@ -48,7 +48,10 @@ export default class AutoUpdateService {
         // Use project root as CWD to locate dev-app-update.yml reliably.
         const devConfigPath = path.join(__rootdir, 'dev-app-update.yml');
         (this.updater as any).updateConfigPath = devConfigPath;
-        logService.info('[update] dev mode: forceDevUpdateConfig enabled (autoDownload disabled), path =', devConfigPath);
+        logService.info(
+          '[update] dev mode: forceDevUpdateConfig enabled (autoDownload disabled), path =',
+          devConfigPath
+        );
       } catch (e) {
         logService.warn('[update] dev mode: failed to enable forceDevUpdateConfig', e);
       }

@@ -177,10 +177,19 @@ describe('AnthropicProvider', () => {
       setupFetchMock(
         mockSSEResponse([
           { type: 'content_block_start', data: { content_block: { type: 'thinking' } } },
-          { type: 'content_block_delta', data: { delta: { type: 'thinking_delta', thinking: 'Let me think...' } } },
-          { type: 'content_block_delta', data: { delta: { type: 'thinking_delta', thinking: ' deeply.' } } },
+          {
+            type: 'content_block_delta',
+            data: { delta: { type: 'thinking_delta', thinking: 'Let me think...' } },
+          },
+          {
+            type: 'content_block_delta',
+            data: { delta: { type: 'thinking_delta', thinking: ' deeply.' } },
+          },
           { type: 'content_block_stop', data: {} },
-          { type: 'content_block_delta', data: { delta: { type: 'text_delta', text: 'The answer is 42.' } } },
+          {
+            type: 'content_block_delta',
+            data: { delta: { type: 'text_delta', text: 'The answer is 42.' } },
+          },
         ])
       );
 

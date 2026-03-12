@@ -259,7 +259,9 @@ describe('GoogleProvider', () => {
       setupFetchMock(
         mockSSEResponse([
           {
-            data: { candidates: [{ content: { parts: [{ thought: true, text: 'Let me think...' }] } }] },
+            data: {
+              candidates: [{ content: { parts: [{ thought: true, text: 'Let me think...' }] } }],
+            },
           },
           {
             data: { candidates: [{ content: { parts: [{ text: 'The answer.' }] } }] },
@@ -282,10 +284,7 @@ describe('GoogleProvider', () => {
           candidates: [
             {
               content: {
-                parts: [
-                  { thought: true, text: 'Reasoning here.' },
-                  { text: 'Final answer.' },
-                ],
+                parts: [{ thought: true, text: 'Reasoning here.' }, { text: 'Final answer.' }],
               },
             },
           ],

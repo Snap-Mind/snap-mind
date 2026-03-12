@@ -8,10 +8,7 @@ import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
 
 export const googleResponseParser: ResponseParser = {
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
+  async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
     // Track whether we're inside a thought block
     let inThought = false;
     let thoughtClosed = false;

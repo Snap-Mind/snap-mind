@@ -9,10 +9,7 @@ import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
 
 export const anthropicResponseParser: ResponseParser = {
-  async parseStreamResponse(
-    res: Response,
-    onToken?: (token: string) => void
-  ): Promise<string> {
+  async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
     // Track whether we're inside a thinking block
     let inThinking = false;
 

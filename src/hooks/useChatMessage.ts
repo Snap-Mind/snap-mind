@@ -40,7 +40,8 @@ function parseThinkingBlocks(content: string): ParsedChatMessage {
  */
 export function useChatMessage(content: string, isUser: boolean): ParsedChatMessage {
   return useMemo(
-    () => (isUser ? { thinking: '', main: content, isThinking: false } : parseThinkingBlocks(content)),
+    () =>
+      isUser ? { thinking: '', main: content, isThinking: false } : parseThinkingBlocks(content),
     [content, isUser]
   );
 }

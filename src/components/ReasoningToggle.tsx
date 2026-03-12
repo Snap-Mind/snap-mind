@@ -7,7 +7,7 @@ interface ReasoningToggleProps {
 }
 
 export default function ReasoningToggle(props: ReasoningToggleProps) {
-   const {Component, slots, isSelected, getBaseProps, getInputProps, getWrapperProps} =
+  const { Component, slots, isSelected, getBaseProps, getInputProps, getWrapperProps } =
     useSwitch(props);
 
   return (
@@ -20,13 +20,13 @@ export default function ReasoningToggle(props: ReasoningToggleProps) {
           {...getWrapperProps()}
           className={slots.wrapper({
             class: [
-              "w-8 h-8",
-              "flex items-center justify-center",
-              "rounded-lg bg-default-100 hover:bg-default-200",
+              'w-8 h-8',
+              'flex items-center justify-center',
+              'rounded-lg bg-default-100 hover:bg-default-200',
             ],
           })}
         >
-          {isSelected ? <Icon icon='lightbulb' /> : <Icon icon='lightbulb-off' />}
+          {isSelected ? <Icon icon="lightbulb" /> : <Icon icon="lightbulb-off" />}
         </div>
       </Component>
     </div>

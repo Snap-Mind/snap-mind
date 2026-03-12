@@ -188,7 +188,11 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
       .map((provider) => (
         <SelectSection key={provider.name} title={provider.name}>
           {provider.models.map((model) => (
-            <SelectItem key={buildModelKey(provider.id, model.id)} textValue={model.id} title={model.id}>
+            <SelectItem
+              key={buildModelKey(provider.id, model.id)}
+              textValue={model.id}
+              title={model.id}
+            >
               {model.id}
             </SelectItem>
           ))}
@@ -276,9 +280,9 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               <Textarea
                 className="flex-1"
                 classNames={{
-                  inputWrapper: 'bg-default-100 shadow-none data-[hover=true]:bg-default-100'
+                  inputWrapper: 'bg-default-100 shadow-none data-[hover=true]:bg-default-100',
                 }}
-                variant='flat'
+                variant="flat"
                 aria-label="Message input"
                 placeholder={t('chat.sendMessage')}
                 value={input}
@@ -299,7 +303,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 <Select
                   className="flex-1 max-w-xs"
                   size="md"
-                  variant='bordered'
+                  variant="bordered"
                   placeholder="model"
                   aria-label="Select AI model"
                   selectionMode="single"
@@ -336,7 +340,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                     disabled={loading || !input.trim()}
                     aria-label="Send message"
                   >
-                    <Icon icon='arrow-up'></Icon>
+                    <Icon icon="arrow-up"></Icon>
                   </Button>
                 )}
               </div>

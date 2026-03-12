@@ -31,10 +31,7 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
   } = opts;
 
   return {
-    async parseStreamResponse(
-      res: Response,
-      onToken?: (token: string) => void
-    ): Promise<string> {
+    async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
       // Track whether we're inside a reasoning block
       let inReasoning = false;
       let reasoningClosed = false;
