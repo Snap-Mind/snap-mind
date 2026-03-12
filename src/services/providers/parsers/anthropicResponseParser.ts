@@ -15,7 +15,6 @@ export const anthropicResponseParser: ResponseParser = {
   ): Promise<string> {
     // Track whether we're inside a thinking block
     let inThinking = false;
-    let thinkingClosed = false;
 
     return parseSSEStream(
       res,
@@ -34,7 +33,6 @@ export const anthropicResponseParser: ResponseParser = {
         // Handle thinking block stop
         if (data.type === 'content_block_stop' && inThinking) {
           inThinking = false;
-          thinkingClosed = true;
           token += '\n</think>\n\n';
           return token;
         }

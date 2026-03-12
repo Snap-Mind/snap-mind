@@ -255,6 +255,76 @@ describe('GoogleProvider', () => {
       expect(body.generationConfig.topK).toBe(40); // from config
     });
 
+    it('should handle streaming response with thought parts', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockSSEResponse([
+          {
+            data: { candidates: [{ content: { parts: [{ thought: true, text: 'Let me think...' }] } }] },
+          },
+          {
+            data: { candidates: [{ content: { parts: [{ text: 'The answer.' }] } }] },
+          },
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gemini-pro', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('<think>\nLet me think...\n</think>\n\nThe answer.');
+    });
+
+    it('should handle non-streaming response with thought parts', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  { thought: true, text: 'Reasoning here.' },
+                  { text: 'Final answer.' },
+                ],
+              },
+            },
+          ],
+        })
+      );
+
+      const result = await provider.sendMessage(messages, {
+        model: 'gemini-pro',
+        stream: false,
+      });
+
+      expect(result).toBe('<think>\nReasoning here.\n</think>\n\nFinal answer.');
+    });
+
+    it('should handle streaming without thought parts', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockSSEResponse([
+          {
+            data: { candidates: [{ content: { parts: [{ text: 'Just text.' }] } }] },
+          },
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gemini-pro', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('Just text.');
+      expect(result).not.toContain('<think>');
+    });
+
     it('should handle API errors', async () => {
       setupFetchMock(mockFetchResponse({ error: 'Invalid API key' }, { ok: false, status: 401 }));
 

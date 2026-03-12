@@ -169,6 +169,71 @@ describe('AnthropicProvider', () => {
       expect(tokens).toEqual(['One', ', ', 'two', ', ', 'three']);
     });
 
+    it('should handle streaming response with thinking blocks', async () => {
+      const messages: Message[] = [{ role: 'user', content: 'Think about this' }];
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockSSEResponse([
+          { type: 'content_block_start', data: { content_block: { type: 'thinking' } } },
+          { type: 'content_block_delta', data: { delta: { type: 'thinking_delta', thinking: 'Let me think...' } } },
+          { type: 'content_block_delta', data: { delta: { type: 'thinking_delta', thinking: ' deeply.' } } },
+          { type: 'content_block_stop', data: {} },
+          { type: 'content_block_delta', data: { delta: { type: 'text_delta', text: 'The answer is 42.' } } },
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'claude-3-opus-20240229', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('<think>\nLet me think... deeply.\n</think>\n\nThe answer is 42.');
+    });
+
+    it('should handle non-streaming response with thinking blocks', async () => {
+      const messages: Message[] = [{ role: 'user', content: 'Think about this' }];
+
+      setupFetchMock(
+        mockFetchResponse({
+          content: [
+            { type: 'thinking', thinking: 'Let me reason carefully.' },
+            { type: 'text', text: 'The answer is 42.' },
+          ],
+        })
+      );
+
+      const result = await provider.sendMessage(messages, {
+        model: 'claude-3-opus-20240229',
+        stream: false,
+      });
+
+      expect(result).toBe('<think>\nLet me reason carefully.\n</think>\n\nThe answer is 42.');
+    });
+
+    it('should handle streaming response without thinking blocks', async () => {
+      const messages: Message[] = [{ role: 'user', content: 'Hello' }];
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockSSEResponse([
+          { type: 'content_block_delta', data: { delta: { type: 'text_delta', text: 'Hello!' } } },
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'claude-3-opus-20240229', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('Hello!');
+      expect(result).not.toContain('<think>');
+    });
+
     it('should handle API errors', async () => {
       const messages: Message[] = [{ role: 'user', content: 'Hello' }];
 
