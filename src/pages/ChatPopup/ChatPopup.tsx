@@ -37,7 +37,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   // Sync local state when settings change externally (e.g. from Settings page)
   useEffect(() => {
     setReasoningEnabled(settings.chat.reasoningEnabled ?? false);
-  }, [settings]); // It only works when deps is set to `settings. Set it to `settings.chat.reasoningEnabled` will have settings not sync between diff windows issue.
+  }, [settings]); // Note: using `settings` (not `settings.chat.reasoningEnabled`) as the dependency keeps settings in sync across different windows.
 
   // Focus the input when ChatPopup mounts
   useEffect(() => {

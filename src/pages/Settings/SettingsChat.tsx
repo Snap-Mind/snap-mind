@@ -18,7 +18,7 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
   // Sync local state when settings change externally (e.g. from ChatPopup window)
   useEffect(() => {
     setReasoningEnabled(settings.reasoningEnabled ?? false);
-  }, [settings]); // It only works when deps is set to `settings. Set it to `settings.reasoningEnabled` will have settings not sync between diff windows issue.
+  }, [settings]); // Note: using `settings` (not `settings.reasoningEnabled`) as the dependency keeps settings in sync across different windows.
 
   return (
     <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
