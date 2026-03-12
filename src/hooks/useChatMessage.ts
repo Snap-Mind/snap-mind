@@ -9,16 +9,19 @@ export interface ParsedChatMessage {
 /** Split content into thinking blocks and main content. */
 function parseThinkingBlocks(content: string): ParsedChatMessage {
   const thinkRegex = /<think>\n?([\s\S]*?)\n?<\/think>\n*/g;
-  let thinking = '';
+  const thinkingParts: string[] = [];
   let lastIndex = 0;
   let main = '';
   let match: RegExpExecArray | null;
 
   while ((match = thinkRegex.exec(content)) !== null) {
     main += content.slice(lastIndex, match.index);
-    thinking += match[1];
+    if (match[1]) {
+      thinkingParts.push(match[1]);
+    }
     lastIndex = match.index + match[0].length;
   }
+  let thinking = thinkingParts.join('\n\n');
   main += content.slice(lastIndex);
 
   // Handle unclosed <think> block (streaming: </think> hasn't arrived yet)
