@@ -102,9 +102,9 @@ export class AIService {
       const reasoning = options?.reasoning ?? this.settings.chat.reasoningEnabled ?? false;
       const providerOptions = {
         model: modelSetting.id,
-        temperature: options?.temperature || DEFAULT_TEMPERATURE,
-        max_tokens: options?.maxTokens || DEFAULT_MAX_TOKENS,
-        top_p: options?.top_p || DEFAULT_TOP_P,
+        temperature: options?.temperature ?? DEFAULT_TEMPERATURE,
+        max_tokens: options?.maxTokens ?? DEFAULT_MAX_TOKENS,
+        top_p: options?.top_p ?? DEFAULT_TOP_P,
         stream: streamingEnabled,
         reasoning,
         ...this.settings.chat,
