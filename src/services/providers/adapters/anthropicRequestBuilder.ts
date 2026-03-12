@@ -12,6 +12,11 @@ import { deriveV1ApiBase } from '../core/urlResolvers';
 const ANTHROPIC_DEFAULT_ORIGIN = 'https://api.anthropic.com';
 const ANTHROPIC_API_VERSION = '2023-06-01';
 
+// Extended thinking budget constants (per Anthropic docs)
+const THINKING_BUDGET_RATIO = 0.8;
+const MIN_THINKING_BUDGET_TOKENS = 1024;
+const DEFAULT_MAX_TOKENS_FALLBACK = 2048;
+
 export const anthropicRequestBuilder: RequestBuilder = {
   providerName: 'Anthropic',
   requiresApiKey: true,
@@ -61,9 +66,22 @@ export const anthropicRequestBuilder: RequestBuilder = {
     if (options?.reasoning) {
       // Extended thinking: temperature must be 1, add thinking budget
       body.temperature = 1;
+
+      let budgetTokens: number;
+      const userMaxTokens =
+        typeof options?.max_tokens === 'number' ? options.max_tokens : undefined;
+
+      if (userMaxTokens && userMaxTokens > 0) {
+        const baseBudget = Math.floor(userMaxTokens * THINKING_BUDGET_RATIO);
+        budgetTokens = Math.min(userMaxTokens, Math.max(MIN_THINKING_BUDGET_TOKENS, baseBudget));
+      } else {
+        const baseBudget = Math.floor(DEFAULT_MAX_TOKENS_FALLBACK * THINKING_BUDGET_RATIO);
+        budgetTokens = Math.max(MIN_THINKING_BUDGET_TOKENS, baseBudget);
+      }
+
       body.thinking = {
         type: 'enabled',
-        budget_tokens: Math.max(1024, Math.floor((options?.max_tokens || 2048) * 0.8)),
+        budget_tokens: budgetTokens,
       };
     } else {
       body.temperature = options?.temperature;

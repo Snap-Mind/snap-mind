@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UnifiedProvider } from '../UnifiedProvider';
 import { adapterMap } from '../ProviderFactory';
+import { anthropicRequestBuilder } from '../adapters/anthropicRequestBuilder';
 import { deriveV1ApiBase } from '../core/urlResolvers';
-import { AnthropicConfig } from '@/types/providers';
+import { AnthropicConfig, ProviderOptions } from '@/types/providers';
 import { Message } from '@/types/chat';
 import {
   mockFetchResponse,
@@ -426,6 +427,98 @@ describe('AnthropicProvider', () => {
       await provider.initialize(newConfig);
 
       expect(provider.config).toEqual(newConfig);
+    });
+  });
+
+  describe('buildChatBody — thinking budget calculation', () => {
+    const baseMessages: Message[] = [{ role: 'user', content: 'Hello' }];
+    const baseConfig: AnthropicConfig = {
+      id: 'anthropic' as any,
+      name: 'Anthropic',
+      apiKey: 'test-api-key',
+      host: 'https://api.anthropic.com',
+      models: [],
+    };
+
+    const buildBody = (options: ProviderOptions) =>
+      anthropicRequestBuilder.buildChatBody(baseMessages, options, baseConfig);
+
+    it('should allocate ~80% of max_tokens as budget_tokens when reasoning is enabled', () => {
+      const body = buildBody({
+        model: 'claude-3-opus',
+        reasoning: true,
+        max_tokens: 5000,
+      });
+
+      expect(body.thinking.type).toBe('enabled');
+      expect(body.thinking.budget_tokens).toBe(4000); // floor(5000 * 0.8)
+      expect(body.temperature).toBe(1);
+    });
+
+    it('should clamp budget_tokens to max_tokens when max_tokens < MIN_THINKING_BUDGET_TOKENS', () => {
+      const body = buildBody({
+        model: 'claude-3-opus',
+        reasoning: true,
+        max_tokens: 500,
+      });
+
+      // floor(500 * 0.8) = 400, max(1024, 400) = 1024, min(500, 1024) = 500
+      expect(body.thinking.budget_tokens).toBe(500);
+      expect(body.thinking.budget_tokens).toBeLessThanOrEqual(500);
+    });
+
+    it('should clamp budget_tokens to max_tokens when max_tokens is very small', () => {
+      const body = buildBody({
+        model: 'claude-3-opus',
+        reasoning: true,
+        max_tokens: 1,
+      });
+
+      // floor(1 * 0.8) = 0, max(1024, 0) = 1024, min(1, 1024) = 1
+      expect(body.thinking.budget_tokens).toBe(1);
+    });
+
+    it('should use MIN_THINKING_BUDGET_TOKENS when 80% is below minimum', () => {
+      const body = buildBody({
+        model: 'claude-3-opus',
+        reasoning: true,
+        max_tokens: 1200,
+      });
+
+      // floor(1200 * 0.8) = 960, max(1024, 960) = 1024, min(1200, 1024) = 1024
+      expect(body.thinking.budget_tokens).toBe(1024);
+    });
+
+    it('should use default fallback when max_tokens is undefined', () => {
+      const body = buildBody({
+        model: 'claude-3-opus',
+        reasoning: true,
+      });
+
+      // DEFAULT_MAX_TOKENS_FALLBACK = 2048, floor(2048 * 0.8) = 1638, max(1024, 1638) = 1638
+      expect(body.thinking.budget_tokens).toBe(1638);
+    });
+
+    it('should use default fallback when max_tokens is 0', () => {
+      const body = buildBody({
+        model: 'claude-3-opus',
+        reasoning: true,
+        max_tokens: 0,
+      });
+
+      expect(body.thinking.budget_tokens).toBe(1638);
+    });
+
+    it('should not include thinking config when reasoning is disabled', () => {
+      const body = buildBody({
+        model: 'claude-3-opus',
+        reasoning: false,
+        max_tokens: 5000,
+        temperature: 0.7,
+      });
+
+      expect(body.thinking).toBeUndefined();
+      expect(body.temperature).toBe(0.7);
     });
   });
 });
