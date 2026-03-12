@@ -167,6 +167,33 @@ describe('OpenAIProvider', () => {
       expect(body.max_tokens).toBe(1000);
     });
 
+    it('should use max_completion_tokens and reasoning_effort when reasoning is enabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [{ message: { content: 'Reasoning response' } }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'o4-mini',
+        stream: false,
+        reasoning: true,
+        max_tokens: 4096,
+        temperature: 0.7,
+        top_p: 0.9,
+      });
+
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body);
+
+      expect(body.model).toBe('o4-mini');
+      expect(body.max_completion_tokens).toBe(4096);
+      expect(body.reasoning_effort).toBe('medium');
+      expect(body.max_tokens).toBeUndefined();
+      expect(body.temperature).toBeUndefined();
+      expect(body.top_p).toBeUndefined();
+    });
+
     it('should handle streaming response with reasoning_content', async () => {
       const tokens: string[] = [];
       const onToken = vi.fn((token: string) => tokens.push(token));

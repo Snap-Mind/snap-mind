@@ -298,6 +298,45 @@ describe('AnthropicProvider', () => {
       const fetchCall = (global.fetch as any).mock.calls[0];
       expect(fetchCall[1].signal).toBe(abortController.signal);
     });
+
+    it('should include Anthropic-Beta header when reasoning is enabled', async () => {
+      const messages: Message[] = [{ role: 'user', content: 'Think about this' }];
+
+      setupFetchMock(
+        mockFetchResponse({
+          content: [{ type: 'text', text: 'Response' }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'claude-sonnet-4-20250514',
+        stream: false,
+        reasoning: true,
+        max_tokens: 4096,
+      });
+
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      expect(fetchCall[1].headers['Anthropic-Beta']).toBe('interleaved-thinking-2025-05-14');
+    });
+
+    it('should not include Anthropic-Beta header when reasoning is disabled', async () => {
+      const messages: Message[] = [{ role: 'user', content: 'Hello' }];
+
+      setupFetchMock(
+        mockFetchResponse({
+          content: [{ text: 'Response' }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'claude-sonnet-4-20250514',
+        stream: false,
+        reasoning: false,
+      });
+
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      expect(fetchCall[1].headers['Anthropic-Beta']).toBeUndefined();
+    });
   });
 
   describe('listModels', () => {
