@@ -70,7 +70,9 @@
       "temperature": "Temperature",
       "topP": "Top P",
       "streaming": "Response Streaming",
-      "streamingDescription": "Show responses as they are being generated"
+      "streamingDescription": "Show responses as they are being generated",
+      "reasoning": "Reasoning",
+      "reasoningDescription": "Enable extended thinking / reasoning mode for supported models"
     },
     "hotkeys": {
       "title": "Hotkeys",
@@ -101,7 +103,9 @@
   },
   "chat": {
     "send": "Send",
-    "sendMessage": "Send a message..."
+    "sendMessage": "Send a message...",
+    "thinking": "Thinking",
+    "thought": "Thought"
   },
   "common": {
     "brand": "SnapMind",

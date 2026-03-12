@@ -8,6 +8,7 @@ export interface ProviderOptions {
   temperature?: number;
   top_p?: number;
   signal?: AbortSignal;
+  reasoning?: boolean;
 }
 
 export interface BaseProviderConfig {
@@ -87,7 +88,7 @@ export interface RequestBuilder {
   buildChatUrl(config: BaseProviderConfig, options?: ProviderOptions): string;
 
   /** Build HTTP headers for chat requests. */
-  buildChatHeaders(config: BaseProviderConfig): Record<string, string>;
+  buildChatHeaders(config: BaseProviderConfig, options?: ProviderOptions): Record<string, string>;
 
   /** Build the request body for chat completions. */
   buildChatBody(messages: Message[], options: ProviderOptions, config: BaseProviderConfig): any;

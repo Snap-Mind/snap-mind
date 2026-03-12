@@ -67,14 +67,23 @@ export const googleRequestBuilder: RequestBuilder = {
       googleMessages.push({ role: 'user', parts: [{ text: systemPrompt }] });
     }
 
+    const generationConfig: any = {
+      temperature: options?.temperature,
+      maxOutputTokens: options?.max_tokens,
+      topP: options?.top_p,
+      topK: topK,
+    };
+
+    // Gemini thinking mode: add thinkingConfig
+    if (options?.reasoning) {
+      generationConfig.thinkingConfig = {
+        thinkingBudget: Math.max(1024, Math.floor((options?.max_tokens || 2048) * 0.8)),
+      };
+    }
+
     return {
       contents: googleMessages,
-      generationConfig: {
-        temperature: options?.temperature,
-        maxOutputTokens: options?.max_tokens,
-        topP: options?.top_p,
-        topK: topK,
-      },
+      generationConfig,
     };
   },
 

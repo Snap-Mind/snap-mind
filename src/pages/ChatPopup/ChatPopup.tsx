@@ -10,6 +10,7 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
+import ReasoningToggle from '@/components/ReasoningToggle';
 import { BaseProviderConfig, ProviderType } from '@/types/providers';
 
 interface ChatPopupProps {
@@ -31,6 +32,13 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastScrollTopRef = useRef<number>(0);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [reasoningEnabled, setReasoningEnabled] = useState(settings.chat.reasoningEnabled ?? false);
+
+  // Sync local state when settings change externally (e.g. from Settings page)
+  useEffect(() => {
+    setReasoningEnabled(settings.chat.reasoningEnabled ?? false);
+  }, [settings]); // It only works when deps is set to `settings. Set it to `settings.chat.reasoningEnabled` will have sync between diff windows issue.
+
   // Focus the input when ChatPopup mounts
   useEffect(() => {
     inputRef.current?.focus();
@@ -280,7 +288,14 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 onKeyDown={handleKeyDown}
                 ref={inputRef}
               />
-              <div className="basis-[200px] flex flex-row justify-end gap-2">
+              <div className="basis-[200px] flex flex-row justify-end gap-2 items-center">
+                <ReasoningToggle
+                  isSelected={reasoningEnabled}
+                  onValueChange={(checked) => {
+                    setReasoningEnabled(checked);
+                    setSettings(['chat', 'reasoningEnabled'], checked);
+                  }}
+                />
                 <Select
                   className="flex-1 max-w-xs"
                   size="md"

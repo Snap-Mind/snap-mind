@@ -167,6 +167,71 @@ describe('OpenAIProvider', () => {
       expect(body.max_tokens).toBe(1000);
     });
 
+    it('should handle streaming response with reasoning_content', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"reasoning_content":"Let me reason..."}}]}\n',
+          'data: {"choices":[{"delta":{"reasoning_content":" step by step."}}]}\n',
+          'data: {"choices":[{"delta":{"content":"The answer is 42."}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gpt-4', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('<think>\nLet me reason... step by step.\n</think>\n\nThe answer is 42.');
+    });
+
+    it('should handle non-streaming response with reasoning_content', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [
+            {
+              message: {
+                reasoning_content: 'Internal reasoning.',
+                content: 'The response.',
+              },
+            },
+          ],
+        })
+      );
+
+      const result = await provider.sendMessage(messages, {
+        model: 'gpt-4',
+        stream: false,
+      });
+
+      expect(result).toBe('<think>\nInternal reasoning.\n</think>\n\nThe response.');
+    });
+
+    it('should handle streaming without reasoning_content', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"content":"Just text."}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gpt-4', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('Just text.');
+      expect(result).not.toContain('<think>');
+    });
+
     it('should handle API errors', async () => {
       setupFetchMock(mockFetchResponse({ error: 'Unauthorized' }, { ok: false, status: 401 }));
 

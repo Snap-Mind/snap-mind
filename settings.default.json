@@ -16,6 +16,7 @@
     "max_tokens": 2048,
     "top_p": 0.95,
     "streamingEnabled": true,
+    "reasoningEnabled": false,
     "defaultModel": null,
     "defaultProvider": null
   },
