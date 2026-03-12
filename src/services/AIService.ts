@@ -82,6 +82,7 @@ export class AIService {
       modelSetting?: ModelSetting;
       providerSetting?: ProviderSetting;
       streamingEnabled?: boolean;
+      reasoning?: boolean;
       signal?: AbortSignal;
     }
   ): Promise<Message> {
@@ -98,12 +99,14 @@ export class AIService {
 
     try {
       // Prepare options for the provider
+      const reasoning = options?.reasoning ?? this.settings.chat.reasoningEnabled ?? false;
       const providerOptions = {
         model: modelSetting.id,
         temperature: options?.temperature || DEFAULT_TEMPERATURE,
         max_tokens: options?.maxTokens || DEFAULT_MAX_TOKENS,
         top_p: options?.top_p || DEFAULT_TOP_P,
         stream: streamingEnabled,
+        reasoning,
         ...this.settings.chat,
         ...options,
       };

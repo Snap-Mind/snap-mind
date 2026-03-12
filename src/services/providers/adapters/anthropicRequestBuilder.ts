@@ -21,12 +21,17 @@ export const anthropicRequestBuilder: RequestBuilder = {
     return `${base}/messages`;
   },
 
-  buildChatHeaders(config: BaseProviderConfig): Record<string, string> {
-    return {
+  buildChatHeaders(config: BaseProviderConfig, options?: ProviderOptions): Record<string, string> {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-API-Key': config.apiKey,
       'Anthropic-Version': ANTHROPIC_API_VERSION,
     };
+    // Extended thinking requires the beta header
+    if (options?.reasoning) {
+      headers['Anthropic-Beta'] = 'interleaved-thinking-2025-05-14';
+    }
+    return headers;
   },
 
   buildChatBody(messages: Message[], options: ProviderOptions): any {
@@ -45,15 +50,27 @@ export const anthropicRequestBuilder: RequestBuilder = {
       }
     }
 
-    return {
+    const body: any = {
       model: options?.model,
       messages: anthropicMessages,
       system: systemPrompt,
       max_tokens: options?.max_tokens,
       stream: options?.stream !== undefined ? options.stream : true,
-      temperature: options?.temperature,
-      top_p: options?.top_p,
     };
+
+    if (options?.reasoning) {
+      // Extended thinking: temperature must be 1, add thinking budget
+      body.temperature = 1;
+      body.thinking = {
+        type: 'enabled',
+        budget_tokens: Math.max(1024, Math.floor((options?.max_tokens || 2048) * 0.8)),
+      };
+    } else {
+      body.temperature = options?.temperature;
+      body.top_p = options?.top_p;
+    }
+
+    return body;
   },
 
   buildListModelsRequest(config: BaseProviderConfig) {

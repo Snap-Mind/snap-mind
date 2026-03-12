@@ -12,16 +12,62 @@ export const googleResponseParser: ResponseParser = {
     res: Response,
     onToken?: (token: string) => void
   ): Promise<string> {
+    // Track whether we're inside a thought block
+    let inThought = false;
+    let thoughtClosed = false;
+
     return parseSSEStream(
       res,
-      (data) => data.candidates?.[0]?.content?.parts?.[0]?.text || null,
+      (data) => {
+        const parts = data.candidates?.[0]?.content?.parts;
+        if (!Array.isArray(parts)) return null;
+
+        let token = '';
+        for (const part of parts) {
+          if (part.thought) {
+            // This is a thinking/thought part
+            if (!inThought) {
+              inThought = true;
+              token += '<think>\n';
+            }
+            token += part.text || '';
+          } else if (part.text) {
+            // Regular text part
+            if (inThought && !thoughtClosed) {
+              inThought = false;
+              thoughtClosed = true;
+              token += '\n</think>\n\n';
+            }
+            token += part.text;
+          }
+        }
+
+        return token || null;
+      },
       onToken,
       'Google'
     );
   },
 
   extractContentFromResponse(data: any): string {
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const parts = data.candidates?.[0]?.content?.parts;
+    if (!Array.isArray(parts)) return '';
+
+    let thinking = '';
+    let text = '';
+
+    for (const part of parts) {
+      if (part.thought) {
+        thinking += part.text || '';
+      } else {
+        text += part.text || '';
+      }
+    }
+
+    if (thinking) {
+      return `<think>\n${thinking}\n</think>\n\n${text}`;
+    }
+    return text || data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   },
 
   parseModelsResponse(data: any): ModelSetting[] {

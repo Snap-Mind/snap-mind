@@ -44,6 +44,15 @@ export const azureRequestBuilder: RequestBuilder = {
 
   buildChatBody(messages: Message[], options: ProviderOptions): any {
     // Azure OpenAI: model is NOT in the body (it's in the URL)
+    if (options.reasoning) {
+      // Reasoning models: use max_completion_tokens, drop temperature/top_p
+      return {
+        messages,
+        max_completion_tokens: options.max_tokens,
+        stream: options.stream !== undefined ? options.stream : true,
+      };
+    }
+
     return {
       messages,
       max_tokens: options.max_tokens,

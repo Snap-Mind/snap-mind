@@ -74,6 +74,14 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
           defaultSelected={settings.streamingEnabled}
           onValueChange={(checked) => onSettingsChange(['chat', 'streamingEnabled'], checked)}
         />
+
+        <BooleanInput
+          id="reasoning"
+          label={t('settings.chat.reasoning')}
+          description={t('settings.chat.reasoningDescription')}
+          defaultSelected={settings.reasoningEnabled}
+          onValueChange={(checked) => onSettingsChange(['chat', 'reasoningEnabled'], checked)}
+        />
       </div>
     </div>
   );
