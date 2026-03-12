@@ -7,7 +7,7 @@ export interface ParsedChatMessage {
 }
 
 /** Split content into thinking blocks and main content. */
-function parseThinkingBlocks(content: string): ParsedChatMessage {
+export function parseThinkingBlocks(content: string): ParsedChatMessage {
   const thinkRegex = /<think>\n?([\s\S]*?)\n?<\/think>\n*/g;
   const thinkingParts: string[] = [];
   let lastIndex = 0;
@@ -29,7 +29,7 @@ function parseThinkingBlocks(content: string): ParsedChatMessage {
   const unclosedIdx = main.indexOf('<think>');
   if (unclosedIdx !== -1) {
     const afterTag = main.slice(unclosedIdx + '<think>'.length).replace(/^\n/, '');
-    thinking += afterTag;
+    thinking += (thinking && afterTag ? '\n\n' : '') + afterTag;
     main = main.slice(0, unclosedIdx);
     isThinking = true;
   }
