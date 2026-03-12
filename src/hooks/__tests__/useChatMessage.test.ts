@@ -101,7 +101,7 @@ describe('parseThinkingBlocks', () => {
         '<think>step 3 still going';
       const result = parseThinkingBlocks(content);
       expect(result.thinking).toBe('step 1\n\nstep 2\n\nstep 3 still going');
-      expect(result.main).toBe('Point A.\nPoint B.');
+      expect(result.main).toBe('Point A.\nPoint B.\n');
       expect(result.isThinking).toBe(true);
     });
 
