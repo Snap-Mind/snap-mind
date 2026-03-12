@@ -70,7 +70,9 @@
       "temperature": "Temperature",
       "topP": "Top P",
       "streaming": "響應串流",
-      "streamingDescription": "即時顯示生成的回應"
+      "streamingDescription": "即時顯示生成的回應",
+      "reasoning": "推理模式",
+      "reasoningDescription": "為支援的模型啟用深度思考 / 推理模式"
     },
     "hotkeys": {
       "title": "快捷鍵",
@@ -101,7 +103,9 @@
   },
   "chat": {
     "send": "傳送",
-    "sendMessage": "傳送訊息..."
+    "sendMessage": "傳送訊息...",
+    "thinking": "思考過程",
+    "thought": "思考過程"
   },
   "common": {
     "brand": "SnapMind",

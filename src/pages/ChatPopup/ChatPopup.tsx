@@ -10,6 +10,7 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
+import ReasoningToggle from '@/components/ReasoningToggle';
 import { BaseProviderConfig, ProviderType } from '@/types/providers';
 
 interface ChatPopupProps {
@@ -31,6 +32,13 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastScrollTopRef = useRef<number>(0);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [reasoningEnabled, setReasoningEnabled] = useState(settings.chat.reasoningEnabled ?? false);
+
+  // Sync local state when settings change externally (e.g. from Settings page)
+  useEffect(() => {
+    setReasoningEnabled(settings.chat.reasoningEnabled ?? false);
+  }, [settings]); // Note: using `settings` (not `settings.chat.reasoningEnabled`) as the dependency keeps settings in sync across different windows.
+
   // Focus the input when ChatPopup mounts
   useEffect(() => {
     inputRef.current?.focus();
@@ -180,7 +188,11 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
       .map((provider) => (
         <SelectSection key={provider.name} title={provider.name}>
           {provider.models.map((model) => (
-            <SelectItem key={buildModelKey(provider.id, model.id)} title={model.id}>
+            <SelectItem
+              key={buildModelKey(provider.id, model.id)}
+              textValue={model.id}
+              title={model.id}
+            >
               {model.id}
             </SelectItem>
           ))}
@@ -264,9 +276,13 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               {loading && <ChatMessage message={{ role: 'assistant', content: '...' }} />}
               <div ref={chatEndRef} />
             </div>
-            <div className="flex items-end p-3 bg-background gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]">
+            <div className="grid grid-cols-1 grid-rows-[2fr_1fr] p-3 bg-default-100 gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]">
               <Textarea
                 className="flex-1"
+                classNames={{
+                  inputWrapper: 'bg-default-100 shadow-none data-[hover=true]:bg-default-100',
+                }}
+                variant="flat"
                 aria-label="Message input"
                 placeholder={t('chat.sendMessage')}
                 value={input}
@@ -276,10 +292,19 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 onKeyDown={handleKeyDown}
                 ref={inputRef}
               />
-              <div className="basis-[200px] flex flex-row items-center gap-2">
+              <div className="basis-[200px] flex flex-row justify-end gap-2 items-center">
+                <ReasoningToggle
+                  aria-label={t('settings.chat.reasoning')}
+                  isSelected={reasoningEnabled}
+                  onValueChange={(checked) => {
+                    setReasoningEnabled(checked);
+                    setSettings(['chat', 'reasoningEnabled'], checked);
+                  }}
+                />
                 <Select
                   className="flex-1 max-w-xs"
                   size="md"
+                  variant="bordered"
                   placeholder="model"
                   aria-label="Select AI model"
                   selectionMode="single"
@@ -297,6 +322,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
 
                 {loading ? (
                   <Button
+                    isIconOnly
                     color="danger"
                     onPress={() => {
                       if (abortControllerRef.current) {
@@ -309,12 +335,13 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                   </Button>
                 ) : (
                   <Button
+                    isIconOnly
                     color="primary"
                     onPress={handleSend}
                     disabled={loading || !input.trim()}
                     aria-label="Send message"
                   >
-                    {t('chat.send')}
+                    <Icon icon="arrow-up"></Icon>
                   </Button>
                 )}
               </div>

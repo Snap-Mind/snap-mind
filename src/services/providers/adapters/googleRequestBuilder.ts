@@ -19,6 +19,11 @@ interface GoogleMessage {
 
 const GOOGLE_DEFAULT_ORIGIN = 'https://generativelanguage.googleapis.com';
 
+// Thinking budget constants (per Google Gemini docs)
+const THINKING_BUDGET_RATIO = 0.8;
+const MIN_THINKING_BUDGET_TOKENS = 128;
+const DEFAULT_MAX_TOKENS_FALLBACK = 2048;
+
 export const googleRequestBuilder: RequestBuilder = {
   providerName: 'Google AI',
   requiresApiKey: true,
@@ -67,14 +72,34 @@ export const googleRequestBuilder: RequestBuilder = {
       googleMessages.push({ role: 'user', parts: [{ text: systemPrompt }] });
     }
 
+    const generationConfig: any = {
+      temperature: options?.temperature,
+      maxOutputTokens: options?.max_tokens,
+      topP: options?.top_p,
+      topK: topK,
+    };
+
+    // Gemini thinking mode: add thinkingConfig
+    if (options?.reasoning) {
+      const maxTokens = options?.max_tokens;
+      let thinkingBudget: number;
+
+      if (typeof maxTokens === 'number' && maxTokens > 0) {
+        const baseBudget = Math.floor(maxTokens * THINKING_BUDGET_RATIO);
+        thinkingBudget = Math.min(maxTokens, Math.max(MIN_THINKING_BUDGET_TOKENS, baseBudget));
+      } else {
+        const baseBudget = Math.floor(DEFAULT_MAX_TOKENS_FALLBACK * THINKING_BUDGET_RATIO);
+        thinkingBudget = Math.max(MIN_THINKING_BUDGET_TOKENS, baseBudget);
+      }
+
+      generationConfig.thinkingConfig = {
+        thinkingBudget,
+      };
+    }
+
     return {
       contents: googleMessages,
-      generationConfig: {
-        temperature: options?.temperature,
-        maxOutputTokens: options?.max_tokens,
-        topP: options?.top_p,
-        topK: topK,
-      },
+      generationConfig,
     };
   },
 

@@ -259,6 +259,31 @@ describe('AzureOpenAIProvider', () => {
       expect(body.max_tokens).toBe(1000);
     });
 
+    it('should use max_completion_tokens and drop temperature/top_p when reasoning is enabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [{ message: { content: 'Reasoning response' } }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'o4-mini',
+        stream: false,
+        reasoning: true,
+        max_tokens: 4096,
+        temperature: 0.7,
+        top_p: 0.9,
+      });
+
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body);
+
+      expect(body.max_completion_tokens).toBe(4096);
+      expect(body.max_tokens).toBeUndefined();
+      expect(body.temperature).toBeUndefined();
+      expect(body.top_p).toBeUndefined();
+    });
+
     it('should handle API errors', async () => {
       setupFetchMock(
         mockFetchResponse({ error: 'Rate limit exceeded' }, { ok: false, status: 429 })

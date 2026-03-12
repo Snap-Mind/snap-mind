@@ -36,6 +36,7 @@ export interface ChatSetting {
   max_tokens: number;
   top_p: number;
   streamingEnabled: boolean;
+  reasoningEnabled: boolean;
   defaultModel: string;
   defaultProvider: string;
 }

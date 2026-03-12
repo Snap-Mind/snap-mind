@@ -166,6 +166,34 @@ describe('QwenProvider', () => {
       expect(body.messages).toEqual(messages);
     });
 
+    it('should use max_completion_tokens and omit temperature/top_p when reasoning is enabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [{ message: { content: 'Reasoning response' } }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'qwq-32b',
+        stream: false,
+        reasoning: true,
+        max_tokens: 4096,
+        temperature: 0.7,
+        top_p: 0.9,
+      });
+
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body);
+
+      expect(body.model).toBe('qwq-32b');
+      expect(body.max_completion_tokens).toBe(4096);
+      expect(body.max_tokens).toBeUndefined();
+      expect(body.temperature).toBeUndefined();
+      expect(body.top_p).toBeUndefined();
+      // reasoning_effort is OpenAI-only, not added for Qwen
+      expect(body.reasoning_effort).toBeUndefined();
+    });
+
     it('should handle API errors', async () => {
       setupFetchMock(mockFetchResponse({ error: 'Invalid API key' }, { ok: false, status: 401 }));
 

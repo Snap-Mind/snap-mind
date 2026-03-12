@@ -167,6 +167,123 @@ describe('OpenAIProvider', () => {
       expect(body.max_tokens).toBe(1000);
     });
 
+    it('should use max_completion_tokens and reasoning_effort when reasoning is enabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [{ message: { content: 'Reasoning response' } }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'o4-mini',
+        stream: false,
+        reasoning: true,
+        max_tokens: 4096,
+        temperature: 0.7,
+        top_p: 0.9,
+      });
+
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body);
+
+      expect(body.model).toBe('o4-mini');
+      expect(body.max_completion_tokens).toBe(4096);
+      expect(body.reasoning_effort).toBe('medium');
+      expect(body.max_tokens).toBeUndefined();
+      expect(body.temperature).toBeUndefined();
+      expect(body.top_p).toBeUndefined();
+    });
+
+    it('should handle streaming response with reasoning_content', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"reasoning_content":"Let me reason..."}}]}\n',
+          'data: {"choices":[{"delta":{"reasoning_content":" step by step."}}]}\n',
+          'data: {"choices":[{"delta":{"content":"The answer is 42."}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gpt-4', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('<think>\nLet me reason... step by step.\n</think>\n\nThe answer is 42.');
+    });
+
+    it('should handle non-streaming response with reasoning_content', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [
+            {
+              message: {
+                reasoning_content: 'Internal reasoning.',
+                content: 'The response.',
+              },
+            },
+          ],
+        })
+      );
+
+      const result = await provider.sendMessage(messages, {
+        model: 'gpt-4',
+        stream: false,
+      });
+
+      expect(result).toBe('<think>\nInternal reasoning.\n</think>\n\nThe response.');
+    });
+
+    it('should handle multiple reasoning-to-content transitions in streaming', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"reasoning_content":"First thought."}}]}\n',
+          'data: {"choices":[{"delta":{"content":"First answer."}}]}\n',
+          'data: {"choices":[{"delta":{"reasoning_content":"Second thought."}}]}\n',
+          'data: {"choices":[{"delta":{"content":"Second answer."}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gpt-4', stream: true },
+        onToken
+      );
+
+      expect(result).toBe(
+        '<think>\nFirst thought.\n</think>\n\nFirst answer.<think>\nSecond thought.\n</think>\n\nSecond answer.'
+      );
+    });
+
+    it('should handle streaming without reasoning_content', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"content":"Just text."}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gpt-4', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('Just text.');
+      expect(result).not.toContain('<think>');
+    });
+
     it('should handle API errors', async () => {
       setupFetchMock(mockFetchResponse({ error: 'Unauthorized' }, { ok: false, status: 401 }));
 

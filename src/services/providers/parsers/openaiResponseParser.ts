@@ -32,16 +32,48 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
 
   return {
     async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
+      // Track whether we're inside a reasoning block
+      let inReasoning = false;
+
       return parseSSEStream(
         res,
-        (data) => data.choices?.[0]?.delta?.content || null,
+        (data) => {
+          // Handle reasoning_content (DeepSeek-R1, Qwen QwQ, OpenAI o-series)
+          const reasoningContent = data.choices?.[0]?.delta?.reasoning_content;
+          const content = data.choices?.[0]?.delta?.content;
+
+          let token = '';
+
+          if (reasoningContent) {
+            if (!inReasoning) {
+              inReasoning = true;
+              token += '<think>\n';
+            }
+            token += reasoningContent;
+          }
+
+          if (content) {
+            if (inReasoning) {
+              inReasoning = false;
+              token += '\n</think>\n\n';
+            }
+            token += content;
+          }
+
+          return token || null;
+        },
         onToken,
         providerName
       );
     },
 
     extractContentFromResponse(data: any): string {
-      return data.choices?.[0]?.message?.content || '';
+      const reasoning = data.choices?.[0]?.message?.reasoning_content;
+      const content = data.choices?.[0]?.message?.content || '';
+      if (reasoning) {
+        return `<think>\n${reasoning}\n</think>\n\n${content}`;
+      }
+      return content;
     },
 
     parseModelsResponse(data: any): ModelSetting[] {

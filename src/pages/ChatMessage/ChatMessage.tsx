@@ -5,6 +5,8 @@ import rehypeSanitize from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
 
 import { Message } from '@/types/chat';
+import ThinkingMessage from '@/components/ThinkingMessage';
+import { useChatMessage } from '@/hooks/useChatMessage';
 
 interface ChatMessageProps {
   message: Message;
@@ -12,6 +14,7 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
+  const { thinking, main, isThinking } = useChatMessage(message.content, isUser);
 
   // Define role-based style classes
   const bubbleBaseClasses = 'p-[10px_14px] text-base leading-normal break-words transition-colors';
@@ -29,15 +32,12 @@ export default function ChatMessage({ message }: ChatMessageProps) {
       <div
         className={`relative ${bubbleBaseClasses} ${isUser ? userBubbleClasses : aiBubbleClasses}`}
       >
+        {!isUser && <ThinkingMessage thinking={thinking} isThinking={isThinking} />}
         <ReactMarkdown
-          remarkPlugins={[remarkGfm]} // Enables GitHub Flavored Markdown
-          rehypePlugins={[
-            rehypeRaw, // Enables raw HTML
-            rehypeSanitize, // Sanitizes HTML to prevent XSS
-            rehypeHighlight, // Syntax highlighting for code blocks
-          ]}
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
         >
-          {message.content}
+          {main}
         </ReactMarkdown>
       </div>
     </div>

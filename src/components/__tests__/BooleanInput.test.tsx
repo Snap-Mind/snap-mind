@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState } from 'react';
 import BooleanInput from '../BooleanInput';
 
 describe('BooleanInput', () => {
@@ -65,5 +66,32 @@ describe('BooleanInput', () => {
 
     // Just verify the component renders with disabled prop
     expect(container).toBeTruthy();
+  });
+
+  it('should sync UI in controlled mode', async () => {
+    const user = userEvent.setup();
+
+    function ControlledWrapper() {
+      const [selected, setSelected] = useState(false);
+      return (
+        <>
+          <BooleanInput
+            id="controlled-switch"
+            label="Controlled Switch"
+            isSelected={selected}
+            onValueChange={setSelected}
+          />
+          <span>{selected ? 'ON' : 'OFF'}</span>
+        </>
+      );
+    }
+
+    render(<ControlledWrapper />);
+
+    const switchElement = screen.getByRole('switch');
+    expect(screen.getByText('OFF')).toBeInTheDocument();
+
+    await user.click(switchElement);
+    expect(screen.getByText('ON')).toBeInTheDocument();
   });
 });

@@ -52,6 +52,24 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
     },
 
     buildChatBody(messages: Message[], options: ProviderOptions): any {
+      if (options.reasoning) {
+        // Reasoning models (o1/o3/o4-mini, DeepSeek-R1, etc.):
+        // - Use max_completion_tokens instead of max_tokens
+        // - Remove temperature and top_p (must be default/1)
+        // - Add reasoning_effort for OpenAI o-series models
+        const body: any = {
+          model: options.model,
+          messages,
+          max_completion_tokens: options.max_tokens,
+          stream: options.stream !== undefined ? options.stream : true,
+        };
+        // Only add reasoning_effort for OpenAI (not DeepSeek/Qwen)
+        if (providerName === 'OpenAI') {
+          body.reasoning_effort = 'medium';
+        }
+        return body;
+      }
+
       return {
         model: options.model,
         messages,

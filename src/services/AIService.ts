@@ -82,6 +82,7 @@ export class AIService {
       modelSetting?: ModelSetting;
       providerSetting?: ProviderSetting;
       streamingEnabled?: boolean;
+      reasoning?: boolean;
       signal?: AbortSignal;
     }
   ): Promise<Message> {
@@ -98,18 +99,17 @@ export class AIService {
 
     try {
       // Prepare options for the provider
+      // Start from settings.chat defaults, then override with per-call values
+      const reasoning = options?.reasoning ?? this.settings.chat.reasoningEnabled ?? false;
       const providerOptions = {
         model: modelSetting.id,
-        temperature: options?.temperature || DEFAULT_TEMPERATURE,
-        max_tokens: options?.maxTokens || DEFAULT_MAX_TOKENS,
-        top_p: options?.top_p || DEFAULT_TOP_P,
+        temperature: options?.temperature ?? this.settings.chat.temperature ?? DEFAULT_TEMPERATURE,
+        max_tokens: options?.maxTokens ?? this.settings.chat.max_tokens ?? DEFAULT_MAX_TOKENS,
+        top_p: options?.top_p ?? this.settings.chat.top_p ?? DEFAULT_TOP_P,
         stream: streamingEnabled,
-        ...this.settings.chat,
-        ...options,
+        reasoning,
+        ...(options?.signal ? { signal: options.signal } : {}),
       };
-      if (options?.signal) {
-        providerOptions.signal = options.signal;
-      }
 
       return {
         role: 'assistant',
