@@ -8,6 +8,7 @@ import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
 import { deriveV1ApiBase } from '../core/urlResolvers';
+import { toAnthropicContent } from '../core/attachmentFormatters';
 
 const ANTHROPIC_DEFAULT_ORIGIN = 'https://api.anthropic.com';
 const ANTHROPIC_API_VERSION = '2023-06-01';
@@ -42,7 +43,7 @@ export const anthropicRequestBuilder: RequestBuilder = {
   buildChatBody(messages: Message[], options: ProviderOptions): any {
     // Separate system prompt from conversation messages
     let systemPrompt = '';
-    const anthropicMessages: { role: string; content: string }[] = [];
+    const anthropicMessages: { role: string; content: any }[] = [];
 
     for (const message of messages) {
       if (message.role === 'system') {
@@ -50,7 +51,8 @@ export const anthropicRequestBuilder: RequestBuilder = {
       } else {
         anthropicMessages.push({
           role: message.role,
-          content: message.content,
+          // Convert user messages with attachments to Anthropic content blocks
+          content: message.role === 'user' ? toAnthropicContent(message) : message.content,
         });
       }
     }

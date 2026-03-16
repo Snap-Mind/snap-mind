@@ -11,10 +11,13 @@ import { Message } from '@/types/chat';
 import { BaseProviderConfig, GoogleConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
 import { deriveGoogleApiBase } from '../core/urlResolvers';
+import { toGeminiParts } from '../core/attachmentFormatters';
+
+import { GeminiPart } from '../core/attachmentFormatters';
 
 interface GoogleMessage {
   role: string;
-  parts: Array<{ text: string }>;
+  parts: GeminiPart[];
 }
 
 const GOOGLE_DEFAULT_ORIGIN = 'https://generativelanguage.googleapis.com';
@@ -53,7 +56,8 @@ export const googleRequestBuilder: RequestBuilder = {
       if (message.role === 'system') {
         systemPrompt = message.content;
       } else if (message.role === 'user') {
-        googleMessages.push({ role: 'user', parts: [{ text: message.content }] });
+        // Use toGeminiParts to handle image attachments
+        googleMessages.push({ role: 'user', parts: toGeminiParts(message) });
       } else if (message.role === 'assistant') {
         googleMessages.push({ role: 'model', parts: [{ text: message.content }] });
       }

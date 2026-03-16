@@ -7,6 +7,7 @@ import rehypeHighlight from 'rehype-highlight';
 import { Message } from '@/types/chat';
 import ThinkingMessage from '@/components/ThinkingMessage';
 import { useChatMessage } from '@/hooks/useChatMessage';
+import { toDataUri } from '@/services/ImageAttachmentService';
 
 interface ChatMessageProps {
   message: Message;
@@ -24,6 +25,8 @@ export default function ChatMessage({ message }: ChatMessageProps) {
     'max-w-[80%] rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
   const aiBubbleClasses = 'w-full markdown-body bg-background'; // Added markdown-body class for GitHub styling
 
+  const hasAttachments = isUser && message.attachments && message.attachments.length > 0;
+
   return (
     <div
       className={`flex flex-row mb-0.5 ${isUser ? 'justify-end' : 'justify-start'}`}
@@ -32,6 +35,22 @@ export default function ChatMessage({ message }: ChatMessageProps) {
       <div
         className={`relative ${bubbleBaseClasses} ${isUser ? userBubbleClasses : aiBubbleClasses}`}
       >
+        {/* Render image attachments for user messages */}
+        {hasAttachments && (
+          <div className="flex flex-row gap-1.5 flex-wrap mb-1.5">
+            {message.attachments!.map((att) => (
+              <img
+                key={att.id}
+                src={toDataUri(att)}
+                alt={att.name}
+                className="max-w-[120px] max-h-[120px] rounded-lg object-cover cursor-pointer"
+                title={att.name}
+                draggable={false}
+                onClick={() => window.open(toDataUri(att), '_blank')}
+              />
+            ))}
+          </div>
+        )}
         {!isUser && <ThinkingMessage thinking={thinking} isThinking={isThinking} />}
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}

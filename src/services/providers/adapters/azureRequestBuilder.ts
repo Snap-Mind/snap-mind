@@ -7,6 +7,7 @@
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, AzureOpenAIConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
+import { toOpenAIMessages } from '../core/attachmentFormatters';
 
 export const azureRequestBuilder: RequestBuilder = {
   providerName: 'Azure OpenAI',
@@ -44,17 +45,20 @@ export const azureRequestBuilder: RequestBuilder = {
 
   buildChatBody(messages: Message[], options: ProviderOptions): any {
     // Azure OpenAI: model is NOT in the body (it's in the URL)
+    // Convert messages to OpenAI multimodal format (handles image attachments)
+    const formattedMessages = toOpenAIMessages(messages);
+
     if (options.reasoning) {
       // Reasoning models: use max_completion_tokens, drop temperature/top_p
       return {
-        messages,
+        messages: formattedMessages,
         max_completion_tokens: options.max_tokens,
         stream: options.stream !== undefined ? options.stream : true,
       };
     }
 
     return {
-      messages,
+      messages: formattedMessages,
       max_tokens: options.max_tokens,
       stream: options.stream !== undefined ? options.stream : true,
       temperature: options.temperature,

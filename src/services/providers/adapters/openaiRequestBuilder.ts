@@ -4,6 +4,7 @@
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
+import { toOpenAIMessages } from '../core/attachmentFormatters';
 
 export interface OpenAIRequestBuilderOptions {
   /** Human-readable name (e.g. "OpenAI", "DeepSeek"). */
@@ -52,6 +53,9 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
     },
 
     buildChatBody(messages: Message[], options: ProviderOptions): any {
+      // Convert messages to OpenAI multimodal format (handles image attachments)
+      const formattedMessages = toOpenAIMessages(messages);
+
       if (options.reasoning) {
         // Reasoning models (o1/o3/o4-mini, DeepSeek-R1, etc.):
         // - Use max_completion_tokens instead of max_tokens
@@ -59,7 +63,7 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
         // - Add reasoning_effort for OpenAI o-series models
         const body: any = {
           model: options.model,
-          messages,
+          messages: formattedMessages,
           max_completion_tokens: options.max_tokens,
           stream: options.stream !== undefined ? options.stream : true,
         };
@@ -72,7 +76,7 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
 
       return {
         model: options.model,
-        messages,
+        messages: formattedMessages,
         max_tokens: options.max_tokens,
         stream: options.stream !== undefined ? options.stream : true,
         temperature: options.temperature,

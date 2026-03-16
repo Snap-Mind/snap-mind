@@ -10,6 +10,7 @@ import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
 import { deriveOllamaApiBase } from '../core/urlResolvers';
+import { toOllamaImages } from '../core/attachmentFormatters';
 
 const OLLAMA_DEFAULT_ORIGIN = 'http://localhost:11434';
 
@@ -44,7 +45,13 @@ export const ollamaRequestBuilder: RequestBuilder = {
 
     const body: any = {
       model: options?.model,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      messages: messages.map((m) => {
+        const mapped: any = { role: m.role, content: m.content };
+        // Ollama expects images as a sibling array of base64 strings
+        const images = m.role === 'user' ? toOllamaImages(m.attachments) : undefined;
+        if (images) mapped.images = images;
+        return mapped;
+      }),
       stream: options?.stream !== false,
     };
     if (Object.keys(runtimeOptions).length > 0) body.options = runtimeOptions;

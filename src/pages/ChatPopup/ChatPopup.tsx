@@ -11,6 +11,10 @@ import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
 import ReasoningToggle from '@/components/ReasoningToggle';
+import DropZoneOverlay from '@/components/DropZoneOverlay';
+import ImagePickerButton from '@/components/ImagePickerButton';
+import AttachmentPreviewBar from '@/components/AttachmentPreviewBar';
+import { useImageAttachments } from '@/hooks/useImageAttachments';
 import { BaseProviderConfig, ProviderType } from '@/types/providers';
 
 interface ChatPopupProps {
@@ -33,6 +37,9 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const lastScrollTopRef = useRef<number>(0);
   const [autoScroll, setAutoScroll] = useState(true);
   const [reasoningEnabled, setReasoningEnabled] = useState(settings.chat.reasoningEnabled ?? false);
+
+  // Image attachment state — the hook is UI-agnostic and fully reusable
+  const imageAttachments = useImageAttachments(loading);
 
   // Sync local state when settings change externally (e.g. from Settings page)
   useEffect(() => {
@@ -201,11 +208,18 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   };
 
   const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg: Message = { role: 'user', content: input };
+    if ((!input.trim() && imageAttachments.attachments.length === 0) || loading) return;
+    const userMsg: Message = {
+      role: 'user',
+      content: input,
+      ...(imageAttachments.attachments.length > 0
+        ? { attachments: imageAttachments.attachments }
+        : {}),
+    };
 
-    // First update state to add user message
+    // First update state to add user message and clear input + attachments
     setInput('');
+    imageAttachments.setAttachments([]);
     setMessages((msgs) => [...msgs, userMsg]);
 
     // Then call AI with the updated conversation history
@@ -248,7 +262,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   // }, []);
 
   return (
-    <div className="w-full h-full">
+    <DropZoneOverlay onDrop={imageAttachments.addFiles} disabled={loading}>
       <AnimatePresence>
         <motion.div
           className="bg-black/40"
@@ -276,7 +290,16 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               {loading && <ChatMessage message={{ role: 'assistant', content: '...' }} />}
               <div ref={chatEndRef} />
             </div>
-            <div className="grid grid-cols-1 grid-rows-[2fr_1fr] p-3 bg-default-100 gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]">
+            <div
+              className="grid grid-cols-1 grid-rows-[auto_auto_auto] p-3 bg-default-100 gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]"
+              onPaste={imageAttachments.handlePaste}
+            >
+              {/* Image attachment previews (shown only when images are pending) */}
+              <AttachmentPreviewBar
+                attachments={imageAttachments.attachments}
+                onRemove={imageAttachments.removeAttachment}
+                errorMsg={imageAttachments.errorMsg}
+              />
               <Textarea
                 className="flex-1"
                 classNames={{
@@ -293,6 +316,14 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 ref={inputRef}
               />
               <div className="basis-[200px] flex flex-row justify-end gap-2 items-center">
+                <ImagePickerButton
+                  fileInputRef={imageAttachments.fileInputRef}
+                  acceptTypes={imageAttachments.acceptTypes}
+                  onFileInputChange={imageAttachments.handleFileInputChange}
+                  onPress={imageAttachments.openFilePicker}
+                  canAddMore={imageAttachments.canAddMore}
+                  disabled={loading}
+                />
                 <ReasoningToggle
                   aria-label={t('settings.chat.reasoning')}
                   isSelected={reasoningEnabled}
@@ -349,6 +380,6 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
           </motion.div>
         </motion.div>
       </AnimatePresence>
-    </div>
+    </DropZoneOverlay>
   );
 }

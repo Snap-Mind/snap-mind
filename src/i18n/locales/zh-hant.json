@@ -105,7 +105,11 @@
     "send": "傳送",
     "sendMessage": "傳送訊息...",
     "thinking": "思考過程",
-    "thought": "思考過程"
+    "thought": "思考過程",
+    "addImage": "新增圖片",
+    "dropImage": "拖放圖片到此處",
+    "maxImagesReached": "已達最大圖片數量",
+    "imageAttachments": "已附加 {{count}} 張圖片"
   },
   "common": {
     "brand": "SnapMind",

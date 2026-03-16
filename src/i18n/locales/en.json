@@ -105,7 +105,11 @@
     "send": "Send",
     "sendMessage": "Send a message...",
     "thinking": "Thinking",
-    "thought": "Thought"
+    "thought": "Thought",
+    "addImage": "Add image",
+    "dropImage": "Drop image here",
+    "maxImagesReached": "Maximum images reached",
+    "imageAttachments": "{{count}} image(s) attached"
   },
   "common": {
     "brand": "SnapMind",
