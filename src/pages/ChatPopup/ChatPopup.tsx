@@ -276,7 +276,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               {loading && <ChatMessage message={{ role: 'assistant', content: '...' }} />}
               <div ref={chatEndRef} />
             </div>
-            <div className="grid grid-cols-1 grid-rows-[2fr_1fr] p-3 bg-default-100 gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]">
+            <div className="flex flex-col p-3 bg-default-100 gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]">
               <Textarea
                 className="flex-1"
                 classNames={{
@@ -292,7 +292,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 onKeyDown={handleKeyDown}
                 ref={inputRef}
               />
-              <div className="basis-[200px] flex flex-row justify-end gap-2 items-center">
+              <div className="flex-shrink-0 flex flex-row justify-end gap-2 items-center">
                 <ReasoningToggle
                   aria-label={t('settings.chat.reasoning')}
                   isSelected={reasoningEnabled}
