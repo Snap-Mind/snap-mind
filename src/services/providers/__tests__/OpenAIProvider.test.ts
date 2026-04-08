@@ -194,6 +194,102 @@ describe('OpenAIProvider', () => {
       expect(body.top_p).toBeUndefined();
     });
 
+    it('should include web_search_options when webSearch is enabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [{ message: { content: 'Grounded response' } }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'gpt-4o-search-preview',
+        stream: false,
+        webSearch: true,
+        max_tokens: 2048,
+      });
+
+      const fetchCall = (global.fetch as any).mock.calls[0];
+      const body = JSON.parse(fetchCall[1].body);
+
+      expect(body.web_search_options).toEqual({});
+      expect(body.max_tokens).toBeUndefined();
+    });
+
+    it('should include web_search_options when reasoning and webSearch are both enabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [{ message: { content: 'ok' } }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'o4-mini',
+        stream: false,
+        reasoning: true,
+        webSearch: true,
+        max_tokens: 4096,
+      });
+
+      const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
+      expect(body.web_search_options).toEqual({});
+      expect(body.max_completion_tokens).toBeUndefined();
+    });
+
+    it('should call onWebSources with url_citation annotations (non-streaming)', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [
+            {
+              message: {
+                content: 'Search result',
+                annotations: [
+                  {
+                    type: 'url_citation',
+                    url_citation: {
+                      url: 'https://example.com/article',
+                      title: 'Example Article',
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        })
+      );
+
+      const onWebSources = vi.fn();
+      await provider.sendMessage(messages, {
+        model: 'gpt-4o-search-preview',
+        stream: false,
+        onWebSources,
+      });
+
+      expect(onWebSources).toHaveBeenCalledWith([
+        { url: 'https://example.com/article', title: 'Example Article' },
+      ]);
+    });
+
+    it('should call onWebSources during streaming with annotations', async () => {
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"content":"Hello"}}]}\n',
+          'data: {"choices":[{"delta":{"annotations":[{"type":"url_citation","url_citation":{"url":"https://stream.example.com","title":"Stream"}}]}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const onWebSources = vi.fn();
+      await provider.sendMessage(
+        messages,
+        { model: 'gpt-4o', stream: true, onWebSources },
+        vi.fn()
+      );
+
+      expect(onWebSources).toHaveBeenCalledWith([
+        { url: 'https://stream.example.com', title: 'Stream' },
+      ]);
+    });
+
     it('should handle streaming response with reasoning_content', async () => {
       const tokens: string[] = [];
       const onToken = vi.fn((token: string) => tokens.push(token));

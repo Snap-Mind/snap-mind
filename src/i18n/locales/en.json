@@ -72,7 +72,9 @@
       "streaming": "Response Streaming",
       "streamingDescription": "Show responses as they are being generated",
       "reasoning": "Reasoning",
-      "reasoningDescription": "Enable extended thinking / reasoning mode for supported models"
+      "reasoningDescription": "Enable extended thinking / reasoning mode for supported models",
+      "webSearch": "Web search",
+      "webSearchDescription": "Use provider-native web search when supported (e.g. Google Gemini grounding, OpenAI search models)"
     },
     "hotkeys": {
       "title": "Hotkeys",
@@ -105,7 +107,8 @@
     "send": "Send",
     "sendMessage": "Send a message...",
     "thinking": "Thinking",
-    "thought": "Thought"
+    "thought": "Thought",
+    "sources": "Sources"
   },
   "common": {
     "brand": "SnapMind",

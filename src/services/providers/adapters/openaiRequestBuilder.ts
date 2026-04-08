@@ -52,6 +52,17 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
     },
 
     buildChatBody(messages: Message[], options: ProviderOptions): any {
+      const applyOpenAIWebSearch = (body: any) => {
+        // Chat Completions: web search requires search-capable models + web_search_options (OpenAI only).
+        if (options.webSearch && providerName === 'OpenAI') {
+          body.web_search_options = {};
+          // Web search responses include inline citation markers that count toward
+          // the token limit. Remove the cap so responses aren't truncated.
+          delete body.max_tokens;
+          delete body.max_completion_tokens;
+        }
+      };
+
       if (options.reasoning) {
         // Reasoning models (o1/o3/o4-mini, DeepSeek-R1, etc.):
         // - Use max_completion_tokens instead of max_tokens
@@ -67,10 +78,11 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
         if (providerName === 'OpenAI') {
           body.reasoning_effort = 'medium';
         }
+        applyOpenAIWebSearch(body);
         return body;
       }
 
-      return {
+      const body: any = {
         model: options.model,
         messages,
         max_tokens: options.max_tokens,
@@ -78,6 +90,8 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
         temperature: options.temperature,
         top_p: options.top_p,
       };
+      applyOpenAIWebSearch(body);
+      return body;
     },
 
     buildListModelsRequest(config: BaseProviderConfig) {

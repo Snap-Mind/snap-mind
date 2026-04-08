@@ -1,6 +1,6 @@
 import loggerService from './LoggerService';
 import ProviderFactory from './providers/ProviderFactory';
-import type { Message } from '../types/chat';
+import type { Message, ChatSource } from '../types/chat';
 import type { ChatSetting, ModelSetting, ProviderSetting } from '@/types/setting';
 
 // Default values for chat parameters
@@ -83,7 +83,9 @@ export class AIService {
       providerSetting?: ProviderSetting;
       streamingEnabled?: boolean;
       reasoning?: boolean;
+      webSearch?: boolean;
       signal?: AbortSignal;
+      onWebSources?: (sources: ChatSource[]) => void;
     }
   ): Promise<Message> {
     const modelSetting = options?.modelSetting || this.modelSetting;
@@ -101,6 +103,7 @@ export class AIService {
       // Prepare options for the provider
       // Start from settings.chat defaults, then override with per-call values
       const reasoning = options?.reasoning ?? this.settings.chat.reasoningEnabled ?? false;
+      const webSearch = options?.webSearch ?? this.settings.chat.webSearchEnabled ?? false;
       const providerOptions = {
         model: modelSetting.id,
         temperature: options?.temperature ?? this.settings.chat.temperature ?? DEFAULT_TEMPERATURE,
@@ -108,7 +111,9 @@ export class AIService {
         top_p: options?.top_p ?? this.settings.chat.top_p ?? DEFAULT_TOP_P,
         stream: streamingEnabled,
         reasoning,
+        webSearch,
         ...(options?.signal ? { signal: options.signal } : {}),
+        ...(options?.onWebSources ? { onWebSources: options.onWebSources } : {}),
       };
 
       return {

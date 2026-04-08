@@ -97,10 +97,20 @@ export const googleRequestBuilder: RequestBuilder = {
       };
     }
 
-    return {
+    const body: Record<string, unknown> = {
       contents: googleMessages,
       generationConfig,
     };
+
+    // Grounding with Google Search (Gemini API)
+    if (options?.webSearch) {
+      body.tools = [{ google_search: {} }];
+      // Grounded responses can be lengthy; remove the output-token cap
+      // so answers aren't truncated by the default limit.
+      delete generationConfig.maxOutputTokens;
+    }
+
+    return body;
   },
 
   buildListModelsRequest(config: BaseProviderConfig) {

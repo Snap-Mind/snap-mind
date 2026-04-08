@@ -14,10 +14,12 @@ interface SettingsChatProps {
 function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
   const { t } = useTranslation();
   const [reasoningEnabled, setReasoningEnabled] = useState(settings.reasoningEnabled ?? false);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(settings.webSearchEnabled ?? false);
 
   // Sync local state when settings change externally (e.g. from ChatPopup window)
   useEffect(() => {
     setReasoningEnabled(settings.reasoningEnabled ?? false);
+    setWebSearchEnabled(settings.webSearchEnabled ?? false);
   }, [settings]); // Note: using `settings` (not `settings.reasoningEnabled`) as the dependency keeps settings in sync across different windows.
 
   return (
@@ -81,6 +83,17 @@ function SettingsChat({ settings, onSettingsChange }: SettingsChatProps) {
           description={t('settings.chat.streamingDescription')}
           defaultSelected={settings.streamingEnabled}
           onValueChange={(checked) => onSettingsChange(['chat', 'streamingEnabled'], checked)}
+        />
+
+        <BooleanInput
+          id="webSearch"
+          label={t('settings.chat.webSearch')}
+          description={t('settings.chat.webSearchDescription')}
+          isSelected={webSearchEnabled}
+          onValueChange={(checked) => {
+            setWebSearchEnabled(checked);
+            onSettingsChange(['chat', 'webSearchEnabled'], checked);
+          }}
         />
 
         <BooleanInput

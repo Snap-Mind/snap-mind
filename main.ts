@@ -577,6 +577,21 @@ ipcMain.handle('system:open-install-folder', async () => {
   }
 });
 
+// Safely open an external URL in the default browser (http/https only)
+ipcMain.handle('shell:open-external', async (_event, url: string) => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return { success: false, error: 'Only http and https URLs are allowed' };
+    }
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    logService.error('[main] shell:open-external error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Update-related IPC
 ipcMain.handle('update:check', () => {
   if (autoUpdateService) return autoUpdateService.manualCheck();

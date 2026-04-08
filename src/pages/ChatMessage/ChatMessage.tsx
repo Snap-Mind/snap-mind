@@ -6,6 +6,7 @@ import rehypeHighlight from 'rehype-highlight';
 
 import { Message } from '@/types/chat';
 import ThinkingMessage from '@/components/ThinkingMessage';
+import MessageWebSources from '@/components/MessageWebSources';
 import { useChatMessage } from '@/hooks/useChatMessage';
 
 interface ChatMessageProps {
@@ -39,6 +40,9 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         >
           {main}
         </ReactMarkdown>
+        {!isUser && message.sources && message.sources.length > 0 && (
+          <MessageWebSources sources={message.sources} />
+        )}
       </div>
     </div>
   );

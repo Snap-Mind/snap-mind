@@ -4,31 +4,43 @@
 // Model listing: models[] with name like "models/gemini-pro"
 
 import { ModelSetting } from '@/types/setting';
+import { ChatSource } from '@/types/chat';
 import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
+import { extractGeminiSources, deduplicateSources } from './extractWebSources';
 
 export const googleResponseParser: ResponseParser = {
-  async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
-    // Track whether we're inside a thought block
+  async parseStreamResponse(
+    res: Response,
+    onToken?: (token: string) => void,
+    onWebSources?: (sources: ChatSource[]) => void
+  ): Promise<string> {
     let inThought = false;
+    let collectedSources: ChatSource[] = [];
 
-    return parseSSEStream(
+    const result = await parseSSEStream(
       res,
       (data) => {
+        if (onWebSources) {
+          const chunkSources = extractGeminiSources(data);
+          if (chunkSources.length > 0) {
+            collectedSources = deduplicateSources([...collectedSources, ...chunkSources]);
+            onWebSources(collectedSources);
+          }
+        }
+
         const parts = data.candidates?.[0]?.content?.parts;
         if (!Array.isArray(parts)) return null;
 
         let token = '';
         for (const part of parts) {
           if (part.thought) {
-            // This is a thinking/thought part
             if (!inThought) {
               inThought = true;
               token += '<think>\n';
             }
             token += part.text || '';
           } else if (part.text) {
-            // Regular text part
             if (inThought) {
               inThought = false;
               token += '\n</think>\n\n';
@@ -42,6 +54,8 @@ export const googleResponseParser: ResponseParser = {
       onToken,
       'Google'
     );
+
+    return result;
   },
 
   extractContentFromResponse(data: any): string {
@@ -63,6 +77,10 @@ export const googleResponseParser: ResponseParser = {
       return `<think>\n${thinking}\n</think>\n\n${text}`;
     }
     return text || data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  },
+
+  extractWebSourcesFromResponse(data: any): ChatSource[] {
+    return extractGeminiSources(data);
   },
 
   parseModelsResponse(data: any): ModelSetting[] {

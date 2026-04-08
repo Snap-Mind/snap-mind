@@ -72,7 +72,9 @@
       "streaming": "响应流式传输",
       "streamingDescription": "实时显示生成的回应",
       "reasoning": "推理模式",
-      "reasoningDescription": "为支持的模型启用深度思考 / 推理模式"
+      "reasoningDescription": "为支持的模型启用深度思考 / 推理模式",
+      "webSearch": "联网搜索",
+      "webSearchDescription": "在支持的厂商中启用原生联网搜索（如 Google Gemini 搜索增强、OpenAI 搜索模型）"
     },
     "hotkeys": {
       "title": "快捷键",
@@ -105,7 +107,8 @@
     "send": "发送",
     "sendMessage": "发送消息...",
     "thinking": "思考过程",
-    "thought": "思考过程"
+    "thought": "思考过程",
+    "sources": "来源"
   },
   "common": {
     "brand": "SnapMind",

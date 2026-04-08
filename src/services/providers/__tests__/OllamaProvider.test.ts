@@ -195,6 +195,79 @@ describe('OllamaProvider', () => {
       expect(body.options.num_predict).toBe(500);
     });
 
+    it('should set think: true when reasoning is enabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          message: { content: 'Response' },
+          done: true,
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'qwen3',
+        stream: false,
+        reasoning: true,
+      });
+
+      const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
+      expect(body.think).toBe(true);
+    });
+
+    it('should use think level for gpt-oss when reasoning is enabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          message: { content: 'Response' },
+          done: true,
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'gpt-oss:20b',
+        stream: false,
+        reasoning: true,
+      });
+
+      const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
+      expect(body.think).toBe('medium');
+    });
+
+    it('should omit think when reasoning is disabled', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          message: { content: 'Response' },
+          done: true,
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'llama2',
+        stream: false,
+        reasoning: false,
+      });
+
+      const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
+      expect(body.think).toBeUndefined();
+    });
+
+    it('should stream thinking then content into think tags', async () => {
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          '{"message":{"thinking":"Let me "}}\n',
+          '{"message":{"thinking":"reason."}}\n',
+          '{"message":{"content":"Answer."},"done":true}\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'deepseek-r1', stream: true, reasoning: true }
+      );
+
+      expect(result).toBe(
+        '<think>\nLet me reason.\n</think>\n\nAnswer.'
+      );
+    });
+
     it('should pass messages in Ollama format', async () => {
       setupFetchMock(
         mockFetchResponse({

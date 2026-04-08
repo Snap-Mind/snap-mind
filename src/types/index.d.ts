@@ -69,6 +69,8 @@ interface ElectronAPI {
   // Open the installed application folder in the OS file explorer
   openInstallFolder?: () => Promise<{ success: boolean; error?: string }>;
 
+  // Open external URL in default browser (http/https only)
+  openExternalUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
   // General app events
   quitApp: () => void;
 

@@ -37,6 +37,7 @@ export interface ChatSetting {
   top_p: number;
   streamingEnabled: boolean;
   reasoningEnabled: boolean;
+  webSearchEnabled: boolean;
   defaultModel: string;
   defaultProvider: string;
 }

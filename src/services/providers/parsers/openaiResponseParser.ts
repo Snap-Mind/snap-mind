@@ -3,8 +3,10 @@
 // Parameterized to support OpenAI, DeepSeek, Qwen, and Azure with shared logic.
 
 import { ModelSetting } from '@/types/setting';
+import { ChatSource } from '@/types/chat';
 import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
+import { extractOpenAISources, deduplicateSources } from './extractWebSources';
 
 export interface OpenAIResponseParserOptions {
   /** Human-readable name used as SSE log tag. */
@@ -31,14 +33,26 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
   } = opts;
 
   return {
-    async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
-      // Track whether we're inside a reasoning block
+    async parseStreamResponse(
+      res: Response,
+      onToken?: (token: string) => void,
+      onWebSources?: (sources: ChatSource[]) => void
+    ): Promise<string> {
       let inReasoning = false;
+      let collectedSources: ChatSource[] = [];
 
-      return parseSSEStream(
+      const result = await parseSSEStream(
         res,
         (data) => {
-          // Handle reasoning_content (DeepSeek-R1, Qwen QwQ, OpenAI o-series)
+          // Collect web search citations from streaming chunks
+          if (onWebSources) {
+            const chunkSources = extractOpenAISources(data);
+            if (chunkSources.length > 0) {
+              collectedSources = deduplicateSources([...collectedSources, ...chunkSources]);
+              onWebSources(collectedSources);
+            }
+          }
+
           const reasoningContent = data.choices?.[0]?.delta?.reasoning_content;
           const content = data.choices?.[0]?.delta?.content;
 
@@ -65,6 +79,8 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
         onToken,
         providerName
       );
+
+      return result;
     },
 
     extractContentFromResponse(data: any): string {
@@ -74,6 +90,10 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
         return `<think>\n${reasoning}\n</think>\n\n${content}`;
       }
       return content;
+    },
+
+    extractWebSourcesFromResponse(data: any): ChatSource[] {
+      return extractOpenAISources(data);
     },
 
     parseModelsResponse(data: any): ModelSetting[] {
