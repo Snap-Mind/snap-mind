@@ -23,6 +23,7 @@ import {
   LuArrowUp,
   LuLightbulb,
   LuLightbulbOff,
+  LuGlobe,
 } from 'react-icons/lu';
 import { MdOutlineCleaningServices } from 'react-icons/md';
 
@@ -66,7 +67,8 @@ type IconType =
   | 'paint-roller'
   | 'arrow-up'
   | 'lightbulb'
-  | 'lightbulb-off';
+  | 'lightbulb-off'
+  | 'globe';
 
 interface IconProps {
   className?: string;
@@ -153,6 +155,8 @@ function Icon({
         return <LuLightbulb className={svgClassName} color={color} size={size} />;
       case 'lightbulb-off':
         return <LuLightbulbOff className={svgClassName} color={color} size={size} />;
+      case 'globe':
+        return <LuGlobe className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }

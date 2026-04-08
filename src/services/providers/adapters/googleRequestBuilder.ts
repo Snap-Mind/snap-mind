@@ -97,10 +97,17 @@ export const googleRequestBuilder: RequestBuilder = {
       };
     }
 
-    return {
+    const body: Record<string, unknown> = {
       contents: googleMessages,
       generationConfig,
     };
+
+    // Grounding with Google Search (Gemini API)
+    if (options?.webSearch) {
+      body.tools = [{ google_search: {} }];
+    }
+
+    return body;
   },
 
   buildListModelsRequest(config: BaseProviderConfig) {

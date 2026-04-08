@@ -72,7 +72,9 @@
       "streaming": "響應串流",
       "streamingDescription": "即時顯示生成的回應",
       "reasoning": "推理模式",
-      "reasoningDescription": "為支援的模型啟用深度思考 / 推理模式"
+      "reasoningDescription": "為支援的模型啟用深度思考 / 推理模式",
+      "webSearch": "聯網搜尋",
+      "webSearchDescription": "在支援的廠商中啟用原生聯網搜尋（如 Google Gemini 搜尋增強、OpenAI 搜尋模型）"
     },
     "hotkeys": {
       "title": "快捷鍵",

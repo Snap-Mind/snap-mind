@@ -17,6 +17,7 @@
     "top_p": 0.95,
     "streamingEnabled": true,
     "reasoningEnabled": false,
+    "webSearchEnabled": false,
     "defaultModel": null,
     "defaultProvider": null
   },

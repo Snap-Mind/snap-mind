@@ -184,6 +184,23 @@ describe('DeepSeekProvider', () => {
       expect(body.reasoning_effort).toBeUndefined();
     });
 
+    it('should not add web_search_options when webSearch is enabled (OpenAI-only)', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [{ message: { content: 'ok' } }],
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'deepseek-chat',
+        stream: false,
+        webSearch: true,
+      });
+
+      const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
+      expect(body.web_search_options).toBeUndefined();
+    });
+
     it('should handle API errors', async () => {
       setupFetchMock(
         mockFetchResponse({ error: 'Rate limit exceeded' }, { ok: false, status: 429 })

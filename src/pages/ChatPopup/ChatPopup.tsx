@@ -11,6 +11,7 @@ import { Message } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
 import ReasoningToggle from '@/components/ReasoningToggle';
+import WebSearchToggle from '@/components/WebSearchToggle';
 import { BaseProviderConfig, ProviderType } from '@/types/providers';
 
 interface ChatPopupProps {
@@ -33,10 +34,12 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const lastScrollTopRef = useRef<number>(0);
   const [autoScroll, setAutoScroll] = useState(true);
   const [reasoningEnabled, setReasoningEnabled] = useState(settings.chat.reasoningEnabled ?? false);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(settings.chat.webSearchEnabled ?? false);
 
   // Sync local state when settings change externally (e.g. from Settings page)
   useEffect(() => {
     setReasoningEnabled(settings.chat.reasoningEnabled ?? false);
+    setWebSearchEnabled(settings.chat.webSearchEnabled ?? false);
   }, [settings]); // Note: using `settings` (not `settings.chat.reasoningEnabled`) as the dependency keeps settings in sync across different windows.
 
   // Focus the input when ChatPopup mounts
@@ -293,6 +296,14 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 ref={inputRef}
               />
               <div className="flex-shrink-0 flex flex-row justify-end gap-2 items-center">
+                <WebSearchToggle
+                  aria-label={t('settings.chat.webSearch')}
+                  isSelected={webSearchEnabled}
+                  onValueChange={(checked) => {
+                    setWebSearchEnabled(checked);
+                    setSettings(['chat', 'webSearchEnabled'], checked);
+                  }}
+                />
                 <ReasoningToggle
                   aria-label={t('settings.chat.reasoning')}
                   isSelected={reasoningEnabled}

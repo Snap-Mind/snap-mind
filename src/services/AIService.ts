@@ -83,6 +83,7 @@ export class AIService {
       providerSetting?: ProviderSetting;
       streamingEnabled?: boolean;
       reasoning?: boolean;
+      webSearch?: boolean;
       signal?: AbortSignal;
     }
   ): Promise<Message> {
@@ -101,6 +102,7 @@ export class AIService {
       // Prepare options for the provider
       // Start from settings.chat defaults, then override with per-call values
       const reasoning = options?.reasoning ?? this.settings.chat.reasoningEnabled ?? false;
+      const webSearch = options?.webSearch ?? this.settings.chat.webSearchEnabled ?? false;
       const providerOptions = {
         model: modelSetting.id,
         temperature: options?.temperature ?? this.settings.chat.temperature ?? DEFAULT_TEMPERATURE,
@@ -108,6 +110,7 @@ export class AIService {
         top_p: options?.top_p ?? this.settings.chat.top_p ?? DEFAULT_TOP_P,
         stream: streamingEnabled,
         reasoning,
+        webSearch,
         ...(options?.signal ? { signal: options.signal } : {}),
       };
 

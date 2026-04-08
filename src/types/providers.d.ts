@@ -9,6 +9,7 @@ export interface ProviderOptions {
   top_p?: number;
   signal?: AbortSignal;
   reasoning?: boolean;
+  webSearch?: boolean;
 }
 
 export interface BaseProviderConfig {

@@ -537,5 +537,24 @@ describe('GoogleProvider', () => {
 
       expect(body.generationConfig.thinkingConfig).toBeUndefined();
     });
+
+    it('should include google_search tool when webSearch is enabled', () => {
+      const body = buildBody({
+        model: 'gemini-pro',
+        webSearch: true,
+        max_tokens: 1000,
+      });
+
+      expect(body.tools).toEqual([{ google_search: {} }]);
+    });
+
+    it('should omit tools when webSearch is disabled', () => {
+      const body = buildBody({
+        model: 'gemini-pro',
+        max_tokens: 1000,
+      });
+
+      expect(body.tools).toBeUndefined();
+    });
   });
 });
