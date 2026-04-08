@@ -33,8 +33,7 @@ if (!gotTheLock) {
   app.quit();
 } else {
   app.on('second-instance', (_event, _argv, _workingDirectory) => {
-    // Show or focus the settings window when a second instance is launched
-    showSettingsWindow();
+    focusOrShowMainWindow();
   });
 }
 
@@ -231,6 +230,20 @@ function showSettingsWindow() {
   }
   win.focus();
   return win;
+}
+
+function focusOrShowMainWindow() {
+  if (chatPopupWindow && !chatPopupWindow.isDestroyed()) {
+    if (chatPopupWindow.isMinimized()) {
+      chatPopupWindow.restore();
+    }
+    if (!chatPopupWindow.isVisible()) {
+      chatPopupWindow.show();
+    }
+    chatPopupWindow.focus();
+  } else {
+    showSettingsWindow();
+  }
 }
 
 // Function to register hotkeys
@@ -701,5 +714,5 @@ app.whenReady().then(() => {
 });
 
 app.on('activate', () => {
-  showSettingsWindow();
+  focusOrShowMainWindow();
 });
