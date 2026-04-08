@@ -56,6 +56,10 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
         // Chat Completions: web search requires search-capable models + web_search_options (OpenAI only).
         if (options.webSearch && providerName === 'OpenAI') {
           body.web_search_options = {};
+          // Web search responses include inline citation markers that count toward
+          // the token limit. Remove the cap so responses aren't truncated.
+          delete body.max_tokens;
+          delete body.max_completion_tokens;
         }
       };
 

@@ -205,12 +205,14 @@ describe('OpenAIProvider', () => {
         model: 'gpt-4o-search-preview',
         stream: false,
         webSearch: true,
+        max_tokens: 2048,
       });
 
       const fetchCall = (global.fetch as any).mock.calls[0];
       const body = JSON.parse(fetchCall[1].body);
 
       expect(body.web_search_options).toEqual({});
+      expect(body.max_tokens).toBeUndefined();
     });
 
     it('should include web_search_options when reasoning and webSearch are both enabled', async () => {
@@ -230,7 +232,7 @@ describe('OpenAIProvider', () => {
 
       const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
       expect(body.web_search_options).toEqual({});
-      expect(body.max_completion_tokens).toBe(4096);
+      expect(body.max_completion_tokens).toBeUndefined();
     });
 
     it('should call onWebSources with url_citation annotations (non-streaming)', async () => {

@@ -598,6 +598,7 @@ describe('GoogleProvider', () => {
       });
 
       expect(body.tools).toEqual([{ google_search: {} }]);
+      expect(body.generationConfig.maxOutputTokens).toBeUndefined();
     });
 
     it('should omit tools when webSearch is disabled', () => {
