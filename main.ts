@@ -33,6 +33,7 @@ if (!gotTheLock) {
   app.quit();
 } else {
   app.on('second-instance', (_event, _argv, _workingDirectory) => {
+    if (!app.isReady()) return;
     focusOrShowMainWindow();
   });
 }
