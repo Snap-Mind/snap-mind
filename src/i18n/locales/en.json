@@ -107,7 +107,8 @@
     "send": "Send",
     "sendMessage": "Send a message...",
     "thinking": "Thinking",
-    "thought": "Thought"
+    "thought": "Thought",
+    "sources": "Sources"
   },
   "common": {
     "brand": "SnapMind",

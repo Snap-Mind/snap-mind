@@ -46,6 +46,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onPermissionChanged: (callback) =>
     ipcRenderer.on('permission:changed', (_event, permissions) => callback(permissions)),
   offPermissionChanged: () => ipcRenderer.removeAllListeners('permission:changed'),
+  // Open an external URL safely in the default browser
+  openExternalUrl: (url) => ipcRenderer.invoke('shell:open-external', url),
   // General app events
   quitApp: () => ipcRenderer.send('app:quit'),
   // Auto update APIs

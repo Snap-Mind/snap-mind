@@ -233,6 +233,61 @@ describe('OpenAIProvider', () => {
       expect(body.max_completion_tokens).toBe(4096);
     });
 
+    it('should call onWebSources with url_citation annotations (non-streaming)', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          choices: [
+            {
+              message: {
+                content: 'Search result',
+                annotations: [
+                  {
+                    type: 'url_citation',
+                    url_citation: {
+                      url: 'https://example.com/article',
+                      title: 'Example Article',
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        })
+      );
+
+      const onWebSources = vi.fn();
+      await provider.sendMessage(messages, {
+        model: 'gpt-4o-search-preview',
+        stream: false,
+        onWebSources,
+      });
+
+      expect(onWebSources).toHaveBeenCalledWith([
+        { url: 'https://example.com/article', title: 'Example Article' },
+      ]);
+    });
+
+    it('should call onWebSources during streaming with annotations', async () => {
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"content":"Hello"}}]}\n',
+          'data: {"choices":[{"delta":{"annotations":[{"type":"url_citation","url_citation":{"url":"https://stream.example.com","title":"Stream"}}]}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const onWebSources = vi.fn();
+      await provider.sendMessage(
+        messages,
+        { model: 'gpt-4o', stream: true, onWebSources },
+        vi.fn()
+      );
+
+      expect(onWebSources).toHaveBeenCalledWith([
+        { url: 'https://stream.example.com', title: 'Stream' },
+      ]);
+    });
+
     it('should handle streaming response with reasoning_content', async () => {
       const tokens: string[] = [];
       const onToken = vi.fn((token: string) => tokens.push(token));

@@ -1,6 +1,6 @@
 import loggerService from './LoggerService';
 import ProviderFactory from './providers/ProviderFactory';
-import type { Message } from '../types/chat';
+import type { Message, ChatSource } from '../types/chat';
 import type { ChatSetting, ModelSetting, ProviderSetting } from '@/types/setting';
 
 // Default values for chat parameters
@@ -85,6 +85,7 @@ export class AIService {
       reasoning?: boolean;
       webSearch?: boolean;
       signal?: AbortSignal;
+      onWebSources?: (sources: ChatSource[]) => void;
     }
   ): Promise<Message> {
     const modelSetting = options?.modelSetting || this.modelSetting;
@@ -112,6 +113,7 @@ export class AIService {
         reasoning,
         webSearch,
         ...(options?.signal ? { signal: options.signal } : {}),
+        ...(options?.onWebSources ? { onWebSources: options.onWebSources } : {}),
       };
 
       return {

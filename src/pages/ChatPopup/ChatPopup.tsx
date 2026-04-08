@@ -7,7 +7,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { AIService } from '../../services/AIService';
 import ChatMessage from '../ChatMessage/ChatMessage';
 
-import { Message } from '@/types/chat';
+import { Message, ChatSource } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
 import ReasoningToggle from '@/components/ReasoningToggle';
@@ -93,7 +93,6 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
         await aiService.sendMessageToAI(
           messagesToSend,
           (token) => {
-            // Update the last message (assistant) with the new token
             setMessages((currentMsgs) => {
               const updatedMsgs = [...currentMsgs];
               const lastIndex = updatedMsgs.length - 1;
@@ -106,7 +105,19 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               return updatedMsgs;
             });
           },
-          { signal }
+          {
+            signal,
+            onWebSources: (sources: ChatSource[]) => {
+              setMessages((currentMsgs) => {
+                const updatedMsgs = [...currentMsgs];
+                const lastIndex = updatedMsgs.length - 1;
+                if (lastIndex >= 0 && updatedMsgs[lastIndex].role === 'assistant') {
+                  updatedMsgs[lastIndex] = { ...updatedMsgs[lastIndex], sources };
+                }
+                return updatedMsgs;
+              });
+            },
+          }
         );
       } catch (error) {
         if (error && error.name === 'AbortError') {

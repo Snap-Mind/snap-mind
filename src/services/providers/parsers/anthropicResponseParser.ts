@@ -5,11 +5,16 @@
 // - Non-streaming response: content[0].text
 
 import { ModelSetting } from '@/types/setting';
+import { ChatSource } from '@/types/chat';
 import { ResponseParser } from '@/types/providers';
 import { parseSSEStream } from '../core/sseStreamParser';
 
 export const anthropicResponseParser: ResponseParser = {
-  async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
+  async parseStreamResponse(
+    res: Response,
+    onToken?: (token: string) => void,
+    _onWebSources?: (sources: ChatSource[]) => void
+  ): Promise<string> {
     // Track whether we're inside a thinking block
     let inThinking = false;
 

@@ -6,11 +6,16 @@
 // - Model listing: /api/tags with models[] array
 
 import { ModelSetting } from '@/types/setting';
+import { ChatSource } from '@/types/chat';
 import { ResponseParser } from '@/types/providers';
 import { parseNDJSONStream } from '../core/ndjsonStreamParser';
 
 export const ollamaResponseParser: ResponseParser = {
-  async parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string> {
+  async parseStreamResponse(
+    res: Response,
+    onToken?: (token: string) => void,
+    _onWebSources?: (sources: ChatSource[]) => void
+  ): Promise<string> {
     return parseNDJSONStream(res, (obj) => obj?.message?.content || null, onToken, {
       logTag: 'Ollama',
       extractError: (obj) => {

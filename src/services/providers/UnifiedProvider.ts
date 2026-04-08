@@ -71,12 +71,16 @@ export class UnifiedProvider implements Provider {
 
     // --- Parse response ---
     if (options?.stream !== false) {
-      return this.adapter.parseStreamResponse(res, onToken);
+      return this.adapter.parseStreamResponse(res, onToken, options?.onWebSources);
     } else {
       const data = await res.json();
       const content = this.adapter.extractContentFromResponse(data);
       if (typeof onToken === 'function') {
         onToken(content);
+      }
+      if (options?.onWebSources && this.adapter.extractWebSourcesFromResponse) {
+        const sources = this.adapter.extractWebSourcesFromResponse(data);
+        if (sources.length > 0) options.onWebSources(sources);
       }
       return content;
     }

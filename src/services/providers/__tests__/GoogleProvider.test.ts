@@ -8,6 +8,7 @@ import { Message } from '@/types/chat';
 import {
   mockFetchResponse,
   mockSSEResponse,
+  mockStreamingFetchResponse,
   setupFetchMock,
 } from '../../../../test/utils/mockFetch';
 
@@ -202,6 +203,57 @@ describe('GoogleProvider', () => {
       });
 
       expect(result).toBe('Generated content');
+    });
+
+    it('should call onWebSources with groundingMetadata (non-streaming)', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          candidates: [
+            {
+              content: { parts: [{ text: 'Grounded response' }] },
+              groundingMetadata: {
+                groundingChunks: [
+                  { web: { uri: 'https://gemini.example.com/a', title: 'Gemini A' } },
+                  { web: { uri: 'https://gemini.example.com/b', title: 'Gemini B' } },
+                ],
+              },
+            },
+          ],
+        })
+      );
+
+      const onWebSources = vi.fn();
+      await provider.sendMessage(messages, {
+        model: 'gemini-pro',
+        stream: false,
+        onWebSources,
+      });
+
+      expect(onWebSources).toHaveBeenCalledWith([
+        { url: 'https://gemini.example.com/a', title: 'Gemini A' },
+        { url: 'https://gemini.example.com/b', title: 'Gemini B' },
+      ]);
+    });
+
+    it('should call onWebSources during streaming with groundingMetadata', async () => {
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"candidates":[{"content":{"parts":[{"text":"Hello"}]}}]}\n',
+          'data: {"candidates":[{"content":{"parts":[{"text":" world"}]},"groundingMetadata":{"groundingChunks":[{"web":{"uri":"https://stream.gemini.com","title":"Stream"}}]}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const onWebSources = vi.fn();
+      await provider.sendMessage(
+        messages,
+        { model: 'gemini-pro', stream: true, onWebSources },
+        vi.fn()
+      );
+
+      expect(onWebSources).toHaveBeenCalledWith([
+        { url: 'https://stream.gemini.com', title: 'Stream' },
+      ]);
     });
 
     it('should handle streaming response', async () => {

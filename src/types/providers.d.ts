@@ -1,4 +1,4 @@
-import { Message } from './chat';
+import { Message, ChatSource } from './chat';
 import { ModelSetting } from './setting';
 
 export interface ProviderOptions {
@@ -10,6 +10,7 @@ export interface ProviderOptions {
   signal?: AbortSignal;
   reasoning?: boolean;
   webSearch?: boolean;
+  onWebSources?: (sources: ChatSource[]) => void;
 }
 
 export interface BaseProviderConfig {
@@ -109,10 +110,17 @@ export interface RequestBuilder {
  */
 export interface ResponseParser {
   /** Parse a streaming response, calling onToken for each incremental token. */
-  parseStreamResponse(res: Response, onToken?: (token: string) => void): Promise<string>;
+  parseStreamResponse(
+    res: Response,
+    onToken?: (token: string) => void,
+    onWebSources?: (sources: ChatSource[]) => void
+  ): Promise<string>;
 
   /** Extract content from a non-streaming response JSON. */
   extractContentFromResponse(data: any): string;
+
+  /** Extract web search sources from a non-streaming response JSON. */
+  extractWebSourcesFromResponse?(data: any): ChatSource[];
 
   /** Parse the models list API response into ModelSetting[]. */
   parseModelsResponse(data: any, config: BaseProviderConfig): ModelSetting[];
