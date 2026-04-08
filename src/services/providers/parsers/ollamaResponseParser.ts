@@ -2,7 +2,7 @@
 //
 // Key differences from all other providers:
 // - NDJSON streaming (not SSE)
-// - Response: message.content
+// - Response: message.content; with `think` enabled also message.thinking (reasoning trace)
 // - Model listing: /api/tags with models[] array
 
 import { ModelSetting } from '@/types/setting';
@@ -16,20 +16,62 @@ export const ollamaResponseParser: ResponseParser = {
     onToken?: (token: string) => void,
     _onWebSources?: (sources: ChatSource[]) => void
   ): Promise<string> {
-    return parseNDJSONStream(res, (obj) => obj?.message?.content || null, onToken, {
-      logTag: 'Ollama',
-      extractError: (obj) => {
-        if (obj?.error) {
-          return typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error);
+    let inThinking = false;
+
+    const full = await parseNDJSONStream(
+      res,
+      (obj) => {
+        const thinking = obj?.message?.thinking;
+        const content = obj?.message?.content;
+        let token = '';
+
+        if (thinking) {
+          if (!inThinking) {
+            inThinking = true;
+            token += '<think>\n';
+          }
+          token += thinking;
         }
-        return null;
+
+        if (content) {
+          if (inThinking) {
+            inThinking = false;
+            token += '\n</think>\n\n';
+          }
+          token += content;
+        }
+
+        return token || null;
       },
-      isDone: (obj) => obj?.done === true,
-    });
+      onToken,
+      {
+        logTag: 'Ollama',
+        extractError: (obj) => {
+          if (obj?.error) {
+            return typeof obj.error === 'string' ? obj.error : JSON.stringify(obj.error);
+          }
+          return null;
+        },
+        isDone: (obj) => obj?.done === true,
+      }
+    );
+
+    if (inThinking) {
+      const close = '\n</think>\n\n';
+      if (typeof onToken === 'function') onToken(close);
+      return full + close;
+    }
+
+    return full;
   },
 
   extractContentFromResponse(data: any): string {
-    return data?.message?.content || '';
+    const thinking = data?.message?.thinking;
+    const content = data?.message?.content || '';
+    if (thinking) {
+      return `<think>\n${thinking}\n</think>\n\n${content}`;
+    }
+    return content;
   },
 
   parseModelsResponse(data: any): ModelSetting[] {
