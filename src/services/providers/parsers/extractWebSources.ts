@@ -6,8 +6,7 @@ import { ChatSource } from '@/types/chat';
 /**
  * Extract sources from an OpenAI response chunk or full response.
  *
- * Streaming: annotations may appear in `choices[0].delta.annotations`
- * or within individual content parts.
+ * Streaming: annotations appear in `choices[0].delta.annotations`.
  * Non-streaming: annotations appear in `choices[0].message.annotations`.
  */
 export function extractOpenAISources(data: any): ChatSource[] {
