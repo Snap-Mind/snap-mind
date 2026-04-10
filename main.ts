@@ -695,7 +695,7 @@ app.whenReady().then(() => {
   // Create context menu for tray
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Settings  ',
+      label: 'Settings...  ',
       click: () => {
         showSettingsWindow();
       },
@@ -716,6 +716,19 @@ app.whenReady().then(() => {
 
   // Set the context menu
   tray.setContextMenu(contextMenu);
+
+  // Set macOS Dock icon right-click menu
+  if (process.platform === 'darwin' && app.dock) {
+    const dockMenu = Menu.buildFromTemplate([
+      {
+        label: 'Settings...',
+        click: () => {
+          showSettingsWindow();
+        },
+      },
+    ]);
+    app.dock.setMenu(dockMenu);
+  }
 
   createSettingsWindow();
   if (!openAtLoginService.isLoginLaunch()) {
