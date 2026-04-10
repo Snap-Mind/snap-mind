@@ -1,20 +1,9 @@
 import { Fragment, useEffect, useState } from 'react';
-import { Button, Card, CardBody, CardHeader, Chip, Divider } from '@heroui/react';
+import { Button, Card, CardBody, CardHeader, Divider } from '@heroui/react';
 import { useLogService } from '../../hooks/useLogService';
 import { useTranslation } from 'react-i18next';
 import Icon from '@/components/Icon';
-import {
-  LuGithub,
-  LuExternalLink,
-  LuScale,
-  LuUser,
-  LuGlobe,
-  LuHeart,
-  LuBookOpen,
-  LuBug,
-  LuMessageCircle,
-  LuTag,
-} from 'react-icons/lu';
+import LogoSvg from '@/components/LogoSvg';
 
 const APP_LINKS = {
   repo: 'https://github.com/Snap-Mind/snap-mind',
@@ -53,35 +42,34 @@ function SettingsOther() {
 
   const aboutRows = [
     {
-      icon: <LuTag size={16} />,
+      icon: 'tag' as const,
       label: t('settings.others.version'),
-      value: version ? `v${version}` : '—',
-      mono: true,
+      value: version || '—',
     },
     {
-      icon: <LuUser size={16} />,
+      icon: 'user' as const,
       label: t('settings.others.author'),
       value: APP_META.author,
       url: APP_LINKS.authorGithub,
     },
     {
-      icon: <LuScale size={16} />,
+      icon: 'scale' as const,
       label: t('settings.others.license'),
       value: APP_META.license,
     },
   ];
 
   const links = [
-    { icon: <LuGithub size={18} />, label: t('settings.others.githubRepo'), url: APP_LINKS.repo },
-    { icon: <LuGlobe size={18} />, label: t('settings.others.homepage'), url: APP_LINKS.homepage },
+    { icon: 'github' as const, label: t('settings.others.githubRepo'), url: APP_LINKS.repo },
+    { icon: 'globe' as const, label: t('settings.others.homepage'), url: APP_LINKS.homepage },
     {
-      icon: <LuBookOpen size={18} />,
+      icon: 'book-open' as const,
       label: t('settings.others.changelog'),
       url: APP_LINKS.releases,
     },
-    { icon: <LuBug size={18} />, label: t('settings.others.reportIssues'), url: APP_LINKS.issues },
+    { icon: 'bug' as const, label: t('settings.others.reportIssues'), url: APP_LINKS.issues },
     {
-      icon: <LuMessageCircle size={18} />,
+      icon: 'message-circle' as const,
       label: t('settings.others.discord'),
       url: APP_LINKS.discord,
     },
@@ -94,18 +82,16 @@ function SettingsOther() {
         <Divider className="my-4" />
       </div>
       <div className="body min-w-0 overflow-y-auto pb-6">
+        {/* App branding */}
+        <div className="flex flex-col items-center py-6">
+          <div className="drop-shadow-lg">
+            <LogoSvg className="w-16 h-16" />
+          </div>
+          <span className="font-bold text-xl">SnapMind</span>
+        </div>
+
         {/* About */}
         <Card className="w-full my-5 border-1 border-gray-100" shadow="none">
-          <CardHeader className="flex gap-3 justify-between items-center">
-            <div className="flex items-center gap-3">
-              <h4 className="font-bold">SnapMind</h4>
-              {version && (
-                <Chip size="sm" variant="flat" color="primary">
-                  v{version}
-                </Chip>
-              )}
-            </div>
-          </CardHeader>
           <CardBody className="p-0">
             {aboutRows.map((row, i) => (
               <Fragment key={i}>
@@ -115,14 +101,12 @@ function SettingsOther() {
                   onClick={row.url ? () => openUrl(row.url) : undefined}
                 >
                   <div className="flex items-center gap-2 text-default-500">
-                    {row.icon}
+                    <Icon icon={row.icon} size={16} />
                     <span className="text-sm">{row.label}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-sm${row.mono ? ' font-mono' : ''}${row.url ? ' text-primary' : ''}`}>
-                      {row.value}
-                    </span>
-                    {row.url && <LuExternalLink size={12} className="text-default-400" />}
+                    <span className={`text-sm${row.url ? ' text-primary' : ''}`}>{row.value}</span>
+                    {row.url && <Icon icon="external-link" size={12} className="text-default-400" />}
                   </div>
                 </div>
               </Fragment>
@@ -144,10 +128,10 @@ function SettingsOther() {
                   onClick={() => openUrl(link.url)}
                 >
                   <div className="flex items-center gap-3 text-default-700">
-                    {link.icon}
+                    <Icon icon={link.icon} size={18} />
                     <span className="text-sm">{link.label}</span>
                   </div>
-                  <LuExternalLink size={14} className="text-default-400" />
+                  <Icon icon="external-link" size={14} className="text-default-400" />
                 </div>
               </Fragment>
             ))}
@@ -180,9 +164,12 @@ function SettingsOther() {
         </Card>
 
         {/* Footer */}
-        <div className="flex items-center justify-center gap-1.5 text-xs text-default-400 mt-4">
-          <span>{t('settings.others.madeWith')}</span>
-          <LuHeart size={12} className="text-danger" />
+        <div className="flex flex-col items-center gap-1 text-xs text-default-400 mt-4">
+          <span>© 2025 Louis Liu. All rights reserved.</span>
+          <div className="flex items-center gap-1.5">
+            <span>{t('settings.others.madeWith')}</span>
+            <Icon icon="heart" size={12} className="text-danger" />
+          </div>
         </div>
       </div>
     </div>

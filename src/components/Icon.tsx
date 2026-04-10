@@ -1,7 +1,12 @@
 import {
   LuBot,
+  LuBookOpen,
+  LuBug,
   LuEye,
   LuEyeOff,
+  LuExternalLink,
+  LuGithub,
+  LuHeart,
   LuTrash2,
   LuSquarePen,
   LuPlus,
@@ -13,6 +18,7 @@ import {
   LuSquareDashed,
   LuMessageCircle,
   LuFileText,
+  LuScale,
   LuSettings,
   LuRotateCcw,
   LuCloud,
@@ -24,6 +30,8 @@ import {
   LuLightbulb,
   LuLightbulbOff,
   LuGlobe,
+  LuTag,
+  LuUser,
 } from 'react-icons/lu';
 import { MdOutlineCleaningServices } from 'react-icons/md';
 
@@ -36,17 +44,23 @@ import Qwen from '@lobehub/icons-static-svg/icons/qwen.svg?react';
 import Ollama from '@lobehub/icons-static-svg/icons/ollama.svg?react';
 
 type IconType =
+  | 'book-open'
   | 'bot'
+  | 'bug'
   | 'cog'
   | 'eye'
   | 'eye-off'
+  | 'external-link'
   | 'flame'
   | 'file-text'
+  | 'github'
+  | 'heart'
   | 'trash-2'
   | 'square-pen'
   | 'square-dashed'
   | 'message-circle'
   | 'plus'
+  | 'scale'
   | 'square'
   | 'circle-check-big'
   | 'circle-x'
@@ -68,7 +82,9 @@ type IconType =
   | 'arrow-up'
   | 'lightbulb'
   | 'lightbulb-off'
-  | 'globe';
+  | 'globe'
+  | 'tag'
+  | 'user';
 
 interface IconProps {
   className?: string;
@@ -91,10 +107,20 @@ function Icon({
 }: IconProps) {
   const renderIcon = () => {
     switch (icon) {
+      case 'book-open':
+        return <LuBookOpen className={svgClassName} color={color} size={size} />;
+      case 'bug':
+        return <LuBug className={svgClassName} color={color} size={size} />;
       case 'eye':
         return <LuEye className={svgClassName} color={color} size={size} />;
       case 'eye-off':
         return <LuEyeOff className={svgClassName} color={color} size={size} />;
+      case 'external-link':
+        return <LuExternalLink className={svgClassName} color={color} size={size} />;
+      case 'github':
+        return <LuGithub className={svgClassName} color={color} size={size} />;
+      case 'heart':
+        return <LuHeart className={svgClassName} color={color} size={size} />;
       case 'trash-2':
         return <LuTrash2 className={svgClassName} color={color} size={size} />;
       case 'square-pen':
@@ -119,6 +145,8 @@ function Icon({
         return <LuMessageCircle className={svgClassName} color={color} size={size} />;
       case 'file-text':
         return <LuFileText className={svgClassName} color={color} size={size} />;
+      case 'scale':
+        return <LuScale className={svgClassName} color={color} size={size} />;
       case 'openai':
         return <OpenAI className={svgClassName} fill={color} width={size} height={size} />;
       case 'anthropic':
@@ -157,6 +185,10 @@ function Icon({
         return <LuLightbulbOff className={svgClassName} color={color} size={size} />;
       case 'globe':
         return <LuGlobe className={svgClassName} color={color} size={size} />;
+      case 'tag':
+        return <LuTag className={svgClassName} color={color} size={size} />;
+      case 'user':
+        return <LuUser className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }
