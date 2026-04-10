@@ -100,7 +100,20 @@
     },
     "others": {
       "title": "其他",
-      "showLogFiles": "显示日志文件"
+      "tagline": "AI，思维的速度",
+      "version": "版本",
+      "author": "作者",
+      "license": "许可证",
+      "links": "链接",
+      "githubRepo": "GitHub 仓库",
+      "homepage": "官方网站",
+      "changelog": "更新日志",
+      "reportIssues": "反馈问题",
+      "discord": "Discord 社区",
+      "diagnostics": "诊断",
+      "diagnosticsDescription": "查看应用日志以排查问题。",
+      "showLogFiles": "显示日志文件",
+      "madeWith": "Made with"
     }
   },
   "chat": {

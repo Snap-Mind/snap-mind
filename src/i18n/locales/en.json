@@ -100,7 +100,20 @@
     },
     "others": {
       "title": "Others",
-      "showLogFiles": "Show Log Files"
+      "tagline": "AI at the Speed of Thought",
+      "version": "Version",
+      "author": "Author",
+      "license": "License",
+      "links": "Links",
+      "githubRepo": "GitHub Repository",
+      "homepage": "Homepage",
+      "changelog": "Changelog & Releases",
+      "reportIssues": "Report Issues",
+      "discord": "Discord Community",
+      "diagnostics": "Diagnostics",
+      "diagnosticsDescription": "View application logs for troubleshooting.",
+      "showLogFiles": "Show Log Files",
+      "madeWith": "Made with"
     }
   },
   "chat": {
