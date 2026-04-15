@@ -100,7 +100,19 @@
     },
     "others": {
       "title": "其他",
-      "showLogFiles": "顯示日誌文件"
+      "version": "版本",
+      "author": "作者",
+      "license": "許可證",
+      "links": "連結",
+      "githubRepo": "GitHub 倉庫",
+      "homepage": "官方網站",
+      "changelog": "更新日誌",
+      "reportIssues": "反饋問題",
+      "discord": "Discord 社群",
+      "diagnostics": "診斷",
+      "diagnosticsDescription": "查看應用日誌以排查問題。",
+      "showLogFiles": "顯示日誌文件",
+      "madeWith": "Made with"
     }
   },
   "chat": {
