@@ -125,25 +125,27 @@ export function deriveOllamaApiBase(host: string): string {
  * Returns a base ending with /api/projects/<project-name>.
  */
 export function deriveFoundryProjectApiBase(host: string, projectName?: string): string {
+  let url: URL;
   try {
-    const url = new URL(host);
-    const parts = url.pathname.split('/').filter(Boolean);
-    const projectIndex = parts.indexOf('projects');
-
-    if (projectIndex >= 0 && parts[projectIndex + 1]) {
-      url.pathname = '/' + parts.slice(0, projectIndex + 2).join('/');
-      return url.origin + url.pathname.replace(/\/$/, '');
-    }
-
-    if (!projectName) {
-      throw new Error('Missing project name');
-    }
-
-    url.pathname = `/api/projects/${projectName}`;
-    return url.origin + url.pathname.replace(/\/$/, '');
+    url = new URL(host);
   } catch {
     throw new Error(`Invalid Foundry host URL: ${host}`);
   }
+
+  const parts = url.pathname.split('/').filter(Boolean);
+  const projectIndex = parts.indexOf('projects');
+
+  if (projectIndex >= 0 && parts[projectIndex + 1]) {
+    url.pathname = '/' + parts.slice(0, projectIndex + 2).join('/');
+    return url.origin + url.pathname.replace(/\/$/, '');
+  }
+
+  if (!projectName) {
+    throw new Error('Missing project name');
+  }
+
+  url.pathname = `/api/projects/${projectName}`;
+  return url.origin + url.pathname.replace(/\/$/, '');
 }
 
 /** Derive Foundry resource origin from any Foundry URL. */
