@@ -62,7 +62,14 @@
       "syncModels": "同步模型列表",
       "cleanModels": "清空模型列表",
       "name": "名稱",
-      "actions": "操作"
+      "actions": "操作",
+      "foundry": {
+        "authDescription": "Azure AI Foundry 使用 Microsoft Entra ID（透過 Azure CLI）。使用此 Provider 前請先安裝 Azure CLI 並執行 `az login`。",
+        "authDescriptionRich": "Azure AI Foundry 使用 <0>Microsoft Entra ID</0>（透過 Azure CLI）。使用此 Provider 前請先安裝 Azure CLI 並執行 <1>az login</1>。",
+        "copyCode": "複製程式碼",
+        "copied": "已複製",
+        "projectNameDescription": "當 Endpoint 未包含 /api/projects/{project-name} 時，此欄必填。"
+      }
     },
     "chat": {
       "title": "聊天",

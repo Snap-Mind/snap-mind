@@ -62,7 +62,14 @@
       "syncModels": "Sync models",
       "cleanModels": "Clean models",
       "name": "Name",
-      "actions": "Actions"
+      "actions": "Actions",
+      "foundry": {
+        "authDescription": "Azure AI Foundry uses Microsoft Entra ID via Azure CLI. Install Azure CLI and run `az login` before using this provider.",
+        "authDescriptionRich": "Azure AI Foundry uses <0>Microsoft Entra ID</0> via Azure CLI. Install Azure CLI and run <1>az login</1> before using this provider.",
+        "copyCode": "Copy code",
+        "copied": "Copied",
+        "projectNameDescription": "Required when endpoint does not already include /api/projects/{project-name}."
+      }
     },
     "chat": {
       "title": "Chat",

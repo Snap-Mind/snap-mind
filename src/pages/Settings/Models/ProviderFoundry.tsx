@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Form, Input } from '@heroui/react';
+import { Alert, Form, Input } from '@heroui/react';
 import ModelTable from '../../../components/ModelTable';
 import { SettingsChangeHandler } from '@/types';
 import { FoundryConfig } from '@/types/providers';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { ModelSetting } from '@/types/setting';
 
 interface ProviderFoundryProps {
@@ -38,6 +38,20 @@ function ProviderFoundry({ settings, providerIndex, onSettingsChange }: Provider
   return (
     <div className="overflow-y-auto p-1 flex flex-col gap-5">
       <h1 className="font-bold text-2xl">{localSetting.name}</h1>
+      <Alert
+        color="warning"
+        variant="faded"
+        hideIconWrapper
+        description={
+          <Trans
+            i18nKey="settings.providers.foundry.authDescriptionRich"
+            components={[
+              <span className="font-semibold text-warning-700" />,
+              <code className="px-1.5 py-0.5 rounded bg-warning-100 text-warning-800 font-mono text-xs" />,
+            ]}
+          />
+        }
+      />
       <Form className="w-full flex flex-col gap-5">
         <Input
           label="Foundry Resource Endpoint"
@@ -54,7 +68,7 @@ function ProviderFoundry({ settings, providerIndex, onSettingsChange }: Provider
           value={localSetting.projectName ?? ''}
           type="text"
           onValueChange={(value) => updateSetting('projectName', value)}
-          description="Required when endpoint does not already include /api/projects/{project-name}"
+          description={t('settings.providers.foundry.projectNameDescription')}
         />
         <Input
           label="Entra Scope"
@@ -63,7 +77,6 @@ function ProviderFoundry({ settings, providerIndex, onSettingsChange }: Provider
           value={localSetting.entraScope ?? DEFAULT_SCOPE}
           type="text"
           onValueChange={(value) => updateSetting('entraScope', value || DEFAULT_SCOPE)}
-          description="Authentication is fixed to Entra ID (Azure CLI token)."
         />
       </Form>
 
