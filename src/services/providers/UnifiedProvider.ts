@@ -50,7 +50,9 @@ export class UnifiedProvider implements Provider {
 
     // --- Build & execute request ---
     const url = this.adapter.buildChatUrl(this.config, options);
-    const headers = this.adapter.buildChatHeaders(this.config, options);
+    const headers = this.adapter.buildChatHeadersAsync
+      ? await this.adapter.buildChatHeadersAsync(this.config, options)
+      : this.adapter.buildChatHeaders(this.config, options);
     const body = this.adapter.buildChatBody(messages, options!, this.config);
 
     const fetchOptions: RequestInit = {

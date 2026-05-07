@@ -62,6 +62,24 @@
       ]
     },
     {
+      "id": "foundry",
+      "name": "Azure AI Foundry",
+      "apiKey": "",
+      "host": "https://{your-resource-name}.services.ai.azure.com",
+      "projectName": "",
+      "entraScope": "https://ai.azure.com/.default",
+      "description": "Use Azure AI Foundry project endpoint with Entra ID via Azure CLI token.",
+      "models": [
+        {
+          "id": "gpt-4.1",
+          "name": "Foundry GPT-4.1",
+          "type": "chat",
+          "capabilities": ["chat"],
+          "description": "Example Foundry model; replace with your own model list."
+        }
+      ]
+    },
+    {
       "id": "anthropic",
       "name": "Anthropic",
       "apiKey": "",

@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (newSettings) => ipcRenderer.invoke('settings:update', newSettings),
   updateSetting: (path, value) => ipcRenderer.invoke('settings:update-path', { path, value }),
+  getFoundryCliToken: (scope) => ipcRenderer.invoke('auth:foundry-cli-token', { scope }),
   onSettingsUpdated: (callback) =>
     ipcRenderer.on('settings:updated', (_event, updatedSettings) => callback(updatedSettings)),
   offSettingsUpdated: () => ipcRenderer.removeAllListeners('settings:updated'),

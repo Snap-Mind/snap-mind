@@ -114,3 +114,44 @@ export function deriveOllamaApiBase(host: string): string {
     return 'http://localhost:11434/api';
   }
 }
+
+/**
+ * Derive Azure AI Foundry project API base.
+ *
+ * Accepts either:
+ * - Resource endpoint: https://<resource>.services.ai.azure.com
+ * - Full project endpoint: https://<resource>.services.ai.azure.com/api/projects/<project-name>
+ *
+ * Returns a base ending with /api/projects/<project-name>.
+ */
+export function deriveFoundryProjectApiBase(host: string, projectName?: string): string {
+  try {
+    const url = new URL(host);
+    const parts = url.pathname.split('/').filter(Boolean);
+    const projectIndex = parts.indexOf('projects');
+
+    if (projectIndex >= 0 && parts[projectIndex + 1]) {
+      url.pathname = '/' + parts.slice(0, projectIndex + 2).join('/');
+      return url.origin + url.pathname.replace(/\/$/, '');
+    }
+
+    if (!projectName) {
+      throw new Error('Missing project name');
+    }
+
+    url.pathname = `/api/projects/${projectName}`;
+    return url.origin + url.pathname.replace(/\/$/, '');
+  } catch {
+    throw new Error(`Invalid Foundry host URL: ${host}`);
+  }
+}
+
+/** Derive Foundry resource origin from any Foundry URL. */
+export function deriveFoundryResourceOrigin(host: string): string {
+  try {
+    const url = new URL(host);
+    return url.origin;
+  } catch {
+    throw new Error(`Invalid Foundry host URL: ${host}`);
+  }
+}

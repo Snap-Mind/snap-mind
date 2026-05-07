@@ -46,6 +46,9 @@ interface ElectronAPI {
     path: (string | number)[],
     value: string | number | boolean | ModelSetting[]
   ) => Promise<{ setting: Setting; success: boolean }>;
+  getFoundryCliToken: (
+    scope: string
+  ) => Promise<{ success: boolean; token?: string; error?: string }>;
   onSettingsUpdated: (callback: (updatedSettings: Setting) => void) => void;
   offSettingsUpdated: () => void;
   getNativeTheme: () => Promise<NativeThemeState>;
