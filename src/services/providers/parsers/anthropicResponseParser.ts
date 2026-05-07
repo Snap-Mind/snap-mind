@@ -18,7 +18,7 @@ export const anthropicResponseParser: ResponseParser = {
     // Track whether we're inside a thinking block
     let inThinking = false;
 
-    return parseSSEStream(
+    const result = await parseSSEStream(
       res,
       (data) => {
         let token = '';
@@ -59,6 +59,14 @@ export const anthropicResponseParser: ResponseParser = {
       onToken,
       'Anthropic'
     );
+
+    if (inThinking) {
+      const closeToken = '\n</think>\n\n';
+      if (typeof onToken === 'function') onToken(closeToken);
+      return result + closeToken;
+    }
+
+    return result;
   },
 
   extractContentFromResponse(data: any): string {

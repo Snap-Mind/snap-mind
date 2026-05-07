@@ -380,6 +380,27 @@ describe('OpenAIProvider', () => {
       expect(result).not.toContain('<think>');
     });
 
+    it('should close think block when reasoning stream ends without content', async () => {
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"choices":[{"delta":{"reasoning_content":"Only reasoning"}}]}\n',
+          'data: [DONE]\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'gpt-4', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('<think>\nOnly reasoning\n</think>\n\n');
+      expect(tokens).toEqual(['<think>\nOnly reasoning', '\n</think>\n\n']);
+    });
+
     it('should handle API errors', async () => {
       setupFetchMock(mockFetchResponse({ error: 'Unauthorized' }, { ok: false, status: 401 }));
 

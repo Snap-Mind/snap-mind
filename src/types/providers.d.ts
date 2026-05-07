@@ -28,6 +28,11 @@ export interface AzureOpenAIConfig extends BaseProviderConfig {
   apiVersion: string;
 }
 
+export interface FoundryConfig extends BaseProviderConfig {
+  projectName: string;
+  entraScope: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional placeholder for future Anthropic-specific fields
 export interface AnthropicConfig extends BaseProviderConfig {}
 
@@ -61,6 +66,7 @@ export interface Provider {
 export type ProviderType =
   | 'openai'
   | 'azure-openai'
+  | 'foundry'
   | 'anthropic'
   | 'google'
   | 'deepseek'
@@ -91,6 +97,11 @@ export interface RequestBuilder {
 
   /** Build HTTP headers for chat requests. */
   buildChatHeaders(config: BaseProviderConfig, options?: ProviderOptions): Record<string, string>;
+  /** Optional async header builder for providers with dynamic credentials (e.g. Entra token). */
+  buildChatHeadersAsync?(
+    config: BaseProviderConfig,
+    options?: ProviderOptions
+  ): Promise<Record<string, string>>;
 
   /** Build the request body for chat completions. */
   buildChatBody(messages: Message[], options: ProviderOptions, config: BaseProviderConfig): any;

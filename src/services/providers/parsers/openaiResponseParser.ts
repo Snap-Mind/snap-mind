@@ -80,6 +80,12 @@ export function createOpenAIResponseParser(opts: OpenAIResponseParserOptions): R
         providerName
       );
 
+      if (inReasoning) {
+        const closeToken = '\n</think>\n\n';
+        if (typeof onToken === 'function') onToken(closeToken);
+        return result + closeToken;
+      }
+
       return result;
     },
 

@@ -13,10 +13,12 @@ import { anthropicRequestBuilder } from './adapters/anthropicRequestBuilder';
 import { googleRequestBuilder } from './adapters/googleRequestBuilder';
 import { ollamaRequestBuilder } from './adapters/ollamaRequestBuilder';
 import { azureRequestBuilder } from './adapters/azureRequestBuilder';
+import { foundryRequestBuilder } from './adapters/foundryRequestBuilder';
 import { createOpenAIResponseParser } from './parsers/openaiResponseParser';
 import { anthropicResponseParser } from './parsers/anthropicResponseParser';
 import { googleResponseParser } from './parsers/googleResponseParser';
 import { ollamaResponseParser } from './parsers/ollamaResponseParser';
+import { foundryResponseParser } from './parsers/foundryResponseParser';
 import { deriveV1ApiBase, deriveQwenApiBase } from './core/urlResolvers';
 import loggerService from '../LoggerService';
 
@@ -45,6 +47,8 @@ export const adapterMap: Record<ProviderType, ProviderAdapter> = {
       providerName: 'Azure OpenAI',
     })
   ),
+
+  foundry: composeAdapter(foundryRequestBuilder, foundryResponseParser),
 
   anthropic: composeAdapter(anthropicRequestBuilder, anthropicResponseParser),
 

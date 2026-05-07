@@ -8,6 +8,7 @@ import { Message } from '@/types/chat';
 import {
   mockFetchResponse,
   mockSSEResponse,
+  mockStreamingFetchResponse,
   setupFetchMock,
   setupFetchError,
 } from '../../../../test/utils/mockFetch';
@@ -242,6 +243,29 @@ describe('AnthropicProvider', () => {
 
       expect(result).toBe('Hello!');
       expect(result).not.toContain('<think>');
+    });
+
+    it('should close think block when thinking stream ends without stop event', async () => {
+      const messages: Message[] = [{ role: 'user', content: 'Think about this' }];
+      const tokens: string[] = [];
+      const onToken = vi.fn((token: string) => tokens.push(token));
+
+      setupFetchMock(
+        mockStreamingFetchResponse([
+          'data: {"type":"content_block_start","content_block":{"type":"thinking"}}\n\n',
+          'data: {"type":"content_block_delta","delta":{"type":"thinking_delta","thinking":"Let me think..."}}\n\n',
+          'data: [DONE]\n\n',
+        ])
+      );
+
+      const result = await provider.sendMessage(
+        messages,
+        { model: 'claude-3-opus-20240229', stream: true },
+        onToken
+      );
+
+      expect(result).toBe('<think>\nLet me think...\n</think>\n\n');
+      expect(tokens).toEqual(['<think>\n', 'Let me think...', '\n</think>\n\n']);
     });
 
     it('should handle API errors', async () => {

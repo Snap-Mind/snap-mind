@@ -5,6 +5,7 @@ import {
   LuEye,
   LuEyeOff,
   LuExternalLink,
+  LuInfo,
   LuGithub,
   LuHeart,
   LuTrash2,
@@ -53,6 +54,7 @@ type IconType =
   | 'external-link'
   | 'flame'
   | 'file-text'
+  | 'info'
   | 'github'
   | 'heart'
   | 'trash-2'
@@ -117,6 +119,8 @@ function Icon({
         return <LuEyeOff className={svgClassName} color={color} size={size} />;
       case 'external-link':
         return <LuExternalLink className={svgClassName} color={color} size={size} />;
+      case 'info':
+        return <LuInfo className={svgClassName} color={color} size={size} />;
       case 'github':
         return <LuGithub className={svgClassName} color={color} size={size} />;
       case 'heart':

@@ -191,9 +191,11 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const renderAvailableModels = () => {
     const isValidProvider = (provider: BaseProviderConfig) => {
       const ollamaType: ProviderType = 'ollama';
+      const foundryType: ProviderType = 'foundry';
       return (
         (provider.apiKey && provider.host && provider.models.length !== 0) ||
-        (provider.id === ollamaType && provider.host != null && provider.models.length !== 0)
+        (provider.id === ollamaType && provider.host != null && provider.models.length !== 0) ||
+        (provider.id === foundryType && provider.host != null && provider.models.length !== 0)
       );
     };
 

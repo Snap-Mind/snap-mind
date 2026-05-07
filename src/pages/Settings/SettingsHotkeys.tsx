@@ -65,7 +65,7 @@ function SettingsHotkeys({ hotkeys, onHotkeysChange }: SettingsHotkeysProps) {
       </div>
       <div className="body min-w-0 overflow-y-auto">
         <div className="flex items-center justify-center w-full">
-          <Alert description={description} title={title} />
+          <Alert hideIconWrapper description={description} title={title} />
         </div>
         {hotkeys.map((hotkey, index) => (
           <Card key={index} className="w-full my-5 border-1 border-gray-100" shadow="none">
