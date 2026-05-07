@@ -37,7 +37,7 @@ SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs*
   &nbsp;&nbsp;
   <img src="./resources/anthropic.svg" alt="Anthropic" />
   &nbsp;&nbsp;
-  <img src="./resources/azureai.svg" alt="Azure OpenAI" />
+  <img src="./resources/azureai.svg" alt="Azure (OpenAI / Foundry)" />
   &nbsp;&nbsp;
   <img src="./resources/gemini.svg" alt="Google Gemini" />
   &nbsp;&nbsp;
@@ -46,7 +46,7 @@ SnapMind is a desktop AI assistant that lets you **instantly interact with LLMs*
   <img src="./resources/qwen.svg" alt="Qwen" />
 </p>
 
-<p align="center"><sub>OpenAI · Anthropic · Azure OpenAI · Google Gemini · DeepSeek · Qwen</sub></p>
+<p align="center"><sub>OpenAI · Anthropic · Azure (OpenAI / Foundry) · Google Gemini · DeepSeek · Qwen</sub></p>
 
 ---
 
