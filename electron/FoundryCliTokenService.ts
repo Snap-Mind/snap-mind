@@ -13,6 +13,8 @@ interface AzTokenResponse {
 }
 
 const REFRESH_BUFFER_MS = 2 * 60 * 1000;
+const AZ_CLI_TIMEOUT_MS = 60 * 1000;
+const AZ_CLI_MAX_BUFFER_BYTES = 1024 * 1024;
 
 class FoundryCliTokenService {
   private cache = new Map<string, TokenCacheEntry>();
@@ -46,8 +48,26 @@ class FoundryCliTokenService {
       execFile(
         'az',
         ['account', 'get-access-token', '--scope', scope, '--output', 'json'],
+        {
+          timeout: AZ_CLI_TIMEOUT_MS,
+          maxBuffer: AZ_CLI_MAX_BUFFER_BYTES,
+        },
         (error, stdout, stderr) => {
           if (error) {
+            const isTimeoutError =
+              (error as NodeJS.ErrnoException).code === 'ETIMEDOUT' ||
+              /timed out/i.test(error.message || '');
+            if (isTimeoutError) {
+              reject(
+                new Error(
+                  `Azure CLI timed out after ${Math.floor(
+                    AZ_CLI_TIMEOUT_MS / 1000
+                  )} seconds. Check Azure CLI auth/config and try again.`
+                )
+              );
+              return;
+            }
+
             reject(
               new Error(stderr?.trim() || error.message || 'Azure CLI command failed unexpectedly.')
             );
