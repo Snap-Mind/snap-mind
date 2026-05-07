@@ -12,7 +12,7 @@ export const foundryResponseParser: ResponseParser = {
     let inReasoning = false;
     let inThinking = false;
 
-    return parseSSEStream(
+    const full = await parseSSEStream(
       res,
       (data) => {
         // Anthropic-style streaming (Claude in Foundry)
@@ -61,6 +61,23 @@ export const foundryResponseParser: ResponseParser = {
       onToken,
       'Azure AI Foundry'
     );
+
+    let closeToken = '';
+    if (inThinking) {
+      closeToken += '\n</think>\n\n';
+      inThinking = false;
+    }
+    if (inReasoning) {
+      closeToken += '\n</think>\n\n';
+      inReasoning = false;
+    }
+
+    if (closeToken) {
+      if (typeof onToken === 'function') onToken(closeToken);
+      return full + closeToken;
+    }
+
+    return full;
   },
 
   extractContentFromResponse(data: any): string {

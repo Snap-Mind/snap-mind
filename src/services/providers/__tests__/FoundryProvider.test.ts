@@ -251,4 +251,48 @@ describe('FoundryProvider', () => {
 
     expect(result).toBe('<think>\nlet me think\n</think>\n\ndone');
   });
+
+  it('closes think block when openai-style reasoning stream ends without content', async () => {
+    const tokens: string[] = [];
+    const onToken = vi.fn((token: string) => tokens.push(token));
+
+    (global.fetch as any).mockResolvedValueOnce(
+      mockStreamingFetchResponse([
+        'data: {"choices":[{"delta":{"reasoning_content":"step1"}}]}\n',
+        'data: {"choices":[{"delta":{"reasoning_content":" step2"}}]}\n',
+        'data: [DONE]\n',
+      ])
+    );
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'reason only' }],
+      { model: 'gpt-4.1', stream: true },
+      onToken
+    );
+
+    expect(result).toBe('<think>\nstep1 step2\n</think>\n\n');
+    expect(tokens).toEqual(['<think>\nstep1', ' step2', '\n</think>\n\n']);
+  });
+
+  it('closes think block when claude thinking stream ends without stop event', async () => {
+    const tokens: string[] = [];
+    const onToken = vi.fn((token: string) => tokens.push(token));
+
+    setupFetchMock(
+      mockStreamingFetchResponse([
+        'data: {"type":"content_block_start","content_block":{"type":"thinking"}}\n\n',
+        'data: {"type":"content_block_delta","delta":{"type":"thinking_delta","thinking":"let me think"}}\n\n',
+        'data: [DONE]\n\n',
+      ])
+    );
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'Think' }],
+      { model: 'claude-haiku-4-5', stream: true },
+      onToken
+    );
+
+    expect(result).toBe('<think>\nlet me think\n</think>\n\n');
+    expect(tokens).toEqual(['<think>\n', 'let me think', '\n</think>\n\n']);
+  });
 });
