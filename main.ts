@@ -14,6 +14,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import process from 'process';
 import { execFile } from 'child_process';
+import fixPath from 'fix-path';
 
 import TextSelectionService from './electron/TextSelectionService';
 import SettingsService from './electron/SettingsService';
@@ -27,6 +28,14 @@ import FoundryCliTokenService from './electron/FoundryCliTokenService';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const resourcesPath = isDev() ? path.join(__dirname, '..') : process.resourcesPath;
+
+// GUI-launched apps on macOS inherit a minimal PATH that omits Homebrew, the
+// Azure CLI, and other user-installed binaries. Restore the login shell PATH so
+// child processes (e.g. `az` for Foundry auth) resolve as they do in a terminal.
+if (process.platform === 'darwin' && app.isPackaged) {
+  fixPath();
+  logService.info(`PATH fixed for packaged macOS app: ${process.env.PATH}`);
+}
 
 // ---- SINGLE INSTANCE LOCK ----
 const gotTheLock = app.requestSingleInstanceLock();
