@@ -19,7 +19,7 @@ describe('FoundryCliTokenService', () => {
   });
 
   it('uses cached token when not near expiration', async () => {
-    execFileMock.mockImplementationOnce((_cmd: any, _args: any, callback: any) => {
+    execFileMock.mockImplementationOnce((_cmd: any, _args: any, _options: any, callback: any) => {
       callback(
         null,
         JSON.stringify({
@@ -28,6 +28,7 @@ describe('FoundryCliTokenService', () => {
         }),
         ''
       );
+      return {} as any;
     });
 
     const token1 = await service.getAccessToken('https://ai.azure.com/.default');
@@ -40,7 +41,7 @@ describe('FoundryCliTokenService', () => {
 
   it('refreshes token when cached token is about to expire', async () => {
     execFileMock
-      .mockImplementationOnce((_cmd: any, _args: any, callback: any) => {
+      .mockImplementationOnce((_cmd: any, _args: any, _options: any, callback: any) => {
         callback(
           null,
           JSON.stringify({
@@ -49,8 +50,9 @@ describe('FoundryCliTokenService', () => {
           }),
           ''
         );
+        return {} as any;
       })
-      .mockImplementationOnce((_cmd: any, _args: any, callback: any) => {
+      .mockImplementationOnce((_cmd: any, _args: any, _options: any, callback: any) => {
         callback(
           null,
           JSON.stringify({
@@ -59,6 +61,7 @@ describe('FoundryCliTokenService', () => {
           }),
           ''
         );
+        return {} as any;
       });
 
     const token1 = await service.getAccessToken('https://ai.azure.com/.default');
@@ -71,10 +74,11 @@ describe('FoundryCliTokenService', () => {
 
   it('retries once before surfacing final failure', async () => {
     execFileMock
-      .mockImplementationOnce((_cmd: any, _args: any, callback: any) => {
+      .mockImplementationOnce((_cmd: any, _args: any, _options: any, callback: any) => {
         callback(new Error('first attempt failed'), '', "Please run 'az login' to setup account.");
+        return {} as any;
       })
-      .mockImplementationOnce((_cmd: any, _args: any, callback: any) => {
+      .mockImplementationOnce((_cmd: any, _args: any, _options: any, callback: any) => {
         callback(
           null,
           JSON.stringify({
@@ -83,6 +87,7 @@ describe('FoundryCliTokenService', () => {
           }),
           ''
         );
+        return {} as any;
       });
 
     const token = await service.getAccessToken('https://ai.azure.com/.default');
