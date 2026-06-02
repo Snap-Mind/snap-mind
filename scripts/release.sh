@@ -1,7 +1,8 @@
 #!/usr/bin/env zsh
 #
-# usage: ./scripts/release.sh <version|patch|minor|major> <tag>
-# e.g.: ./scripts/release.sh patch v0.1.5
+# usage: ./scripts/release.sh <version|patch|minor|major>
+# e.g.: ./scripts/release.sh 0.1.0
+#        ./scripts/release.sh patch
 
 set -euo pipefail
 
@@ -9,18 +10,19 @@ ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT_DIR"
 
 usage() {
-  echo "Usage: $0 <version|patch|minor|major> <tag>"
-  echo "  <version|patch|minor|major>  - semver version (1.2.3) or bump keyword"
-  echo "  <tag>                       - annotated git tag to create, e.g. v1.2.3"
+  echo "Usage: $0 <version|patch|minor|major>"
+  echo "  version  - explicit semver (e.g. 0.1.0)"
+  echo "  patch/minor/major - bump keyword"
+  echo ""
+  echo "The git tag (v<version>) is generated automatically."
   exit 2
 }
 
-if [ "$#" -lt 2 ]; then
+if [ "$#" -lt 1 ]; then
   usage
 fi
 
 VERSION_ARG=$1
-TAG=$2
 
 echo "==> Checking working tree is clean"
 if [ -n "$(git status --porcelain)" ]; then
@@ -65,9 +67,12 @@ fi
 echo "==> Install to update package-lock.json"
 npm install
 
+RESOLVED_VERSION=$(node -p "require('./package.json').version")
+TAG="v${RESOLVED_VERSION}"
+
 echo "==> Commit package.json and package-lock.json"
 git add package.json package-lock.json || true
-git commit -m "chore(release): bump version to $(node -p "require('./package.json').version")"
+git commit -m "chore(release): bump version to $RESOLVED_VERSION"
 
 echo "==> Create annotated tag: $TAG"
 git tag -a "$TAG" -m "release $TAG"
