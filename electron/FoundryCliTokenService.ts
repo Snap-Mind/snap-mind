@@ -45,13 +45,19 @@ class FoundryCliTokenService {
 
   private fetchTokenFromAzureCli(scope: string): Promise<TokenCacheEntry> {
     return new Promise((resolve, reject) => {
+      // On Windows, `az` is a .cmd batch file that requires cmd.exe to execute.
+      // `shell: true` runs the command through cmd.exe so .cmd files are resolved.
+      const options = {
+        timeout: AZ_CLI_TIMEOUT_MS,
+        maxBuffer: AZ_CLI_MAX_BUFFER_BYTES,
+        shell: process.platform === 'win32',
+        windowsHide: true,
+      };
+
       execFile(
         'az',
         ['account', 'get-access-token', '--scope', scope, '--output', 'json'],
-        {
-          timeout: AZ_CLI_TIMEOUT_MS,
-          maxBuffer: AZ_CLI_MAX_BUFFER_BYTES,
-        },
+        options,
         (error, stdout, stderr) => {
           if (error) {
             const isTimeoutError =
