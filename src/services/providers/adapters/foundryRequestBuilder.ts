@@ -1,6 +1,7 @@
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, FoundryConfig, ProviderOptions, RequestBuilder } from '@/types/providers';
 import { deriveFoundryProjectApiBase, deriveFoundryResourceOrigin } from '../core/urlResolvers';
+import { getTextContent, toAnthropicContent, toOpenAIContent } from '../core/messageUtils';
 
 const DEFAULT_ENTRA_SCOPE = 'https://ai.azure.com/.default';
 const ANTHROPIC_API_VERSION = '2023-06-01';
@@ -106,12 +107,12 @@ export const foundryRequestBuilder: RequestBuilder = {
   buildChatBody(messages: Message[], options: ProviderOptions): any {
     if (isClaudeModel(options.model)) {
       let systemPrompt = '';
-      const anthropicMessages: { role: string; content: string }[] = [];
+      const anthropicMessages: { role: string; content: string | any[] }[] = [];
       for (const message of messages) {
         if (message.role === 'system') {
-          systemPrompt = message.content;
+          systemPrompt = getTextContent(message.content);
         } else {
-          anthropicMessages.push({ role: message.role, content: message.content });
+          anthropicMessages.push({ role: message.role, content: toAnthropicContent(message.content) });
         }
       }
 
@@ -151,10 +152,15 @@ export const foundryRequestBuilder: RequestBuilder = {
       return body;
     }
 
+    const mapped = messages.map((m) => ({
+      role: m.role,
+      content: toOpenAIContent(m.content),
+    }));
+
     if (options.reasoning) {
       const body: any = {
         model: options.model,
-        messages,
+        messages: mapped,
         max_completion_tokens: options.max_tokens,
         stream: options.stream !== undefined ? options.stream : true,
       };
@@ -166,7 +172,7 @@ export const foundryRequestBuilder: RequestBuilder = {
 
     const body: any = {
       model: options.model,
-      messages,
+      messages: mapped,
       stream: options.stream !== undefined ? options.stream : true,
     };
     if (requiresMaxCompletionTokens(options.model)) {

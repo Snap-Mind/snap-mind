@@ -8,6 +8,7 @@ import {
   LuInfo,
   LuGithub,
   LuHeart,
+  LuImage,
   LuTrash2,
   LuSquarePen,
   LuPlus,
@@ -57,6 +58,7 @@ type IconType =
   | 'info'
   | 'github'
   | 'heart'
+  | 'image'
   | 'trash-2'
   | 'square-pen'
   | 'square-dashed'
@@ -125,6 +127,8 @@ function Icon({
         return <LuGithub className={svgClassName} color={color} size={size} />;
       case 'heart':
         return <LuHeart className={svgClassName} color={color} size={size} />;
+      case 'image':
+        return <LuImage className={svgClassName} color={color} size={size} />;
       case 'trash-2':
         return <LuTrash2 className={svgClassName} color={color} size={size} />;
       case 'square-pen':

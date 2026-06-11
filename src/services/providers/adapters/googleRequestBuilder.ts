@@ -11,10 +11,11 @@ import { Message } from '@/types/chat';
 import { BaseProviderConfig, GoogleConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
 import { deriveGoogleApiBase } from '../core/urlResolvers';
+import { toGoogleParts, getTextContent } from '../core/messageUtils';
 
 interface GoogleMessage {
   role: string;
-  parts: Array<{ text: string }>;
+  parts: any[];
 }
 
 const GOOGLE_DEFAULT_ORIGIN = 'https://generativelanguage.googleapis.com';
@@ -51,11 +52,11 @@ export const googleRequestBuilder: RequestBuilder = {
 
     for (const message of messages) {
       if (message.role === 'system') {
-        systemPrompt = message.content;
+        systemPrompt = getTextContent(message.content);
       } else if (message.role === 'user') {
-        googleMessages.push({ role: 'user', parts: [{ text: message.content }] });
+        googleMessages.push({ role: 'user', parts: toGoogleParts(message.content) });
       } else if (message.role === 'assistant') {
-        googleMessages.push({ role: 'model', parts: [{ text: message.content }] });
+        googleMessages.push({ role: 'model', parts: toGoogleParts(message.content) });
       }
     }
 
@@ -63,8 +64,12 @@ export const googleRequestBuilder: RequestBuilder = {
     if (systemPrompt && googleMessages.length > 0) {
       for (let i = 0; i < googleMessages.length; i++) {
         if (googleMessages[i].role === 'user') {
-          const originalContent = googleMessages[i].parts[0].text;
-          googleMessages[i].parts[0].text = `${systemPrompt}\n\n${originalContent}`;
+          const firstPart = googleMessages[i].parts[0];
+          if (firstPart && 'text' in firstPart) {
+            firstPart.text = `${systemPrompt}\n\n${firstPart.text}`;
+          } else {
+            googleMessages[i].parts.unshift({ text: systemPrompt });
+          }
           break;
         }
       }

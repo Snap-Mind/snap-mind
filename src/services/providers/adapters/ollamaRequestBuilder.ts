@@ -10,6 +10,7 @@ import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
 import { deriveOllamaApiBase } from '../core/urlResolvers';
+import { toOllamaMessage } from '../core/messageUtils';
 
 const OLLAMA_DEFAULT_ORIGIN = 'http://localhost:11434';
 
@@ -55,7 +56,7 @@ export const ollamaRequestBuilder: RequestBuilder = {
 
     const body: any = {
       model: options?.model,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      messages: messages.map((m) => ({ role: m.role, ...toOllamaMessage(m.content) })),
       stream: options?.stream !== false,
     };
     const think = ollamaThinkFromReasoning(options?.reasoning, options?.model);

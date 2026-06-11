@@ -4,13 +4,31 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeHighlight from 'rehype-highlight';
 
-import { Message } from '@/types/chat';
+import { Message, ImageContentPart } from '@/types/chat';
 import ThinkingMessage from '@/components/ThinkingMessage';
 import MessageWebSources from '@/components/MessageWebSources';
 import { useChatMessage } from '@/hooks/useChatMessage';
 
 interface ChatMessageProps {
   message: Message;
+}
+
+function MessageImages({ content }: { content: Message['content'] }) {
+  if (typeof content === 'string') return null;
+  const images = content.filter((p): p is ImageContentPart => p.type === 'image');
+  if (images.length === 0) return null;
+  return (
+    <div className="flex flex-row flex-wrap gap-2 mb-1">
+      {images.map((img, i) => (
+        <img
+          key={i}
+          src={`data:${img.mimeType};base64,${img.data}`}
+          alt="Attached image"
+          className="max-w-[200px] max-h-[200px] rounded-lg object-cover"
+        />
+      ))}
+    </div>
+  );
 }
 
 export default function ChatMessage({ message }: ChatMessageProps) {
@@ -23,7 +41,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
   // Specific styles for each role
   const userBubbleClasses =
     'max-w-[80%] rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
-  const aiBubbleClasses = 'w-full markdown-body bg-background'; // Added markdown-body class for GitHub styling
+  const aiBubbleClasses = 'w-full markdown-body bg-background';
 
   return (
     <div
@@ -34,6 +52,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         className={`relative ${bubbleBaseClasses} ${isUser ? userBubbleClasses : aiBubbleClasses}`}
       >
         {!isUser && <ThinkingMessage thinking={thinking} isThinking={isThinking} />}
+        <MessageImages content={message.content} />
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}

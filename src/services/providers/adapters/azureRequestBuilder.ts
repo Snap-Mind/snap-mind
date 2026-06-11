@@ -7,6 +7,7 @@
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, AzureOpenAIConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
+import { toOpenAIContent } from '../core/messageUtils';
 
 export const azureRequestBuilder: RequestBuilder = {
   providerName: 'Azure OpenAI',
@@ -43,18 +44,23 @@ export const azureRequestBuilder: RequestBuilder = {
   },
 
   buildChatBody(messages: Message[], options: ProviderOptions): any {
+    const mapped = messages.map((m) => ({
+      role: m.role,
+      content: toOpenAIContent(m.content),
+    }));
+
     // Azure OpenAI: model is NOT in the body (it's in the URL)
     if (options.reasoning) {
       // Reasoning models: use max_completion_tokens, drop temperature/top_p
       return {
-        messages,
+        messages: mapped,
         max_completion_tokens: options.max_tokens,
         stream: options.stream !== undefined ? options.stream : true,
       };
     }
 
     return {
-      messages,
+      messages: mapped,
       max_tokens: options.max_tokens,
       stream: options.stream !== undefined ? options.stream : true,
       temperature: options.temperature,

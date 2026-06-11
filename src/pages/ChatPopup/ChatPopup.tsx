@@ -7,12 +7,35 @@ import { useSettings } from '../../hooks/useSettings';
 import { AIService } from '../../services/AIService';
 import ChatMessage from '../ChatMessage/ChatMessage';
 
-import { Message, ChatSource } from '@/types/chat';
+import { Message, ChatSource, ContentPart } from '@/types/chat';
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
 import ReasoningToggle from '@/components/ReasoningToggle';
 import WebSearchToggle from '@/components/WebSearchToggle';
 import { BaseProviderConfig, ProviderType } from '@/types/providers';
+
+interface ImageAttachment {
+  data: string;
+  mimeType: string;
+  name: string;
+}
+
+function readFileAsBase64(file: File): Promise<ImageAttachment> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(',')[1];
+      resolve({ data: base64, mimeType: file.type, name: file.name });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function isImageFile(file: File): boolean {
+  return file.type.startsWith('image/');
+}
 
 interface ChatPopupProps {
   initialMessage?: Message | Message[];
@@ -35,6 +58,9 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
   const [autoScroll, setAutoScroll] = useState(true);
   const [reasoningEnabled, setReasoningEnabled] = useState(settings.chat.reasoningEnabled ?? false);
   const [webSearchEnabled, setWebSearchEnabled] = useState(settings.chat.webSearchEnabled ?? false);
+  const [images, setImages] = useState<ImageAttachment[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync local state when settings change externally (e.g. from Settings page)
   useEffect(() => {
@@ -216,12 +242,87 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
       ));
   };
 
+  const addImages = useCallback(async (files: File[]) => {
+    const imageFiles = files.filter(isImageFile);
+    if (imageFiles.length === 0) return;
+    const newAttachments = await Promise.all(imageFiles.map(readFileAsBase64));
+    setImages((prev) => [...prev, ...newAttachments]);
+  }, []);
+
+  const removeImage = useCallback((index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      const imageFiles: File[] = [];
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) imageFiles.push(file);
+        }
+      }
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        addImages(imageFiles);
+      }
+    },
+    [addImages]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const files = Array.from(e.dataTransfer.files);
+      addImages(files);
+    },
+    [addImages]
+  );
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(e.target.files || []);
+      addImages(files);
+      e.target.value = '';
+    },
+    [addImages]
+  );
+
   const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    const userMsg: Message = { role: 'user', content: input };
+    if ((!input.trim() && images.length === 0) || loading) return;
+
+    let content: string | ContentPart[];
+    if (images.length > 0) {
+      const parts: ContentPart[] = [];
+      if (input.trim()) {
+        parts.push({ type: 'text', text: input });
+      }
+      for (const img of images) {
+        parts.push({ type: 'image', data: img.data, mimeType: img.mimeType });
+      }
+      content = parts;
+    } else {
+      content = input;
+    }
+
+    const userMsg: Message = { role: 'user', content };
 
     // First update state to add user message
     setInput('');
+    setImages([]);
     setMessages((msgs) => [...msgs, userMsg]);
 
     // Then call AI with the updated conversation history
@@ -292,7 +393,20 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               {loading && <ChatMessage message={{ role: 'assistant', content: '...' }} />}
               <div ref={chatEndRef} />
             </div>
-            <div className="flex flex-col p-3 bg-default-100 gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto]">
+            <div
+              className={`flex flex-col p-3 bg-default-100 gap-2 shadow-medium mb-3 rounded-2xl w-[calc(100%-var(--spacing)*6)] m-[0_auto] transition-colors ${isDragging ? 'ring-2 ring-primary bg-primary/10' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+              />
               <Textarea
                 className="flex-1"
                 classNames={{
@@ -306,9 +420,39 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 maxRows={5}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
                 ref={inputRef}
               />
+              {images.length > 0 && (
+                <div className="flex flex-row gap-2 overflow-x-auto py-1">
+                  {images.map((img, i) => (
+                    <div key={i} className="relative flex-shrink-0 group">
+                      <img
+                        src={`data:${img.mimeType};base64,${img.data}`}
+                        alt={img.name}
+                        className="w-16 h-16 object-cover rounded-lg border border-default-200"
+                      />
+                      <button
+                        className="absolute -top-1.5 -right-1.5 bg-danger text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeImage(i)}
+                        aria-label="Remove image"
+                      >
+                        <Icon icon="circle-x" size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex-shrink-0 flex flex-row justify-end gap-2 items-center">
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="sm"
+                  onPress={() => fileInputRef.current?.click()}
+                  aria-label="Attach image"
+                >
+                  <Icon icon="image" size={18} />
+                </Button>
                 <WebSearchToggle
                   aria-label={t('settings.chat.webSearch')}
                   isSelected={webSearchEnabled}
@@ -362,7 +506,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                     isIconOnly
                     color="primary"
                     onPress={handleSend}
-                    disabled={loading || !input.trim()}
+                    disabled={loading || (!input.trim() && images.length === 0)}
                     aria-label="Send message"
                   >
                     <Icon icon="arrow-up"></Icon>

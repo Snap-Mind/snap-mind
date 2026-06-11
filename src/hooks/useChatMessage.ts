@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { ContentPart } from '@/types/chat';
+import { getTextContent } from '@/services/providers/core/messageUtils';
 
 export interface ParsedChatMessage {
   thinking: string;
@@ -38,13 +40,17 @@ export function parseThinkingBlocks(content: string): ParsedChatMessage {
 }
 
 /**
- * Parse a chat message content string, splitting it into
+ * Parse a chat message content, splitting it into
  * thinking blocks (for reasoning models) and main content.
  */
-export function useChatMessage(content: string, isUser: boolean): ParsedChatMessage {
+export function useChatMessage(
+  content: string | ContentPart[],
+  isUser: boolean
+): ParsedChatMessage {
+  const text = typeof content === 'string' ? content : getTextContent(content);
   return useMemo(
     () =>
-      isUser ? { thinking: '', main: content, isThinking: false } : parseThinkingBlocks(content),
-    [content, isUser]
+      isUser ? { thinking: '', main: text, isThinking: false } : parseThinkingBlocks(text),
+    [text, isUser]
   );
 }
