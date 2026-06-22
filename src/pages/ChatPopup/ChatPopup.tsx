@@ -424,7 +424,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 ref={inputRef}
               />
               {images.length > 0 && (
-                <div className="flex flex-row gap-2 overflow-x-auto py-1">
+                <div className="flex flex-row gap-2 overflow-x-auto p-2">
                   {images.map((img, i) => (
                     <div key={i} className="relative flex-shrink-0 group">
                       <img
