@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { parseThinkingBlocks } from '../useChatMessage';
+import { renderHook } from '@testing-library/react';
+import { parseThinkingBlocks, useChatMessage } from '../useChatMessage';
+import { ContentPart } from '@/types/chat';
 
 describe('parseThinkingBlocks', () => {
   it('returns plain content when there are no <think> blocks', () => {
@@ -112,5 +114,46 @@ describe('parseThinkingBlocks', () => {
       expect(result.main).toBe('1234');
       expect(result.isThinking).toBe(false);
     });
+  });
+});
+
+describe('useChatMessage', () => {
+  it('returns plain text for a user string message', () => {
+    const { result } = renderHook(() => useChatMessage('hello world', true));
+    expect(result.current).toEqual({ thinking: '', main: 'hello world', isThinking: false });
+  });
+
+  it('parses thinking blocks for an assistant string message', () => {
+    const { result } = renderHook(() =>
+      useChatMessage('<think>reasoning</think>answer', false)
+    );
+    expect(result.current.thinking).toBe('reasoning');
+    expect(result.current.main).toBe('answer');
+  });
+
+  it('extracts text from ContentPart[] for a user message', () => {
+    const parts: ContentPart[] = [
+      { type: 'text', text: 'describe this' },
+      { type: 'image', data: 'base64data', mimeType: 'image/png' },
+    ];
+    const { result } = renderHook(() => useChatMessage(parts, true));
+    expect(result.current).toEqual({
+      thinking: '',
+      main: 'describe this',
+      isThinking: false,
+    });
+  });
+
+  it('extracts text from ContentPart[] for an assistant message and parses thinking', () => {
+    const parts: ContentPart[] = [{ type: 'text', text: '<think>step</think>result' }];
+    const { result } = renderHook(() => useChatMessage(parts, false));
+    expect(result.current.thinking).toBe('step');
+    expect(result.current.main).toBe('result');
+  });
+
+  it('returns empty main when ContentPart[] has only images', () => {
+    const parts: ContentPart[] = [{ type: 'image', data: 'abc', mimeType: 'image/jpeg' }];
+    const { result } = renderHook(() => useChatMessage(parts, true));
+    expect(result.current.main).toBe('');
   });
 });
