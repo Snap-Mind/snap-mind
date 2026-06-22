@@ -4,6 +4,7 @@
 import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
+import { toOpenAIContent } from '../core/messageUtils';
 
 export interface OpenAIRequestBuilderOptions {
   /** Human-readable name (e.g. "OpenAI", "DeepSeek"). */
@@ -52,6 +53,11 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
     },
 
     buildChatBody(messages: Message[], options: ProviderOptions): any {
+      const mapped = messages.map((m) => ({
+        role: m.role,
+        content: toOpenAIContent(m.content),
+      }));
+
       const applyOpenAIWebSearch = (body: any) => {
         // Chat Completions: web search requires search-capable models + web_search_options (OpenAI only).
         if (options.webSearch && providerName === 'OpenAI') {
@@ -70,7 +76,7 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
         // - Add reasoning_effort for OpenAI o-series models
         const body: any = {
           model: options.model,
-          messages,
+          messages: mapped,
           max_completion_tokens: options.max_tokens,
           stream: options.stream !== undefined ? options.stream : true,
         };
@@ -84,7 +90,7 @@ export function createOpenAIRequestBuilder(opts: OpenAIRequestBuilderOptions): R
 
       const body: any = {
         model: options.model,
-        messages,
+        messages: mapped,
         max_tokens: options.max_tokens,
         stream: options.stream !== undefined ? options.stream : true,
         temperature: options.temperature,

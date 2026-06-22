@@ -8,6 +8,7 @@ import { Message } from '@/types/chat';
 import { BaseProviderConfig, ProviderOptions } from '@/types/providers';
 import { RequestBuilder } from '@/types/providers';
 import { deriveV1ApiBase } from '../core/urlResolvers';
+import { getTextContent, toAnthropicContent } from '../core/messageUtils';
 
 const ANTHROPIC_DEFAULT_ORIGIN = 'https://api.anthropic.com';
 const ANTHROPIC_API_VERSION = '2023-06-01';
@@ -42,15 +43,15 @@ export const anthropicRequestBuilder: RequestBuilder = {
   buildChatBody(messages: Message[], options: ProviderOptions): any {
     // Separate system prompt from conversation messages
     let systemPrompt = '';
-    const anthropicMessages: { role: string; content: string }[] = [];
+    const anthropicMessages: { role: string; content: string | any[] }[] = [];
 
     for (const message of messages) {
       if (message.role === 'system') {
-        systemPrompt = message.content;
+        systemPrompt = getTextContent(message.content);
       } else {
         anthropicMessages.push({
           role: message.role,
-          content: message.content,
+          content: toAnthropicContent(message.content),
         });
       }
     }

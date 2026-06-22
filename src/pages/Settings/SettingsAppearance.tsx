@@ -24,7 +24,7 @@ function SettingsAppearance({ settings, onSettingsChange }: SettingsAppearancePr
         <h1 className="font-bold text-2xl">{t('settings.appearance.title')}</h1>
         <Divider className="my-4" />
       </div>
-      <div className="body min-w-0 overflow-y-auto">
+      <div className="body min-w-0 overflow-y-auto overflow-x-hidden">
         <label className="block text-sm font-medium mb-2">
           {t('settings.appearance.themeMode')}
         </label>
