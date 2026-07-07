@@ -6,6 +6,7 @@ import rehypeHighlight from 'rehype-highlight';
 
 import { Message, ImageContentPart } from '@/types/chat';
 import ThinkingMessage from '@/components/ThinkingMessage';
+import ErrorMessage from '@/components/ErrorMessage';
 import MessageWebSources from '@/components/MessageWebSources';
 import { useChatMessage } from '@/hooks/useChatMessage';
 
@@ -34,6 +35,10 @@ function MessageImages({ content }: { content: Message['content'] }) {
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
   const { thinking, main, isThinking } = useChatMessage(message.content, isUser);
+
+  if (message.role === 'error') {
+    return <ErrorMessage message={message} />;
+  }
 
   // Define role-based style classes
   const bubbleBaseClasses = 'p-[10px_14px] text-base leading-normal break-words transition-colors';

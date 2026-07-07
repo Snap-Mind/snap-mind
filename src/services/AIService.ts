@@ -116,9 +116,15 @@ export class AIService {
         ...(options?.onWebSources ? { onWebSources: options.onWebSources } : {}),
       };
 
+      // Filter out local-only messages (errors, aborted-notice system messages).
+      // These are display-only and should never be replayed to the LLM.
+      const cleanMessages = messages.filter(
+        (m) => m.role === 'user' || m.role === 'assistant'
+      );
+
       return {
         role: 'assistant',
-        content: await activeProvider.sendMessage(messages, providerOptions, onToken),
+        content: await activeProvider.sendMessage(cleanMessages, providerOptions, onToken),
       };
     } catch (err) {
       loggerService.error(`[renderer] ${this.providerSetting.id} error:`, err);

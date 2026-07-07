@@ -150,16 +150,34 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
           // Keep unfinished message, add a new message for abort
           setMessages((msgs) => [...msgs, { role: 'system', content: 'Response is aborted.' }]);
         } else {
-          setMessages((msgs) => [
-            ...msgs.slice(0, -1), // Remove the streaming message
-            { role: 'assistant', content: 'Error: Unable to get response.' },
-          ]);
+          const errorMessage = error instanceof Error ? error.message : String(error ?? '');
+          const hint = t(
+            'chat.errorHint',
+            'Check your API key, model, and network connection, then try again.'
+          );
+          const detail = errorMessage ? `${errorMessage}\n\n${hint}` : hint;
+          setMessages((msgs) => {
+            // Only remove the last message if it's the empty streaming placeholder.
+            // (If AIService constructor threw, the placeholder was never appended and
+            // slice(0, -1) would delete the user's message.)
+            const last = msgs[msgs.length - 1];
+            const isPlaceholder = last?.role === 'assistant' && last?.content === '';
+            const base = isPlaceholder ? msgs.slice(0, -1) : msgs;
+            return [
+              ...base,
+              {
+                role: 'error',
+                content: t('chat.errorHeadline', 'Failed to get response.'),
+                detail,
+              },
+            ];
+          });
         }
       } finally {
         setLoading(false);
       }
     },
-    [settings]
+    [settings, t]
   );
 
   useEffect(() => {
