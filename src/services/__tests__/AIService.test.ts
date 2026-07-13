@@ -62,7 +62,7 @@ describe('AIService.sendMessageToAI', () => {
     expect(sent.map((m) => m.content)).toEqual(['hi', 'hello', 'try again']);
   });
 
-  it('filters out role:"system" (abort-notice) messages before sending', async () => {
+  it('preserves role:"system" messages when sending', async () => {
     const service = new AIService(makeSettings());
     const messages: Message[] = [
       { role: 'user', content: 'do it' },
@@ -73,8 +73,7 @@ describe('AIService.sendMessageToAI', () => {
     await service.sendMessageToAI(messages, () => {});
 
     const sent = sendMessageSpy.mock.calls[0][0] as Message[];
-    expect(sent.every((m) => m.role !== 'system')).toBe(true);
-    expect(sent).toHaveLength(2);
+    expect(sent).toEqual(messages);
   });
 
   it('preserves user and assistant messages in order', async () => {
