@@ -14,15 +14,19 @@ import { toOllamaMessage } from '../core/messageUtils';
 
 const OLLAMA_DEFAULT_ORIGIN = 'http://localhost:11434';
 
-/** Ollama `/api/chat` `think` field — GPT-OSS ignores booleans; use a level. */
+/** Ollama `/api/chat` `think` field.
+ * Reasoning models (deepseek-r1, qwen3, …) think by default on Ollama unless
+ * `think` is explicitly set to `false`, so we always send the user's choice.
+ * GPT-OSS is a reasoning model at its core — it ignores `think: false` and keeps
+ * thinking; the best we can do when the user disables thinking is drop to the
+ * lowest reasoning effort. */
 function ollamaThinkFromReasoning(
   reasoning: boolean | undefined,
   model: string | undefined
-): boolean | 'low' | 'medium' | 'high' | undefined {
-  if (!reasoning) return undefined;
-  const id = (model || '').toLowerCase();
-  if (id.includes('gpt-oss')) return 'medium';
-  return true;
+): boolean | 'low' | 'medium' | 'high' {
+  const isGptOss = (model || '').toLowerCase().includes('gpt-oss');
+  if (!reasoning) return isGptOss ? 'low' : false;
+  return isGptOss ? 'medium' : true;
 }
 
 export const ollamaRequestBuilder: RequestBuilder = {
@@ -59,8 +63,7 @@ export const ollamaRequestBuilder: RequestBuilder = {
       messages: messages.map((m) => ({ role: m.role, ...toOllamaMessage(m.content) })),
       stream: options?.stream !== false,
     };
-    const think = ollamaThinkFromReasoning(options?.reasoning, options?.model);
-    if (think !== undefined) body.think = think;
+    body.think = ollamaThinkFromReasoning(options?.reasoning, options?.model);
     if (Object.keys(runtimeOptions).length > 0) body.options = runtimeOptions;
     return body;
   },
