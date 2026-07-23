@@ -127,7 +127,9 @@
     "sendMessage": "傳送訊息...",
     "thinking": "思考過程",
     "thought": "思考過程",
-    "sources": "來源"
+    "sources": "來源",
+    "errorHeadline": "獲取回應失敗。",
+    "errorHint": "請檢查 API 金鑰、模型和網路連線後重試。"
   },
   "common": {
     "brand": "SnapMind",

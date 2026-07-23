@@ -17,7 +17,8 @@ export type ImageContentPart = {
 export type ContentPart = TextContentPart | ImageContentPart;
 
 export type Message = {
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'error';
   content: string | ContentPart[];
   sources?: ChatSource[];
+  detail?: string;
 };

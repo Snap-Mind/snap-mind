@@ -231,7 +231,7 @@ describe('OllamaProvider', () => {
       expect(body.think).toBe('medium');
     });
 
-    it('should omit think when reasoning is disabled', async () => {
+    it('should set think: false when reasoning is disabled so thinking models stop thinking', async () => {
       setupFetchMock(
         mockFetchResponse({
           message: { content: 'Response' },
@@ -240,13 +240,31 @@ describe('OllamaProvider', () => {
       );
 
       await provider.sendMessage(messages, {
-        model: 'llama2',
+        model: 'deepseek-r1',
         stream: false,
         reasoning: false,
       });
 
       const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
-      expect(body.think).toBeUndefined();
+      expect(body.think).toBe(false);
+    });
+
+    it('should use think: low for gpt-oss when reasoning is disabled (gpt-oss ignores think: false)', async () => {
+      setupFetchMock(
+        mockFetchResponse({
+          message: { content: 'Response' },
+          done: true,
+        })
+      );
+
+      await provider.sendMessage(messages, {
+        model: 'gpt-oss:120b-cloud',
+        stream: false,
+        reasoning: false,
+      });
+
+      const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
+      expect(body.think).toBe('low');
     });
 
     it('should stream thinking then content into think tags', async () => {

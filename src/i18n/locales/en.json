@@ -127,7 +127,9 @@
     "sendMessage": "Send a message...",
     "thinking": "Thinking",
     "thought": "Thought",
-    "sources": "Sources"
+    "sources": "Sources",
+    "errorHeadline": "Failed to get response.",
+    "errorHint": "Check your API key, model, and network connection, then try again."
   },
   "common": {
     "brand": "SnapMind",

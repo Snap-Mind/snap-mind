@@ -116,9 +116,12 @@ export class AIService {
         ...(options?.onWebSources ? { onWebSources: options.onWebSources } : {}),
       };
 
+      // Error messages are display-only and should never be replayed to the LLM.
+      const cleanMessages = messages.filter((m) => m.role !== 'error');
+
       return {
         role: 'assistant',
-        content: await activeProvider.sendMessage(messages, providerOptions, onToken),
+        content: await activeProvider.sendMessage(cleanMessages, providerOptions, onToken),
       };
     } catch (err) {
       loggerService.error(`[renderer] ${this.providerSetting.id} error:`, err);
