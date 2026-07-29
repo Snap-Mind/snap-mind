@@ -55,7 +55,8 @@ describe('CopyMessageButton', () => {
       vi.advanceTimersByTime(1500);
     });
 
-    expect(screen.getByRole('button', { name: /copy/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Copied$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Copy$/i })).toBeInTheDocument();
   });
 
   it('keeps copy label when clipboard write fails', async () => {

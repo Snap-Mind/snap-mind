@@ -48,7 +48,7 @@ export default function ChatMessage({ message, isStreaming = false }: ChatMessag
 
   // Specific styles for each role
   const userBubbleClasses =
-    'max-w-[80%] rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
+    'rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
   const aiBubbleClasses = 'w-full markdown-body bg-background';
 
   const showActions =
@@ -63,7 +63,7 @@ export default function ChatMessage({ message, isStreaming = false }: ChatMessag
       className={`flex flex-row mb-0.5 ${isUser ? 'justify-end' : 'justify-start'}`}
       aria-label={`${isUser ? 'User' : 'Assistant'} message`}
     >
-      <div className={`flex flex-col ${isUser ? '' : 'w-full'}`}>
+      <div className={`flex flex-col ${isUser ? 'max-w-[80%] items-end' : 'w-full'}`}>
         <div
           className={`relative ${bubbleBaseClasses} ${isUser ? userBubbleClasses : aiBubbleClasses}`}
         >

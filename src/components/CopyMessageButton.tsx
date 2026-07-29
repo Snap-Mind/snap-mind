@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,19 +14,25 @@ const COPIED_RESET_MS = 1500;
 export default function CopyMessageButton({ text }: CopyMessageButtonProps) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!copied) return;
-    const id = window.setTimeout(() => setCopied(false), COPIED_RESET_MS);
-    return () => window.clearTimeout(id);
-  }, [copied]);
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
+  }, []);
 
   if (!text.trim()) return null;
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
       setCopied(true);
+      resetTimerRef.current = setTimeout(() => {
+        setCopied(false);
+        resetTimerRef.current = null;
+      }, COPIED_RESET_MS);
     } catch (error) {
       loggerService.warn('[CopyMessageButton] Failed to copy message', error);
       setCopied(false);
