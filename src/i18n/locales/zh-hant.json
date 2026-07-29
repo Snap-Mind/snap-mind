@@ -125,6 +125,8 @@
   "chat": {
     "send": "傳送",
     "sendMessage": "傳送訊息...",
+    "copy": "複製",
+    "copied": "已複製",
     "thinking": "思考過程",
     "thought": "思考過程",
     "sources": "來源",
