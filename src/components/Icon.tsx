@@ -15,6 +15,7 @@ import {
   LuSquare,
   LuCircleCheckBig,
   LuCircleX,
+  LuCopy,
   LuCog,
   LuFlame,
   LuSquareDashed,
@@ -50,6 +51,7 @@ type IconType =
   | 'bot'
   | 'bug'
   | 'cog'
+  | 'copy'
   | 'eye'
   | 'eye-off'
   | 'external-link'
@@ -145,6 +147,8 @@ function Icon({
         return <LuBot className={svgClassName} color={color} size={size} />;
       case 'cog':
         return <LuCog className={svgClassName} color={color} size={size} />;
+      case 'copy':
+        return <LuCopy className={svgClassName} color={color} size={size} />;
       case 'flame':
         return <LuFlame className={svgClassName} color={color} size={size} />;
       case 'square-dashed':
