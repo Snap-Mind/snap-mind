@@ -406,9 +406,15 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
               aria-label="Chat messages"
             >
               {messages.map((msg, i) => (
-                <ChatMessage key={i} message={msg} />
+                <ChatMessage
+                  key={i}
+                  message={msg}
+                  isStreaming={loading && i === messages.length - 1 && msg.role === 'assistant'}
+                />
               ))}
-              {loading && <ChatMessage message={{ role: 'assistant', content: '...' }} />}
+              {loading && (
+                <ChatMessage message={{ role: 'assistant', content: '...' }} isStreaming />
+              )}
               <div ref={chatEndRef} />
             </div>
             <div
