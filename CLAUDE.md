@@ -18,7 +18,7 @@ npm run build:prod          # macOS production build via ./build.sh (electron-bu
 npm run build:win-prod      # Windows production build via build.cmd
 npm run lint                # eslint .
 npm run format              # prettier --write
-npm test                    # vitest (watch). Use `npm run test:run` for one-shot, `test:coverage` for coverage.
+npm test                    # vitest run (one-shot). Use `npm run test:watch` for watch mode, `test:coverage` for coverage.
 npx vitest run path/to/file.test.ts          # run a single test file
 npx vitest run -t "test name substring"      # run by test name
 ```
