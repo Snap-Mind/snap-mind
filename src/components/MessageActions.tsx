@@ -10,7 +10,7 @@ export default function MessageActions({ children, className = '' }: MessageActi
     <div
       role="toolbar"
       aria-label="Message actions"
-      className={`flex flex-row items-center gap-0.5 mt-1 ${className}`.trim()}
+      className={`p-[0_14px] flex flex-row items-center gap-0.5 mt-1 ${className}`.trim()}
     >
       {children}
     </div>
