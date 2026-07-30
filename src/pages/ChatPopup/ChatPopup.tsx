@@ -377,6 +377,10 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
 
   const selectedModelKey = getSelectedModelKey();
 
+  // Last assistant message is in-flight while a response is loading.
+  const streamingMessageIndex =
+    loading && messages.at(-1)?.role === 'assistant' ? messages.length - 1 : -1;
+
   // // Set window title
   // useEffect(() => {
   //   setWindowTitle(WINDOW_TITLES.CHAT);
@@ -409,7 +413,7 @@ export default function ChatPopup({ initialMessage }: ChatPopupProps) {
                 <ChatMessage
                   key={i}
                   message={msg}
-                  isStreaming={loading && i === messages.length - 1 && msg.role === 'assistant'}
+                  isStreaming={i === streamingMessageIndex}
                 />
               ))}
               {loading && (
