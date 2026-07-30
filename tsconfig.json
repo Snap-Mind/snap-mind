@@ -21,6 +21,6 @@
     "types": ["@testing-library/jest-dom"]
   },
   "include": ["src"],
-  "exclude": ["dist-electron"],
+  "exclude": ["dist-electron", "**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],
   "references": [{ "path": "./tsconfig.main.json" }, { "path": "./tsconfig.preload.json" }]
 }

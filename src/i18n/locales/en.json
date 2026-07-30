@@ -125,6 +125,8 @@
   "chat": {
     "send": "Send",
     "sendMessage": "Send a message...",
+    "copy": "Copy",
+    "copied": "Copied",
     "thinking": "Thinking",
     "thought": "Thought",
     "sources": "Sources",

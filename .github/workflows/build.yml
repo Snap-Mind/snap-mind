@@ -25,10 +25,10 @@ jobs:
       APPLE_TEAM_ID: ${{ secrets.SNAPMIND_APPLE_TEAM_ID }}
       NOTARIZE: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: 'npm'
@@ -65,7 +65,7 @@ jobs:
         run: ls -la build || true
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: macos-artifacts-${{ matrix.arch }}
           path: |
@@ -79,16 +79,16 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: 'npm'
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -108,7 +108,7 @@ jobs:
         run: Get-ChildItem -Path build | Format-Table Name, Length
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-artifacts
           path: |
@@ -126,13 +126,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository (for merge script)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
 
       - name: Setup Node.js (for merging manifests)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24
 
@@ -146,7 +146,7 @@ jobs:
             --out combined/latest-mac.yml
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             macos-artifacts-*/**/*

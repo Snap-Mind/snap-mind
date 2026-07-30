@@ -8,10 +8,13 @@ import { Message, ImageContentPart } from '@/types/chat';
 import ThinkingMessage from '@/components/ThinkingMessage';
 import ErrorMessage from '@/components/ErrorMessage';
 import MessageWebSources from '@/components/MessageWebSources';
+import MessageActions from '@/components/MessageActions';
+import CopyMessageButton from '@/components/CopyMessageButton';
 import { useChatMessage } from '@/hooks/useChatMessage';
 
 interface ChatMessageProps {
   message: Message;
+  isStreaming?: boolean;
 }
 
 function MessageImages({ content }: { content: Message['content'] }) {
@@ -32,7 +35,7 @@ function MessageImages({ content }: { content: Message['content'] }) {
   );
 }
 
-export default function ChatMessage({ message }: ChatMessageProps) {
+export default function ChatMessage({ message, isStreaming = false }: ChatMessageProps) {
   const isUser = message.role === 'user';
   const { thinking, main, isThinking } = useChatMessage(message.content, isUser);
 
@@ -45,27 +48,41 @@ export default function ChatMessage({ message }: ChatMessageProps) {
 
   // Specific styles for each role
   const userBubbleClasses =
-    'max-w-[80%] rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
+    'rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
   const aiBubbleClasses = 'w-full markdown-body bg-background';
+
+  const showActions =
+    !isUser &&
+    message.role === 'assistant' &&
+    !isStreaming &&
+    main.trim().length > 0 &&
+    main !== '...';
 
   return (
     <div
       className={`flex flex-row mb-0.5 ${isUser ? 'justify-end' : 'justify-start'}`}
       aria-label={`${isUser ? 'User' : 'Assistant'} message`}
     >
-      <div
-        className={`relative ${bubbleBaseClasses} ${isUser ? userBubbleClasses : aiBubbleClasses}`}
-      >
-        {!isUser && <ThinkingMessage thinking={thinking} isThinking={isThinking} />}
-        <MessageImages content={message.content} />
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+      <div className={`flex flex-col ${isUser ? 'max-w-[80%] items-end' : 'w-full'}`}>
+        <div
+          className={`relative ${bubbleBaseClasses} ${isUser ? userBubbleClasses : aiBubbleClasses}`}
         >
-          {main}
-        </ReactMarkdown>
-        {!isUser && message.sources && message.sources.length > 0 && (
-          <MessageWebSources sources={message.sources} />
+          {!isUser && <ThinkingMessage thinking={thinking} isThinking={isThinking} />}
+          <MessageImages content={message.content} />
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
+          >
+            {main}
+          </ReactMarkdown>
+          {!isUser && message.sources && message.sources.length > 0 && (
+            <MessageWebSources sources={message.sources} />
+          )}
+        </div>
+        {showActions && (
+          <MessageActions>
+            <CopyMessageButton text={main} />
+          </MessageActions>
         )}
       </div>
     </div>

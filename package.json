@@ -1,7 +1,7 @@
 {
   "name": "SnapMind",
   "private": true,
-  "version": "0.5.4",
+  "version": "0.5.5-beta.2",
   "description": "A quick prompt launcher.",
   "author": "Louis Liu",
   "license": "Apache-2.0",
@@ -28,9 +28,9 @@
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "release:publish": "electron-builder --publish always",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {

@@ -1,0 +1,56 @@
+import { useEffect, useRef, useState } from 'react';
+import { Button } from '@heroui/react';
+import { useTranslation } from 'react-i18next';
+
+import Icon from '@/components/Icon';
+import loggerService from '@/services/LoggerService';
+
+interface CopyMessageButtonProps {
+  text: string;
+}
+
+const COPIED_RESET_MS = 1500;
+
+export default function CopyMessageButton({ text }: CopyMessageButtonProps) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
+  }, []);
+
+  if (!text.trim()) return null;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      setCopied(true);
+      resetTimerRef.current = setTimeout(() => {
+        setCopied(false);
+        resetTimerRef.current = null;
+      }, COPIED_RESET_MS);
+    } catch (error) {
+      loggerService.warn('[CopyMessageButton] Failed to copy message', error);
+      setCopied(false);
+    }
+  };
+
+  const label = copied ? t('chat.copied', 'Copied') : t('chat.copy', 'Copy');
+
+  return (
+    <Button
+      isIconOnly
+      variant="light"
+      size="sm"
+      onPress={handleCopy}
+      aria-label={label}
+      className="min-w-7 w-7 h-7 text-default-500 data-[hover=true]:text-foreground"
+    >
+      <Icon icon={copied ? 'circle-check-big' : 'copy'} size={16} />
+    </Button>
+  );
+}
