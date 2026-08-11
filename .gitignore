@@ -46,3 +46,6 @@ settings.json
 # Test coverage
 coverage/
 .vitest/
+
+# Superpowers brainstorming companion (mockups + session state)
+.superpowers/
