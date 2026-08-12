@@ -1,8 +1,6 @@
 import { useEffect, useCallback, useState, useMemo } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router';
-import { Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
-import Icon from '../../components/Icon';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useLogService } from '../../hooks/useLogService';
 import type { SettingsChangeHandler, HotkeysChangeHandler } from '@/types';
@@ -34,7 +32,6 @@ function Settings() {
   }, [location.pathname, categories]);
 
   const [activeCategory, setActiveCategory] = useState(getCurrentCategory());
-  const [isCategoryCollapsed, setIsCategoryCollapsed] = useState(false);
   const settings = useSettingsStore((s) => s.settings);
   const hotkeys = useSettingsStore((s) => s.hotkeys);
   const permissions = useSettingsStore((s) => s.permissions);
@@ -81,35 +78,14 @@ function Settings() {
     return activeCategory.id === 'models' ? '' : 'px-3 py-3';
   }, [activeCategory]);
 
-  const sidebarWidthStyle = useMemo(() => {
-    return isCategoryCollapsed
-      ? 'grid-cols-[68px_minmax(0,1fr)]'
-      : 'grid-cols-[230px_minmax(0,1fr)]';
-  }, [isCategoryCollapsed]);
-
   return (
-    <div
-      className={`setting-container grid w-full min-w-0 ${sidebarWidthStyle} grid-rows-[auto_1fr] h-[100vh] overflow-hidden transition-all duration-200 ease-in-out`}
-    >
-      <div className="col-span-2 flex items-center border-b border-default-100 px-2 py-1.5">
-        <Button
-          isIconOnly
-          variant="light"
-          size="sm"
-          onPress={() => navigate('/chat')}
-          aria-label="Back to chat"
-        >
-          <Icon icon="arrow-left" size={16} />
-        </Button>
-        <span className="ml-2 text-sm font-medium text-default-700">Settings</span>
-      </div>
+    <div className="setting-container grid w-full min-w-0 grid-cols-[230px_minmax(0,1fr)] h-[100vh] overflow-hidden">
       <div className="setting-category bg-background min-w-0 px-3 py-3 border-r-1 border-default">
         <SettingsCategory
           categories={categories}
           activeCategory={activeCategory}
           onCategoryChange={onCategoryChange}
-          isCollapsed={isCategoryCollapsed}
-          onToggleCollapse={() => setIsCategoryCollapsed((prev) => !prev)}
+          onBack={() => navigate('/chat')}
         />
       </div>
       <div className={`setting-details bg-background min-w-0 ${settingDetailsStyle}`}>
