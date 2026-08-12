@@ -1,8 +1,9 @@
 import { useEffect, useCallback, useState, useMemo } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useSettings } from '../../hooks/useSettings';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useLogService } from '../../hooks/useLogService';
+import type { SettingsChangeHandler, HotkeysChangeHandler } from '@/types';
 
 import SettingsCategory from './SettingsCategory';
 import SettingsGeneral from './SettingsGeneral';
@@ -32,7 +33,27 @@ function Settings() {
 
   const [activeCategory, setActiveCategory] = useState(getCurrentCategory());
   const [isCategoryCollapsed, setIsCategoryCollapsed] = useState(false);
-  const { settings, hotkeys, permissions, setSettings, setHotkeys } = useSettings();
+  const settings = useSettingsStore((s) => s.settings);
+  const hotkeys = useSettingsStore((s) => s.hotkeys);
+  const permissions = useSettingsStore((s) => s.permissions);
+  const updateSetting = useSettingsStore((s) => s.updateSetting);
+  const updateHotkey = useSettingsStore((s) => s.updateHotkey);
+
+  const setSettings = useCallback<SettingsChangeHandler>(
+    async (path, value) => {
+      await updateSetting(path, value);
+      return useSettingsStore.getState().settings;
+    },
+    [updateSetting]
+  );
+
+  const setHotkeys = useCallback<HotkeysChangeHandler>(
+    async (path, value) => {
+      await updateHotkey(path, value);
+      return useSettingsStore.getState().hotkeys;
+    },
+    [updateHotkey]
+  );
 
   const logger = useLogService();
   const navigate = useNavigate();
