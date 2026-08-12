@@ -7,7 +7,6 @@ import {
   Menu,
   nativeImage,
   nativeTheme,
-  screen,
   shell,
 } from 'electron';
 import path from 'path';
@@ -218,30 +217,6 @@ export function runSelectionHelper(prompt: string): Promise<{ text?: string; pro
   });
 }
 
-function getPopupPosition() {
-  // Get screen dimensions
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { width, height } = primaryDisplay.workAreaSize;
-
-  return {
-    x: Math.floor(width / 2) - 250,
-    y: Math.floor(height / 2) - 350,
-  };
-}
-
-function showChatPopup(_position, initialMessages) {
-  showMainWindow();
-  const win = mainWindow;
-  if (!win) return;
-
-  if (initialMessages != null) {
-    win.handleChatPopupReady = () => {
-      win.webContents.send('chat-popup:init-message', initialMessages);
-      win.handleChatPopupReady = null;
-    };
-  }
-}
-
 function listenToSystemAccessibilityPermissionChange() {
   if (process.platform !== 'darwin') return;
   // Helper to broadcast permission change to all windows
@@ -283,22 +258,6 @@ function listenToSystemAccessibilityPermissionChange() {
     );
   }
 }
-
-// IPC for chat popup
-ipcMain.on('chat-popup:show', (event, { position }) => {
-  showChatPopup(position, []);
-});
-ipcMain.on('chat-popup:send-message', (event, channel, payload) => {
-  if (mainWindow) mainWindow.webContents.send(channel, payload);
-});
-ipcMain.on('chat-popup:ready', () => {
-  if (mainWindow && mainWindow.handleChatPopupReady != null) {
-    mainWindow.handleChatPopupReady();
-  }
-});
-ipcMain.on('chat-popup:close', () => {
-  hideMainWindow();
-});
 
 ipcMain.on('window:hide', () => {
   const win = mainWindow;

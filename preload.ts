@@ -1,20 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  // Chat popup events
-  showChatPopup: (position) => ipcRenderer.send('chat-popup:show', { position }),
-  onInitMessage: (callback) => {
-    ipcRenderer.removeAllListeners('chat-popup:init-message');
-    ipcRenderer.on('chat-popup:init-message', (_event, message) => callback(message));
-  },
-  sendToChatPopup: (channel, payload) => {
-    ipcRenderer.send('chat-popup:send-message', channel, payload);
-  },
-  chatPopupReady: () => ipcRenderer.send('chat-popup:ready'),
-  onChatPopupReady: (callback) => ipcRenderer.on('chat-popup:ready', callback),
-  offChatPopupReady: () => ipcRenderer.removeAllListeners('chat-popup:ready'),
-  closeChatPopup: () => ipcRenderer.send('chat-popup:close'),
-
   // Hotkey management
   getHotkeys: () => ipcRenderer.invoke('hotkeys:get'),
   updateHotkeys: (newHotkeys) => ipcRenderer.invoke('hotkeys:update', newHotkeys),
@@ -63,8 +49,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getOpenAtLogin: () => ipcRenderer.invoke('app:get-open-at-login'),
   setOpenAtLogin: (enabled) => ipcRenderer.invoke('app:set-open-at-login', enabled),
 
-  // Namespaced chat control channels (Phase 1 v0.6). Old chat-popup:* stay
-  // alongside until Task 12 prunes them.
   chat: {
     onResetWithSeed: (callback: (seed: { text?: string; prompt?: string }) => void) => {
       ipcRenderer.removeAllListeners('chat:reset-with-seed');

@@ -22,16 +22,6 @@ export interface NativeThemeState {
 }
 
 interface ElectronAPI {
-  // Chat popup events
-  showChatPopup: (position: { x: number; y: number }) => void;
-  onInitMessage: (callback: (message: any) => void) => void;
-  sendToChatPopup: (channel: string, payload: any) => void;
-  chatPopupReady: () => void;
-  onChatPopupReady: (callback: () => void) => void;
-  offChatPopupReady: () => void;
-  closeChatPopup: () => void;
-
-  // Namespaced chat control channels (Phase 1 v0.6)
   chat?: {
     onResetWithSeed: (callback: (seed: { text?: string; prompt?: string }) => void) => void;
     offResetWithSeed: () => void;
