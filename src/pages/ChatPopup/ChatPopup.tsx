@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button, Select, SelectSection, SelectItem, Textarea } from '@heroui/react';
 
 import { useSettingsStore } from '@/stores/useSettingsStore';
@@ -198,22 +197,10 @@ export default function ChatPopup() {
 
   return (
     <div className="w-full h-full">
-      <AnimatePresence>
-        <motion.div
-          className="bg-black/40"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          aria-hidden="true"
-        >
-          <motion.div
-            className="bg-background w-full h-screen shadow-2xl flex flex-col overflow-hidden"
-            initial={{ scale: 0.8, y: 100 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.8, y: 100 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            aria-label="Chat conversation"
-          >
+      <div
+        className="bg-background w-full h-screen shadow-2xl flex flex-col overflow-hidden"
+        aria-label="Chat conversation"
+      >
             <div className="flex items-center justify-between px-3 py-2 border-b border-default-100">
               <div className="text-sm font-medium text-default-700 select-none">SnapMind</div>
               <Button
@@ -356,9 +343,7 @@ export default function ChatPopup() {
                 )}
               </div>
             </div>
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
+      </div>
     </div>
   );
 }
