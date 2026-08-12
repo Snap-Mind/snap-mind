@@ -35,7 +35,6 @@ export default function ChatPopup() {
   const removeImage = useChatStore((s) => s.removeImage);
   const send = useChatStore((s) => s.send);
   const abort = useChatStore((s) => s.abort);
-  const resetWithSeed = useChatStore((s) => s.resetWithSeed);
 
   const providers = useSettingsStore((s) => s.settings?.providers ?? []);
 
@@ -49,29 +48,10 @@ export default function ChatPopup() {
     inputRef.current?.focus();
   }, []);
 
-  // Temporary bridge to the old chat-popup:ready / onInitMessage wiring.
-  // Task 12 removes this once main emits chat:reset-with-seed via preload.
-  useEffect(() => {
-    if (window.electronAPI?.chatPopupReady && window.electronAPI?.onInitMessage) {
-      window.electronAPI.chatPopupReady();
-      window.electronAPI.onInitMessage((msgArr: any) => {
-        const initial = Array.isArray(msgArr) ? msgArr : [msgArr];
-        const system = initial.find((m: any) => m?.role === 'system');
-        const user = initial.find((m: any) => m?.role === 'user');
-        if (system && user) {
-          void resetWithSeed({
-            prompt: typeof system.content === 'string' ? system.content : '',
-            text: typeof user.content === 'string' ? user.content : '',
-          });
-        }
-      });
-    }
-  }, [resetWithSeed]);
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        window.electronAPI?.closeChatPopup?.();
+        window.electronAPI?.window?.hide?.();
       }
     };
     window.addEventListener('keydown', onKey);
