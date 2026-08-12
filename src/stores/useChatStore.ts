@@ -184,6 +184,13 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
       currentProviderId: s?.chat?.defaultProvider ?? null,
       currentModelId: s?.chat?.defaultModel ?? null,
     });
+
+    window.electronAPI?.chat?.onResetWithSeed?.((seed) => {
+      void useChatStore.getState().resetWithSeed(seed ?? {});
+    });
+    window.electronAPI?.chat?.onAbort?.(() => {
+      useChatStore.getState().abort();
+    });
   },
 
   abort: () => {

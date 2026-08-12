@@ -31,6 +31,21 @@ interface ElectronAPI {
   offChatPopupReady: () => void;
   closeChatPopup: () => void;
 
+  // Namespaced chat control channels (Phase 1 v0.6)
+  chat?: {
+    onResetWithSeed: (callback: (seed: { text?: string; prompt?: string }) => void) => void;
+    offResetWithSeed: () => void;
+    onAbort: (callback: () => void) => void;
+    offAbort: () => void;
+  };
+  window?: {
+    hide: () => void;
+  };
+  nav?: {
+    onGo: (callback: (path: string) => void) => void;
+    offGo: () => void;
+  };
+
   // Hotkey management
   getHotkeys: () => Promise<any[]>;
   updateHotkeys: (newHotkeys: Hotkey[]) => Promise<{ hotkeys: Hotkey[]; success: boolean }>;

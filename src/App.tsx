@@ -20,6 +20,13 @@ function App() {
     };
   }, [setTheme]);
 
+  useEffect(() => {
+    window.electronAPI?.nav?.onGo?.((path) => {
+      navigate(path);
+    });
+    return () => window.electronAPI?.nav?.offGo?.();
+  }, [navigate]);
+
   // const toggleTheme = () => {
   //   setTheme(theme === 'light' ? 'dark' : 'light');
   // };
