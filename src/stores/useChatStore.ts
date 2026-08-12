@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { StoreApi } from 'zustand';
 import type { Message, ChatSource, ContentPart } from '@/types/chat';
 import { AIService } from '@/services/AIService';
 import { useSettingsStore } from './useSettingsStore';
@@ -39,6 +40,8 @@ export interface ChatStoreState extends ChatInternalState {
   hydrateFromSettings(): void;
 }
 
+type ChatSet = StoreApi<ChatStoreState>['setState'];
+
 function isImageFile(file: File): boolean {
   return file.type.startsWith('image/');
 }
@@ -70,6 +73,68 @@ async function runAIRequest(
   }) as unknown as { role: 'assistant'; content: string };
 }
 
+function appendTokenToLastAssistant(set: ChatSet, token: string) {
+  set((cur) => {
+    const msgs = [...cur.messages];
+    const last = msgs.length - 1;
+    if (last >= 0 && msgs[last].role === 'assistant') {
+      msgs[last] = { ...msgs[last], content: (msgs[last].content as string) + token };
+    }
+    return { messages: msgs };
+  });
+}
+
+function attachSourcesToLastAssistant(set: ChatSet, sources: ChatSource[]) {
+  set((cur) => {
+    const msgs = [...cur.messages];
+    const last = msgs.length - 1;
+    if (last >= 0 && msgs[last].role === 'assistant') {
+      msgs[last] = { ...msgs[last], sources } as Message;
+    }
+    return { messages: msgs };
+  });
+}
+
+async function executeStreamingRequest(
+  set: ChatSet,
+  messages: Message[],
+  signal: AbortSignal,
+  options: { onAbort?: 'append-system' | 'ignore' } = {}
+): Promise<void> {
+  const onAbort = options.onAbort ?? 'append-system';
+
+  try {
+    await runAIRequest(
+      messages,
+      (token) => appendTokenToLastAssistant(set, token),
+      (sources) => attachSourcesToLastAssistant(set, sources),
+      signal
+    );
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      if (onAbort === 'append-system') {
+        set((cur) => ({
+          messages: [...cur.messages, { role: 'system', content: 'Response is aborted.' } as Message],
+        }));
+      }
+      return;
+    }
+
+    set((cur) => {
+      const last = cur.messages.at(-1);
+      const placeholder = last?.role === 'assistant' && last?.content === '';
+      const base = placeholder ? cur.messages.slice(0, -1) : cur.messages;
+      const detail = err instanceof Error ? err.message : String(err ?? '');
+      return {
+        messages: [
+          ...base,
+          { role: 'error', content: 'Failed to get response.', detail } as unknown as Message,
+        ],
+      };
+    });
+  }
+}
+
 export const useChatStore = create<ChatStoreState>((set, get) => ({
   messages: [],
   input: '',
@@ -97,18 +162,18 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
 
   setReasoning: (v) => {
     set({ reasoningEnabled: v });
-    window.electronAPI.updateSetting(['chat', 'reasoningEnabled'], v);
+    void useSettingsStore.getState().updateSetting(['chat', 'reasoningEnabled'], v);
   },
 
   setWebSearch: (v) => {
     set({ webSearchEnabled: v });
-    window.electronAPI.updateSetting(['chat', 'webSearchEnabled'], v);
+    void useSettingsStore.getState().updateSetting(['chat', 'webSearchEnabled'], v);
   },
 
   setModel: (providerId, modelId) => {
     set({ currentProviderId: providerId, currentModelId: modelId });
-    window.electronAPI.updateSetting(['chat', 'defaultProvider'], providerId);
-    window.electronAPI.updateSetting(['chat', 'defaultModel'], modelId);
+    void useSettingsStore.getState().updateSetting(['chat', 'defaultProvider'], providerId);
+    void useSettingsStore.getState().updateSetting(['chat', 'defaultModel'], modelId);
   },
 
   hydrateFromSettings: () => {
@@ -137,7 +202,9 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     if (s.images.length > 0) {
       const parts: ContentPart[] = [];
       if (trimmed) parts.push({ type: 'text', text: trimmed });
-      for (const img of s.images) parts.push({ type: 'image', data: img.data, mimeType: img.mimeType });
+      for (const img of s.images) {
+        parts.push({ type: 'image', data: img.data, mimeType: img.mimeType });
+      }
       content = parts;
     } else {
       content = trimmed;
@@ -145,53 +212,18 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
 
     const userMsg: Message = { role: 'user', content };
     const next = [...s.messages, userMsg];
-    set({ messages: [...next, { role: 'assistant', content: '' } as Message], input: '', images: [], loading: true });
+    set({
+      messages: [...next, { role: 'assistant', content: '' } as Message],
+      input: '',
+      images: [],
+      loading: true,
+    });
 
     const ctrl = new AbortController();
     set({ abortController: ctrl });
 
     try {
-      await runAIRequest(
-        next,
-        (token) => {
-          set((cur) => {
-            const msgs = [...cur.messages];
-            const last = msgs.length - 1;
-            if (last >= 0 && msgs[last].role === 'assistant') {
-              msgs[last] = { ...msgs[last], content: (msgs[last].content as string) + token };
-            }
-            return { messages: msgs };
-          });
-        },
-        (sources) => {
-          set((cur) => {
-            const msgs = [...cur.messages];
-            const last = msgs.length - 1;
-            if (last >= 0 && msgs[last].role === 'assistant') {
-              msgs[last] = { ...msgs[last], sources } as Message;
-            }
-            return { messages: msgs };
-          });
-        },
-        ctrl.signal
-      );
-    } catch (err: any) {
-      if (err?.name === 'AbortError') {
-        set((cur) => ({ messages: [...cur.messages, { role: 'system', content: 'Response is aborted.' } as Message] }));
-      } else {
-        set((cur) => {
-          const last = cur.messages.at(-1);
-          const placeholder = last?.role === 'assistant' && last?.content === '';
-          const base = placeholder ? cur.messages.slice(0, -1) : cur.messages;
-          const detail = err instanceof Error ? err.message : String(err ?? '');
-          return {
-            messages: [
-              ...base,
-              { role: 'error', content: 'Failed to get response.', detail } as unknown as Message,
-            ],
-          };
-        });
-      }
+      await executeStreamingRequest(set, next, ctrl.signal, { onAbort: 'append-system' });
     } finally {
       set({ loading: false, abortController: null });
     }
@@ -201,43 +233,24 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     get().abort();
     set({ messages: [], input: '', images: [], loading: false });
 
-    if (seed?.text && seed?.prompt) {
-      const seeded: Message[] = [
-        { role: 'system', content: seed.prompt } as Message,
-        { role: 'user', content: seed.text } as Message,
-      ];
-      set({ messages: seeded });
-      // Kick off AI request using the seeded conversation.
-      const ctrl = new AbortController();
-      set({ loading: true, abortController: ctrl, messages: [...seeded, { role: 'assistant', content: '' } as Message] });
-      try {
-        await runAIRequest(
-          seeded,
-          (token) => {
-            set((cur) => {
-              const msgs = [...cur.messages];
-              const last = msgs.length - 1;
-              if (last >= 0 && msgs[last].role === 'assistant') {
-                msgs[last] = { ...msgs[last], content: (msgs[last].content as string) + token };
-              }
-              return { messages: msgs };
-            });
-          },
-          () => {},
-          ctrl.signal
-        );
-      } catch (err: any) {
-        if (err?.name !== 'AbortError') {
-          set((cur) => ({
-            messages: [
-              ...cur.messages.slice(0, -1),
-              { role: 'error', content: 'Failed to get response.', detail: String(err?.message || err) } as unknown as Message,
-            ],
-          }));
-        }
-      } finally {
-        set({ loading: false, abortController: null });
-      }
+    if (!seed?.text || !seed?.prompt) return;
+
+    const seeded: Message[] = [
+      { role: 'system', content: seed.prompt } as Message,
+      { role: 'user', content: seed.text } as Message,
+    ];
+
+    const ctrl = new AbortController();
+    set({
+      loading: true,
+      abortController: ctrl,
+      messages: [...seeded, { role: 'assistant', content: '' } as Message],
+    });
+
+    try {
+      await executeStreamingRequest(set, seeded, ctrl.signal, { onAbort: 'ignore' });
+    } finally {
+      set({ loading: false, abortController: null });
     }
   },
 }));
