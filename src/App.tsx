@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Routes, Route, useNavigate, useHref } from 'react-router';
+import { Routes, Route, Navigate, useNavigate, useHref } from 'react-router';
 import { useTheme } from '@heroui/use-theme';
 import { HeroUIProvider } from '@heroui/react';
 
@@ -35,8 +35,9 @@ function App() {
     <>
       <HeroUIProvider navigate={navigate} useHref={useHref}>
         <Routes>
-          <Route path="/" element={<Settings />} />
-          <Route path="/chatpopup" element={<ChatPopup />} />
+          <Route path="/" element={<Navigate to="/chat" replace />} />
+          <Route path="/chat" element={<ChatPopup />} />
+          <Route path="/chatpopup" element={<Navigate to="/chat" replace />} />
           <Route path="/settings/*" element={<Settings />} />
         </Routes>
       </HeroUIProvider>
