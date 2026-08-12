@@ -93,3 +93,6 @@ export class AutoUpdateManager {
     for (const listener of this.listeners) listener(this.status);
   }
 }
+
+// Module singleton; initialised once from src/main.tsx.
+export const autoUpdateManager = new AutoUpdateManager();
