@@ -50,7 +50,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setOpenAtLogin: (enabled) => ipcRenderer.invoke('app:set-open-at-login', enabled),
 
   chat: {
-    onResetWithSeed: (callback: (seed: { text?: string; prompt?: string }) => void) => {
+    onResetWithSeed: (callback: (_seed: { text?: string; prompt?: string }) => void) => {
       ipcRenderer.removeAllListeners('chat:reset-with-seed');
       ipcRenderer.on('chat:reset-with-seed', (_e, payload) => callback(payload));
     },
@@ -65,7 +65,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     hide: () => ipcRenderer.send('window:hide'),
   },
   nav: {
-    onGo: (callback: (path: string) => void) => {
+    onGo: (callback: (_path: string) => void) => {
       ipcRenderer.removeAllListeners('nav:go');
       ipcRenderer.on('nav:go', (_e, path) => callback(path));
     },

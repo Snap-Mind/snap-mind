@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 const { execFileMock } = vi.hoisted(() => ({
   execFileMock: vi.fn(
-    (_bin: string, _args: string[], cb: (err: any, stdout: string, stderr: string) => void) => {
+    (_bin: string, _args: string[], cb: (_err: any, _stdout: string, _stderr: string) => void) => {
       cb(null, JSON.stringify({ success: true, selectedText: 'HELLO' }), '');
     }
   ),

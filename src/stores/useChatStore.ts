@@ -114,7 +114,10 @@ async function executeStreamingRequest(
     if (err?.name === 'AbortError') {
       if (onAbort === 'append-system') {
         set((cur) => ({
-          messages: [...cur.messages, { role: 'system', content: 'Response is aborted.' } as Message],
+          messages: [
+            ...cur.messages,
+            { role: 'system', content: 'Response is aborted.' } as Message,
+          ],
         }));
       }
       return;

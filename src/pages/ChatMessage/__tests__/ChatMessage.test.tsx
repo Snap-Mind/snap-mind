@@ -17,9 +17,7 @@ describe('ChatMessage actions', () => {
   });
 
   it('hides actions while streaming', () => {
-    render(
-      <ChatMessage message={{ role: 'assistant', content: 'partial' }} isStreaming />
-    );
+    render(<ChatMessage message={{ role: 'assistant', content: 'partial' }} isStreaming />);
     expect(screen.queryByRole('toolbar', { name: /message actions/i })).not.toBeInTheDocument();
   });
 
@@ -29,11 +27,7 @@ describe('ChatMessage actions', () => {
   });
 
   it('hides actions when main content is only thinking', () => {
-    render(
-      <ChatMessage
-        message={{ role: 'assistant', content: '<think>\nsecret\n</think>\n' }}
-      />
-    );
+    render(<ChatMessage message={{ role: 'assistant', content: '<think>\nsecret\n</think>\n' }} />);
     expect(screen.queryByRole('toolbar', { name: /message actions/i })).not.toBeInTheDocument();
   });
 });

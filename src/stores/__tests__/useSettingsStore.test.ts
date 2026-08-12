@@ -31,9 +31,7 @@ const seedSettings: Setting = {
   providers: [{ id: 'openai', name: 'OpenAI', apiKey: 'plain-key', host: 'x', models: [] }],
 } as unknown as Setting;
 
-const seedHotkeys: Hotkey[] = [
-  { id: 0, key: 'Ctrl+`', enabled: true } as unknown as Hotkey,
-];
+const seedHotkeys: Hotkey[] = [{ id: 0, key: 'Ctrl+`', enabled: true } as unknown as Hotkey];
 
 const seedPermissions: SystemPermission[] = [
   { id: 'accessibility', name: 'Accessibility', isGranted: true } as unknown as SystemPermission,
@@ -126,9 +124,9 @@ describe('useSettingsStore', () => {
     await store.getState().hydrate();
     const before = store.getState().settings.appearance.theme;
 
-    await expect(
-      store.getState().updateSetting(['appearance', 'theme'], 'dark')
-    ).rejects.toThrow(/boom/);
+    await expect(store.getState().updateSetting(['appearance', 'theme'], 'dark')).rejects.toThrow(
+      /boom/
+    );
 
     expect(store.getState().settings.appearance.theme).toBe(before);
     expect(ipc.updateSetting).toHaveBeenCalledOnce();

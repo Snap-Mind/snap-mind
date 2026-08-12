@@ -1,5 +1,10 @@
 import { Message } from '@/types/chat';
-import { BaseProviderConfig, FoundryConfig, ProviderOptions, RequestBuilder } from '@/types/providers';
+import {
+  BaseProviderConfig,
+  FoundryConfig,
+  ProviderOptions,
+  RequestBuilder,
+} from '@/types/providers';
 import { deriveFoundryProjectApiBase, deriveFoundryResourceOrigin } from '../core/urlResolvers';
 import { getTextContent, toAnthropicContent, toOpenAIContent } from '../core/messageUtils';
 
@@ -112,7 +117,10 @@ export const foundryRequestBuilder: RequestBuilder = {
         if (message.role === 'system') {
           systemPrompt = getTextContent(message.content);
         } else {
-          anthropicMessages.push({ role: message.role, content: toAnthropicContent(message.content) });
+          anthropicMessages.push({
+            role: message.role,
+            content: toAnthropicContent(message.content),
+          });
         }
       }
 
@@ -131,10 +139,7 @@ export const foundryRequestBuilder: RequestBuilder = {
         let budgetTokens: number;
         if (userMaxTokens && userMaxTokens > 0) {
           const baseBudget = Math.floor(userMaxTokens * THINKING_BUDGET_RATIO);
-          budgetTokens = Math.min(
-            userMaxTokens,
-            Math.max(MIN_THINKING_BUDGET_TOKENS, baseBudget)
-          );
+          budgetTokens = Math.min(userMaxTokens, Math.max(MIN_THINKING_BUDGET_TOKENS, baseBudget));
         } else {
           const baseBudget = Math.floor(DEFAULT_MAX_TOKENS_FALLBACK * THINKING_BUDGET_RATIO);
           budgetTokens = Math.max(MIN_THINKING_BUDGET_TOKENS, baseBudget);

@@ -49,8 +49,7 @@ export function useChatMessage(
 ): ParsedChatMessage {
   const text = typeof content === 'string' ? content : getTextContent(content);
   return useMemo(
-    () =>
-      isUser ? { thinking: '', main: text, isThinking: false } : parseThinkingBlocks(text),
+    () => (isUser ? { thinking: '', main: text, isThinking: false } : parseThinkingBlocks(text)),
     [text, isUser]
   );
 }

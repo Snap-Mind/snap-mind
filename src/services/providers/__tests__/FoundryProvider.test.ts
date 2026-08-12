@@ -40,7 +40,9 @@ describe('FoundryProvider', () => {
 
   it('returns error when host is not configured', async () => {
     provider.config.host = '';
-    const result = await provider.sendMessage([{ role: 'user', content: 'hi' }], { model: 'gpt-4.1' });
+    const result = await provider.sendMessage([{ role: 'user', content: 'hi' }], {
+      model: 'gpt-4.1',
+    });
     expect(result).toBe('Error: Foundry endpoint is not configured');
   });
 
@@ -84,7 +86,10 @@ describe('FoundryProvider', () => {
       })
     );
 
-    await provider.sendMessage([{ role: 'user', content: 'test' }], { model: 'gpt-4.1', stream: false });
+    await provider.sendMessage([{ role: 'user', content: 'test' }], {
+      model: 'gpt-4.1',
+      stream: false,
+    });
 
     const fetchCall = (global.fetch as any).mock.calls[0];
     expect(fetchCall[0]).toBe(
@@ -105,7 +110,10 @@ describe('FoundryProvider', () => {
     );
 
     await expect(
-      provider.sendMessage([{ role: 'user', content: 'hello' }], { model: 'gpt-4.1', stream: false })
+      provider.sendMessage([{ role: 'user', content: 'hello' }], {
+        model: 'gpt-4.1',
+        stream: false,
+      })
     ).rejects.toThrow('Azure CLI is not logged in. Run `az login` and try again.');
   });
 
