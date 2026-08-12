@@ -181,12 +181,17 @@ async function triggerHotkey(hotkey: { id: number; key: string; prompt?: string 
     }
   }
 
-  // 3. Emit reset-with-seed to the renderer.
+  // 3. Navigate to chat (even if user is on settings).
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('nav:go', '/chat');
+  }
+
+  // 4. Emit reset-with-seed to the renderer.
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('chat:reset-with-seed', seed);
   }
 
-  // 4. Show and focus the window.
+  // 5. Show and focus the window.
   showMainWindow();
 }
 
@@ -370,6 +375,7 @@ ipcMain.handle('auth:foundry-cli-token', async (_event, { scope }) => {
 // IPC handler to trigger text selection (for testing or manual triggers)
 ipcMain.handle('text-selection:trigger', (_event, text: string, prompt: string) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('nav:go', '/chat');
     mainWindow.webContents.send('chat:reset-with-seed', { text, prompt });
     showMainWindow();
   }
