@@ -93,17 +93,18 @@ describe('useChatStore', () => {
   });
 
   it('setReasoning mirrors to settings store via IPC', async () => {
-    const { chat } = await freshStores();
+    const { chat, settings } = await freshStores();
     const spy = window.electronAPI.updateSetting as any;
 
     chat.getState().setReasoning(true);
 
     expect(spy).toHaveBeenCalledWith(['chat', 'reasoningEnabled'], true);
     expect(chat.getState().reasoningEnabled).toBe(true);
+    expect(settings.getState().settings.chat.reasoningEnabled).toBe(true);
   });
 
   it('setModel writes both defaultProvider and defaultModel to settings', async () => {
-    const { chat } = await freshStores();
+    const { chat, settings } = await freshStores();
     const spy = window.electronAPI.updateSetting as any;
 
     chat.getState().setModel('anthropic', 'claude-3');
@@ -112,6 +113,8 @@ describe('useChatStore', () => {
     expect(spy).toHaveBeenCalledWith(['chat', 'defaultModel'], 'claude-3');
     expect(chat.getState().currentProviderId).toBe('anthropic');
     expect(chat.getState().currentModelId).toBe('claude-3');
+    expect(settings.getState().settings.chat.defaultProvider).toBe('anthropic');
+    expect(settings.getState().settings.chat.defaultModel).toBe('claude-3');
   });
 
   it('abort() sets loading false and marks controller aborted', async () => {
