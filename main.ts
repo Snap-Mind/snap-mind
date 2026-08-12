@@ -418,6 +418,13 @@ ipcMain.on('chat-popup:close', () => {
   if (chatPopupWindow) chatPopupWindow.close();
 });
 
+ipcMain.on('window:hide', () => {
+  const win = chatPopupWindow; // main window during Phase 1's dual-write; renamed in Task 10
+  if (win && !win.isDestroyed() && win.isVisible()) {
+    win.hide();
+  }
+});
+
 // Add IPC for quit from renderer
 ipcMain.on('app:quit', () => {
   // Destroy all windows

@@ -62,4 +62,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
   getOpenAtLogin: () => ipcRenderer.invoke('app:get-open-at-login'),
   setOpenAtLogin: (enabled) => ipcRenderer.invoke('app:set-open-at-login', enabled),
+
+  // Namespaced chat control channels (Phase 1 v0.6). Old chat-popup:* stay
+  // alongside until Task 12 prunes them.
+  chat: {
+    onResetWithSeed: (callback: (seed: { text?: string; prompt?: string }) => void) => {
+      ipcRenderer.removeAllListeners('chat:reset-with-seed');
+      ipcRenderer.on('chat:reset-with-seed', (_e, payload) => callback(payload));
+    },
+    offResetWithSeed: () => ipcRenderer.removeAllListeners('chat:reset-with-seed'),
+    onAbort: (callback: () => void) => {
+      ipcRenderer.removeAllListeners('chat:abort');
+      ipcRenderer.on('chat:abort', () => callback());
+    },
+    offAbort: () => ipcRenderer.removeAllListeners('chat:abort'),
+  },
+  window: {
+    hide: () => ipcRenderer.send('window:hide'),
+  },
+  nav: {
+    onGo: (callback: (path: string) => void) => {
+      ipcRenderer.removeAllListeners('nav:go');
+      ipcRenderer.on('nav:go', (_e, path) => callback(path));
+    },
+    offGo: () => ipcRenderer.removeAllListeners('nav:go'),
+  },
 });
