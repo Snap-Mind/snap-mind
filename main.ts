@@ -142,9 +142,6 @@ function showMainWindow() {
 
 function hideMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
-  if (process.platform === 'darwin' && app.setActivationPolicy) {
-    app.setActivationPolicy('accessory');
-  }
 }
 
 function registerHotkeys() {
@@ -606,7 +603,7 @@ app.whenReady().then(() => {
   if (!openAtLoginService.isLoginLaunch()) {
     showMainWindow();
   } else {
-    // Login-launch: keep window hidden so app is tray-only until the user asks.
+    // Login-launch: keep window hidden until the user opens it from the dock or tray.
     hideMainWindow();
   }
 
