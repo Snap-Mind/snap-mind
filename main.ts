@@ -24,6 +24,12 @@ import ThemeService from './electron/ThemeService';
 import FoundryCliTokenService from './electron/FoundryCliTokenService';
 import pathService from './electron/PathService';
 
+declare module 'electron' {
+  interface App {
+    isQuitting: boolean;
+  }
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const resourcesPath = isDev() ? path.join(__dirname, '..') : process.resourcesPath;
@@ -40,9 +46,13 @@ if (!gotTheLock) {
 } else {
   app.on('second-instance', (_event, _argv, _workingDirectory) => {
     if (!app.isReady()) return;
-    focusOrShowMainWindow();
+    showMainWindow();
   });
 }
+
+app.on('before-quit', () => {
+  app.isQuitting = true;
+});
 
 const settingsService = new SettingsService();
 const openAtLoginService = new OpenAtLoginService();
@@ -53,133 +63,27 @@ const themeService = new ThemeService({
 let autoUpdateService: AutoUpdateService | null = null;
 
 let tray = null;
-let chatPopupWindow = null;
-let settingsWindow = null;
-// let mainWindow = null;
+let mainWindow: import('electron').BrowserWindow | null = null;
+app.isQuitting = false;
 
 function isDev() {
   return !app.isPackaged;
 }
 
-// reserve for future use
-// function createWindow() {
-//   mainWindow = new BrowserWindow({
-//     width: 400,
-//     height: 600,
-//     show: false, // Do not show on startup
-//     webPreferences: {
-//       preload: path.join(__dirname, 'preload.js'),
-//       nodeIntegration: false,
-//       contextIsolation: true
-//     }
-//   });
-//   if (isDev()) {
-//     mainWindow.loadURL('http://localhost:5173').catch((err) => {
-//       console.error('[main] Failed to load main window URL:', err);
-//     });
-//     console.log('[main] mainWindow loaded in development mode');
-//   } else {
-//     mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html')).catch((err) => {
-//       console.error('[main] Failed to load main window file:', err);
-//     });
-//     console.log('[main] mainWindow loaded in production mode');
-//   }
-//   mainWindow.on('show', () => {
-//     console.log('[main] mainWindow show event fired');
-//   });
-//   mainWindow.on('hide', () => {
-//     console.log('[main] mainWindow hide event fired');
-//   });
-// }
-
-function createChatPopupWindow(position, initialMessages) {
-  const chatWindowTitle = 'SnapMind - Chat';
-  chatPopupWindow = new BrowserWindow({
+function createMainWindow() {
+  const titleBase = 'SnapMind';
+  mainWindow = new BrowserWindow({
     width: 500,
     height: 700,
-    x: position.x,
-    y: position.y,
+    minWidth: 400,
+    minHeight: 500,
     frame: true,
     alwaysOnTop: false,
     skipTaskbar: false,
     resizable: true,
     focusable: true,
-    show: true,
-    title: chatWindowTitle,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: false,
-      contextIsolation: true,
-      devTools: isDev(),
-    },
-  });
-  if (isDev()) {
-    chatPopupWindow.loadURL('http://localhost:5173/#/chatpopup').catch((err) => {
-      logService.error('Failed to load chat popup window URL:', err);
-    });
-    logService.info('chatPopupWindow loaded in development mode');
-  } else {
-    chatPopupWindow
-      .loadFile(path.join(__dirname, '..', 'dist', 'index.html'), { hash: '/chatpopup' })
-      .catch((err) => {
-        logService.error('Failed to load chat popup window file:', err);
-      });
-    logService.info('chatPopupWindow loaded in production mode');
-  }
-  chatPopupWindow.on('show', () => {
-    updateActivationPolicy();
-  });
-
-  chatPopupWindow.on('page-title-updated', (event) => {
-    event.preventDefault();
-    chatPopupWindow?.setTitle(chatWindowTitle);
-  });
-
-  chatPopupWindow.on('hide', () => {
-    updateActivationPolicy();
-  });
-
-  chatPopupWindow.on('closed', () => {
-    chatPopupWindow = null;
-    updateActivationPolicy();
-  });
-
-  chatPopupWindow.handleChatPopupReady = () => {
-    if (initialMessages != null) {
-      chatPopupWindow.webContents.send('chat-popup:init-message', initialMessages);
-    }
-    chatPopupWindow.handleChatPopupReady = null;
-  };
-
-  chatPopupWindow.show();
-  chatPopupWindow.focus();
-
-  if (process.platform === 'win32') {
-    chatPopupWindow.setAlwaysOnTop(true);
-    // Optional: Reset alwaysOnTop after a short delay if you don't want it permanently on top
-    setTimeout(() => {
-      if (chatPopupWindow && !chatPopupWindow.isDestroyed()) {
-        chatPopupWindow.setAlwaysOnTop(false);
-      }
-    }, 1000);
-  }
-}
-
-function createSettingsWindow() {
-  if (settingsWindow) return settingsWindow;
-  const settingsWindowTitle = 'SnapMind - Settings';
-  settingsWindow = new BrowserWindow({
-    width: 900,
-    height: 600,
-    minWidth: 600,
-    minHeight: 450,
-    frame: true,
-    resizable: true,
-    alwaysOnTop: false,
-    skipTaskbar: false,
     show: false,
-    transparent: false,
-    title: settingsWindowTitle,
+    title: titleBase,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -187,70 +91,61 @@ function createSettingsWindow() {
       devTools: isDev(),
     },
   });
+
   if (isDev()) {
-    settingsWindow.loadURL('http://localhost:5173/#/settings/general').catch((err) => {
-      logService.error('Failed to load settings window URL:', err);
+    mainWindow.loadURL('http://localhost:5173/#/chat').catch((err) => {
+      logService.error('Failed to load main window URL:', err);
     });
-    logService.info('settingsWindow loaded in development mode');
   } else {
-    settingsWindow
-      .loadFile(path.join(__dirname, '..', 'dist', 'index.html'), { hash: '/settings/general' })
+    mainWindow
+      .loadFile(path.join(__dirname, '..', 'dist', 'index.html'), { hash: '/chat' })
       .catch((err) => {
-        logService.error('Failed to load settings window file:', err);
+        logService.error('Failed to load main window file:', err);
       });
-    logService.info('settingsWindow loaded in production mode');
   }
-  // Remove the blur event listener that auto-hides the window
-  // Allow normal window behavior - user can close it normally
-  settingsWindow.on('show', () => {
-    updateActivationPolicy();
-  });
 
-  settingsWindow.on('page-title-updated', (event) => {
+  mainWindow.on('page-title-updated', (event) => {
     event.preventDefault();
-    settingsWindow?.setTitle(settingsWindowTitle);
+    mainWindow?.setTitle(titleBase);
   });
 
-  settingsWindow.on('hide', () => {
-    updateActivationPolicy();
+  mainWindow.on('close', (event) => {
+    if (!app.isQuitting) {
+      event.preventDefault();
+      hideMainWindow();
+    }
   });
 
-  settingsWindow.on('closed', () => {
-    settingsWindow = null;
-    updateActivationPolicy();
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
 
-  settingsWindow.webContents.setWindowOpenHandler(() => {
-    // disallow any new windows open in the settings window
-    return { action: 'deny' };
-  });
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
-  return settingsWindow;
+  return mainWindow;
 }
 
-function showSettingsWindow() {
-  const win = settingsWindow || createSettingsWindow();
-  if (win.isMinimized()) {
-    win.restore();
-  }
-  if (!win.isVisible()) {
-    win.show();
-  }
+function showMainWindow() {
+  const win = mainWindow ?? createMainWindow();
+  if (!win) return;
+  if (win.isMinimized()) win.restore();
+  if (!win.isVisible()) win.show();
   win.focus();
-  return win;
+  if (process.platform === 'darwin' && app.setActivationPolicy) {
+    app.setActivationPolicy('regular');
+  }
+  if (process.platform === 'win32') {
+    win.setAlwaysOnTop(true);
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setAlwaysOnTop(false);
+    }, 500);
+  }
 }
 
-function focusOrShowMainWindow() {
-  if (chatPopupWindow && !chatPopupWindow.isDestroyed()) {
-    if (chatPopupWindow.isMinimized()) {
-      chatPopupWindow.restore();
-    }
-    if (!chatPopupWindow.isVisible()) {
-      chatPopupWindow.show();
-    }
-    chatPopupWindow.focus();
-  } else {
-    showSettingsWindow();
+function hideMainWindow() {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
+  if (process.platform === 'darwin' && app.setActivationPolicy) {
+    app.setActivationPolicy('accessory');
   }
 }
 
@@ -337,21 +232,16 @@ function getPopupPosition() {
   };
 }
 
-function showChatPopup(position, initialMessages) {
-  if (chatPopupWindow && !chatPopupWindow.isDestroyed()) {
-    chatPopupWindow.once('closed', () => {
-      chatPopupWindow = null;
-      createChatPopupWindow(position, initialMessages);
-    });
-    chatPopupWindow.close();
-    return;
-  }
-  createChatPopupWindow(position, initialMessages);
-}
+function showChatPopup(_position, initialMessages) {
+  showMainWindow();
+  const win = mainWindow;
+  if (!win) return;
 
-function updateActivationPolicy() {
-  if (process.platform === 'darwin' && app.setActivationPolicy) {
-    app.setActivationPolicy('regular');
+  if (initialMessages != null) {
+    win.handleChatPopupReady = () => {
+      win.webContents.send('chat-popup:init-message', initialMessages);
+      win.handleChatPopupReady = null;
+    };
   }
 }
 
@@ -363,8 +253,8 @@ function listenToSystemAccessibilityPermissionChange() {
     name: string;
     isGranted: boolean;
   }) => {
-    if (settingsWindow) {
-      settingsWindow.webContents.send('permission:changed', [permission]);
+    if (mainWindow) {
+      mainWindow.webContents.send('permission:changed', [permission]);
     }
   };
 
@@ -407,19 +297,19 @@ ipcMain.on('chat-popup:show', (event, { position }) => {
   showChatPopup(position, []);
 });
 ipcMain.on('chat-popup:send-message', (event, channel, payload) => {
-  if (chatPopupWindow) chatPopupWindow.webContents.send(channel, payload);
+  if (mainWindow) mainWindow.webContents.send(channel, payload);
 });
 ipcMain.on('chat-popup:ready', () => {
-  if (chatPopupWindow && chatPopupWindow.handleChatPopupReady != null) {
-    chatPopupWindow.handleChatPopupReady();
+  if (mainWindow && mainWindow.handleChatPopupReady != null) {
+    mainWindow.handleChatPopupReady();
   }
 });
 ipcMain.on('chat-popup:close', () => {
-  if (chatPopupWindow) chatPopupWindow.close();
+  hideMainWindow();
 });
 
 ipcMain.on('window:hide', () => {
-  const win = chatPopupWindow; // main window during Phase 1's dual-write; renamed in Task 10
+  const win = mainWindow;
   if (win && !win.isDestroyed() && win.isVisible()) {
     win.hide();
   }
@@ -427,7 +317,7 @@ ipcMain.on('window:hide', () => {
 
 // Add IPC for quit from renderer
 ipcMain.on('app:quit', () => {
-  // Destroy all windows
+  app.isQuitting = true;
   BrowserWindow.getAllWindows().forEach((win) => win.destroy());
   app.quit();
   app.exit(0); // Force exit for tray apps on macOS
@@ -638,11 +528,6 @@ app.on('window-all-closed', function () {
 });
 
 app.whenReady().then(() => {
-  // Keep app visible in Dock on macOS
-  if (process.platform === 'darwin' && app.setActivationPolicy) {
-    app.setActivationPolicy('regular');
-  }
-
   // Log system info at startup
   logService.logSystemInfo();
 
@@ -703,9 +588,9 @@ app.whenReady().then(() => {
       logService.info('Tray icon updated (Windows theme change):', newIconPath);
     });
 
-    // Add double-click handler to open settings window
+    // Add double-click handler to show main window
     tray.on('double-click', () => {
-      showSettingsWindow();
+      showMainWindow();
     });
   } else {
     const trayIconPath = isDev()
@@ -719,21 +604,24 @@ app.whenReady().then(() => {
   // Create context menu for tray
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Settings...  ',
-      click: () => {
-        showSettingsWindow();
-      },
+      label: 'Show SnapMind',
+      click: () => showMainWindow(),
     },
     {
-      type: 'separator',
+      label: 'Settings...  ',
+      click: () => {
+        showMainWindow();
+        if (mainWindow) mainWindow.webContents.send('nav:go', '/settings/general');
+      },
     },
+    { type: 'separator' },
     {
       label: 'Quit  ',
       click: () => {
-        // Destroy all windows
+        app.isQuitting = true;
         BrowserWindow.getAllWindows().forEach((win) => win.destroy());
         app.quit();
-        app.exit(0); // Force exit for tray apps on macOS
+        app.exit(0);
       },
     },
   ]);
@@ -745,18 +633,26 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin' && app.dock) {
     const dockMenu = Menu.buildFromTemplate([
       {
+        label: 'Show SnapMind',
+        click: () => showMainWindow(),
+      },
+      {
         label: 'Settings...',
         click: () => {
-          showSettingsWindow();
+          showMainWindow();
+          if (mainWindow) mainWindow.webContents.send('nav:go', '/settings/general');
         },
       },
     ]);
     app.dock.setMenu(dockMenu);
   }
 
-  createSettingsWindow();
+  createMainWindow();
   if (!openAtLoginService.isLoginLaunch()) {
-    showSettingsWindow();
+    showMainWindow();
+  } else {
+    // Login-launch: keep window hidden so app is tray-only until the user asks.
+    hideMainWindow();
   }
 
   // Register hotkeys
@@ -767,5 +663,5 @@ app.whenReady().then(() => {
 });
 
 app.on('activate', () => {
-  focusOrShowMainWindow();
+  showMainWindow();
 });
