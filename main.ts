@@ -14,7 +14,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import process from 'process';
 import { execFile } from 'child_process';
-import TextSelectionService from './electron/TextSelectionService';
 import SettingsService from './electron/SettingsService';
 import SystemPermissionService from './electron/SystemPermissionService';
 import logService from './electron/LogService';
@@ -149,75 +148,73 @@ function hideMainWindow() {
   }
 }
 
-// Function to register hotkeys
 function registerHotkeys() {
-  // Unregister all existing hotkeys first
   globalShortcut.unregisterAll();
 
-  settingsService.getHotkeys().forEach((hotkey, index) => {
-    if (hotkey.enabled && hotkey.key) {
-      try {
-        globalShortcut.register(hotkey.key, () => {
-          logService.info(`Hotkey pressed: ${hotkey.key}`);
-          if (hotkey.id === 0) {
-            const position = getPopupPosition();
-            showChatPopup(position, undefined);
-          } else {
-            executeHotkey(hotkey.prompt);
-          }
-        });
-        logService.info(`Registered hotkey ${index + 1}: ${hotkey.key}`);
-      } catch (error) {
-        logService.error(`Failed to register hotkey ${hotkey.key}:`, error);
-      }
+  settingsService.getHotkeys().forEach((hotkey: any, index: number) => {
+    if (!hotkey.enabled || !hotkey.key) return;
+    try {
+      globalShortcut.register(hotkey.key, () => {
+        logService.info(`Hotkey pressed: ${hotkey.key}`);
+        void triggerHotkey(hotkey);
+      });
+      logService.info(`Registered hotkey ${index + 1}: ${hotkey.key}`);
+    } catch (error) {
+      logService.error(`Failed to register hotkey ${hotkey.key}:`, error);
     }
   });
 }
 
-// Function to execute hotkey action
-function executeHotkey(prompt) {
-  let helperPath;
-
-  if (process.platform === 'win32') {
-    // Windows helper path
-    helperPath = path.join(resourcesPath, 'helper', 'SelectedTextWin.exe');
-  } else {
-    // Mac helper path
-    helperPath = path.join(resourcesPath, 'helper', 'selectedtext');
+async function triggerHotkey(hotkey: { id: number; key: string; prompt?: string }) {
+  // 1. Signal renderer to abort any in-flight AI request.
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('chat:abort');
   }
 
-  const clipboardEnabled = settingsService.getSettings().general.clipboardEnabled.toString();
-
-  execFile(helperPath, [clipboardEnabled], (error, stdout, stderr) => {
-    if (error) {
-      logService.error('Error running selectedtext:', error);
-      return;
-    }
-    if (stderr) {
-      logService.warn('selectedtext stderr:', stderr);
-    }
-
-    // Parse JSON output from helper
+  // 2. If the hotkey has a prompt, run the helper and get the OS selection.
+  let seed: { text?: string; prompt?: string } = {};
+  if (hotkey.prompt) {
     try {
-      const result = JSON.parse(stdout.trim());
-      logService.debug('Helper output as JSON:', result);
-
-      if (result.success && result.selectedText) {
-        logService.debug('Selected text from helper:', result.selectedText);
-        // Use text selection service instead of directly sending to settings window
-        textSelectionService.handleTextSelection(
-          result.selectedText,
-          prompt,
-          'hotkey',
-          settingsService.getSettings().chat?.defaultProvider
-        );
-      } else {
-        logService.warn('No selected text found:', result.error || 'Unknown error');
-      }
-    } catch (parseError) {
-      logService.error('Failed to parse helper JSON output:', parseError);
-      logService.debug('Raw stdout:', stdout);
+      seed = await runSelectionHelper(hotkey.prompt);
+    } catch (err) {
+      logService.error('Selection helper failed:', err);
+      seed = {}; // Fresh empty session on failure; matches today's behaviour.
     }
+  }
+
+  // 3. Emit reset-with-seed to the renderer.
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('chat:reset-with-seed', seed);
+  }
+
+  // 4. Show and focus the window.
+  showMainWindow();
+}
+
+export function runSelectionHelper(prompt: string): Promise<{ text?: string; prompt?: string }> {
+  const helperPath =
+    process.platform === 'win32'
+      ? path.join(resourcesPath, 'helper', 'SelectedTextWin.exe')
+      : path.join(resourcesPath, 'helper', 'selectedtext');
+  const clipboardEnabled = String(!!settingsService.getSettings()?.general?.clipboardEnabled);
+
+  return new Promise((resolve, reject) => {
+    execFile(helperPath, [clipboardEnabled], (error, stdout, stderr) => {
+      if (error) return reject(error);
+      if (stderr) logService.warn('selectedtext stderr:', stderr);
+
+      try {
+        const result = JSON.parse(String(stdout).trim());
+        if (result?.success && result?.selectedText) {
+          resolve({ text: result.selectedText, prompt });
+        } else {
+          logService.warn('No selected text found:', result?.error || 'Unknown');
+          resolve({ prompt }); // Prompt without text → renderer treats as empty seed.
+        }
+      } catch (parseErr) {
+        reject(parseErr);
+      }
+    });
   });
 }
 
@@ -287,11 +284,6 @@ function listenToSystemAccessibilityPermissionChange() {
   }
 }
 
-// Create text selection service instance with callbacks
-const textSelectionService = new TextSelectionService({
-  showChatPopup: showChatPopup,
-  getPopupPosition: getPopupPosition,
-});
 // IPC for chat popup
 ipcMain.on('chat-popup:show', (event, { position }) => {
   showChatPopup(position, []);
@@ -417,13 +409,11 @@ ipcMain.handle('auth:foundry-cli-token', async (_event, { scope }) => {
 });
 
 // IPC handler to trigger text selection (for testing or manual triggers)
-ipcMain.handle('text-selection:trigger', (event, text, prompt) => {
-  textSelectionService.handleTextSelection(
-    text,
-    prompt,
-    'manual',
-    settingsService.getSettings().chat?.defaultProvider
-  );
+ipcMain.handle('text-selection:trigger', (_event, text: string, prompt: string) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('chat:reset-with-seed', { text, prompt });
+    showMainWindow();
+  }
   return { success: true };
 });
 
