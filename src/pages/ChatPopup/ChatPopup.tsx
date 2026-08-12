@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { Button, Select, SelectSection, SelectItem, Textarea } from '@heroui/react';
+import { Button, Divider, Select, SelectSection, SelectItem, Textarea } from '@heroui/react';
 
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useChatStore } from '@/stores/useChatStore';
@@ -9,6 +9,7 @@ import ChatMessage from '../ChatMessage/ChatMessage';
 
 import { useTranslation } from 'react-i18next';
 import Icon from '../../components/Icon';
+import LogoSvg from '@/components/LogoSvg';
 import ReasoningToggle from '@/components/ReasoningToggle';
 import WebSearchToggle from '@/components/WebSearchToggle';
 import { BaseProviderConfig, ProviderType } from '@/types/providers';
@@ -201,17 +202,25 @@ export default function ChatPopup() {
         className="bg-background w-full h-screen shadow-2xl flex flex-col overflow-hidden"
         aria-label="Chat conversation"
       >
-            <div className="flex items-center justify-between px-3 py-2 border-b border-default-100">
-              <div className="text-sm font-medium text-default-700 select-none">SnapMind</div>
-              <Button
-                isIconOnly
-                variant="light"
-                size="sm"
-                onPress={() => navigate('/settings/general')}
-                aria-label="Open settings"
-              >
-                <Icon icon="settings" size={16} />
-              </Button>
+            <div className="px-3 pt-3 shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <LogoSvg className="w-8 h-8 shrink-0 ml-1" />
+                  <h1 className="font-bold text-2xl leading-none tracking-tight whitespace-nowrap">
+                    {t('common.brand')}
+                  </h1>
+                </div>
+                <Button
+                  isIconOnly
+                  variant="light"
+                  size="sm"
+                  onPress={() => navigate('/settings/general')}
+                  aria-label="Open settings"
+                >
+                  <Icon icon="settings" size={16} />
+                </Button>
+              </div>
+              <Divider className="my-4" />
             </div>
             <div
               onScroll={handleMessagesScroll}
