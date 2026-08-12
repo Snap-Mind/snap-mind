@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button, Select, SelectSection, SelectItem, Textarea } from '@heroui/react';
 
@@ -15,6 +16,7 @@ import { BaseProviderConfig, ProviderType } from '@/types/providers';
 
 export default function ChatPopup() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const messages = useChatStore((s) => s.messages);
   const input = useChatStore((s) => s.input);
@@ -36,7 +38,17 @@ export default function ChatPopup() {
   const send = useChatStore((s) => s.send);
   const abort = useChatStore((s) => s.abort);
 
-  const providers = useSettingsStore((s) => s.settings?.providers ?? []);
+  const settings = useSettingsStore((s) => s.settings);
+  const providers = settings?.providers ?? [];
+
+  const hasUsableProvider = providers.some(
+    (p) =>
+      (p.apiKey && p.host && (p.models?.length ?? 0) > 0) ||
+      (p.id === 'ollama' && p.host && (p.models?.length ?? 0) > 0) ||
+      (p.id === 'foundry' && p.host && (p.models?.length ?? 0) > 0)
+  );
+
+  const isEmpty = messages.length === 0;
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -197,11 +209,34 @@ export default function ChatPopup() {
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             aria-label="Chat conversation"
           >
+            <div className="flex items-center justify-between px-3 py-2 border-b border-default-100">
+              <div className="text-sm font-medium text-default-700 select-none">SnapMind</div>
+              <Button
+                isIconOnly
+                variant="light"
+                size="sm"
+                onPress={() => navigate('/settings/general')}
+                aria-label="Open settings"
+              >
+                <Icon icon="settings" size={16} />
+              </Button>
+            </div>
             <div
               onScroll={handleMessagesScroll}
               className="flex-1 overflow-y-auto p-[18px_14px_8px_14px] bg-background flex flex-col gap-2.5"
               aria-label="Chat messages"
             >
+              {isEmpty && !hasUsableProvider ? (
+                <div className="flex flex-col items-center justify-center h-full text-center gap-3 px-6">
+                  <p className="text-default-500">No provider configured yet.</p>
+                  <Button size="sm" color="primary" onPress={() => navigate('/settings/models')}>
+                    Open Settings
+                  </Button>
+                  <p className="text-default-400 text-xs">
+                    Add a model, then hit a hotkey or type below.
+                  </p>
+                </div>
+              ) : null}
               {messages.map((msg, i) => (
                 <ChatMessage
                   key={i}

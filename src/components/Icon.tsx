@@ -29,6 +29,7 @@ import {
   LuMoon,
   LuMonitor,
   LuPaintRoller,
+  LuArrowLeft,
   LuArrowUp,
   LuLightbulb,
   LuLightbulbOff,
@@ -85,6 +86,7 @@ type IconType =
   | 'monitor'
   | 'cleaning-services'
   | 'paint-roller'
+  | 'arrow-left'
   | 'arrow-up'
   | 'lightbulb'
   | 'lightbulb-off'
@@ -189,6 +191,8 @@ function Icon({
         return <MdOutlineCleaningServices className={svgClassName} color={color} size={size} />;
       case 'paint-roller':
         return <LuPaintRoller className={svgClassName} color={color} size={size} />;
+      case 'arrow-left':
+        return <LuArrowLeft className={svgClassName} color={color} size={size} />;
       case 'arrow-up':
         return <LuArrowUp className={svgClassName} color={color} size={size} />;
       case 'lightbulb':

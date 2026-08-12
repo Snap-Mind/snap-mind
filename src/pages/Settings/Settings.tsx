@@ -1,6 +1,8 @@
 import { useEffect, useCallback, useState, useMemo } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router';
+import { Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
+import Icon from '../../components/Icon';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useLogService } from '../../hooks/useLogService';
 import type { SettingsChangeHandler, HotkeysChangeHandler } from '@/types';
@@ -87,8 +89,20 @@ function Settings() {
 
   return (
     <div
-      className={`setting-container grid w-full min-w-0 ${sidebarWidthStyle} grid-rows-1 h-[100vh] overflow-hidden transition-all duration-200 ease-in-out`}
+      className={`setting-container grid w-full min-w-0 ${sidebarWidthStyle} grid-rows-[auto_1fr] h-[100vh] overflow-hidden transition-all duration-200 ease-in-out`}
     >
+      <div className="col-span-2 flex items-center border-b border-default-100 px-2 py-1.5">
+        <Button
+          isIconOnly
+          variant="light"
+          size="sm"
+          onPress={() => navigate('/chat')}
+          aria-label="Back to chat"
+        >
+          <Icon icon="arrow-left" size={16} />
+        </Button>
+        <span className="ml-2 text-sm font-medium text-default-700">Settings</span>
+      </div>
       <div className="setting-category bg-background min-w-0 px-3 py-3 border-r-1 border-default">
         <SettingsCategory
           categories={categories}
