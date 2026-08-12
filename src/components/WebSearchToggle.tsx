@@ -8,8 +8,7 @@ interface WebSearchToggleProps {
 }
 
 export default function WebSearchToggle(props: WebSearchToggleProps) {
-  const { Component, slots, isSelected, getBaseProps, getInputProps, getWrapperProps } =
-    useSwitch(props);
+  const { Component, slots, getBaseProps, getInputProps, getWrapperProps } = useSwitch(props);
 
   return (
     <div className="flex flex-col gap-2">

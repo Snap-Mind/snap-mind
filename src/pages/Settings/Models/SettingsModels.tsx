@@ -38,7 +38,7 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
 
   const providers = settings
     .map((provider) => {
-    let newProvider = null;
+      let newProvider = null;
 
       if (provider.id === 'openai') {
         newProvider = { ...provider, path: '/settings/models/openai' };

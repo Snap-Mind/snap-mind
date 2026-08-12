@@ -98,7 +98,9 @@ describe('fixPathWindows', () => {
       .mockReturnValueOnce(
         '\r\n    Path    REG_EXPAND_SZ    %LOCALAPPDATA%\\Programs\\Azure CLI\\wbin\r\n\r\n'
       )
-      .mockImplementationOnce(() => { throw new Error('not found'); });
+      .mockImplementationOnce(() => {
+        throw new Error('not found');
+      });
 
     const fixPathWindows = await importFixPathWindows();
     const added = fixPathWindows();
@@ -110,7 +112,9 @@ describe('fixPathWindows', () => {
     setPlatform('win32');
     process.env.PATH = 'C:\\existing';
 
-    execSyncSpy.mockImplementation(() => { throw new Error('Access denied'); });
+    execSyncSpy.mockImplementation(() => {
+      throw new Error('Access denied');
+    });
 
     const fixPathWindows = await importFixPathWindows();
     const added = fixPathWindows();
@@ -124,7 +128,9 @@ describe('fixPathWindows', () => {
     process.env.PATH = '';
 
     execSyncSpy
-      .mockImplementationOnce(() => { throw new Error('Access denied'); })
+      .mockImplementationOnce(() => {
+        throw new Error('Access denied');
+      })
       .mockReturnValueOnce('\r\n    Path    REG_SZ    C:\\az\\wbin\r\n\r\n');
 
     const fixPathWindows = await importFixPathWindows();

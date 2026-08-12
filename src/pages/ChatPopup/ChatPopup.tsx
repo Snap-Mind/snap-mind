@@ -84,7 +84,8 @@ export default function ChatPopup() {
     providers.find((p) => p.models?.some((m) => m.id === modelId));
 
   const selectedModelKey = (() => {
-    if (currentProviderId && currentModelId) return buildModelKey(currentProviderId, currentModelId);
+    if (currentProviderId && currentModelId)
+      return buildModelKey(currentProviderId, currentModelId);
     if (currentModelId) {
       const p = findProviderByModelId(currentModelId);
       if (p) return buildModelKey(p.id, currentModelId);
@@ -120,7 +121,11 @@ export default function ChatPopup() {
       .map((provider) => (
         <SelectSection key={provider.name} title={provider.name}>
           {provider.models.map((model) => (
-            <SelectItem key={buildModelKey(provider.id, model.id)} textValue={model.id} title={model.id}>
+            <SelectItem
+              key={buildModelKey(provider.id, model.id)}
+              textValue={model.id}
+              title={model.id}
+            >
               {model.id}
             </SelectItem>
           ))}
@@ -238,11 +243,7 @@ export default function ChatPopup() {
                 </div>
               ) : null}
               {messages.map((msg, i) => (
-                <ChatMessage
-                  key={i}
-                  message={msg}
-                  isStreaming={i === streamingMessageIndex}
-                />
+                <ChatMessage key={i} message={msg} isStreaming={i === streamingMessageIndex} />
               ))}
               {loading && (
                 <ChatMessage message={{ role: 'assistant', content: '...' }} isStreaming />
@@ -339,12 +340,7 @@ export default function ChatPopup() {
                 </Select>
 
                 {loading ? (
-                  <Button
-                    isIconOnly
-                    color="danger"
-                    onPress={abort}
-                    aria-label="Stop response"
-                  >
+                  <Button isIconOnly color="danger" onPress={abort} aria-label="Stop response">
                     <Icon icon="square"></Icon>
                   </Button>
                 ) : (

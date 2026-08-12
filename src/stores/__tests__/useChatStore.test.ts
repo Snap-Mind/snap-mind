@@ -27,9 +27,7 @@ const seedSettings = {
     defaultModel: 'gpt-4',
     defaultProvider: 'openai',
   },
-  providers: [
-    { id: 'openai', name: 'OpenAI', apiKey: 'k', host: 'x', models: [{ id: 'gpt-4' }] },
-  ],
+  providers: [{ id: 'openai', name: 'OpenAI', apiKey: 'k', host: 'x', models: [{ id: 'gpt-4' }] }],
 };
 
 async function freshStores() {

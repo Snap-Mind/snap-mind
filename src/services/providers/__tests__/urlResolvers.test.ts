@@ -27,9 +27,9 @@ describe('deriveFoundryProjectApiBase', () => {
   });
 
   it('throws missing project name for valid host without project path', () => {
-    expect(() =>
-      deriveFoundryProjectApiBase('https://my-foundry.services.ai.azure.com')
-    ).toThrow('Missing project name');
+    expect(() => deriveFoundryProjectApiBase('https://my-foundry.services.ai.azure.com')).toThrow(
+      'Missing project name'
+    );
   });
 
   it('throws invalid host for malformed URL', () => {

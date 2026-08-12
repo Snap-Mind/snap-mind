@@ -276,14 +276,13 @@ describe('OllamaProvider', () => {
         ])
       );
 
-      const result = await provider.sendMessage(
-        messages,
-        { model: 'deepseek-r1', stream: true, reasoning: true }
-      );
+      const result = await provider.sendMessage(messages, {
+        model: 'deepseek-r1',
+        stream: true,
+        reasoning: true,
+      });
 
-      expect(result).toBe(
-        '<think>\nLet me reason.\n</think>\n\nAnswer.'
-      );
+      expect(result).toBe('<think>\nLet me reason.\n</think>\n\nAnswer.');
     });
 
     it('should pass messages in Ollama format', async () => {
