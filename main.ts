@@ -27,6 +27,7 @@ import { resolveMigrationsFolder, runMigrations } from './electron/db/migrate.js
 import { runImportIfNeeded } from './electron/db/import.js';
 import { ProvidersService } from './electron/ProvidersService.js';
 import * as dbSchema from './electron/db/schema.js';
+import { resolveUserDataPath } from './electron/userDataPath.js';
 
 declare module 'electron' {
   interface App {
@@ -76,7 +77,7 @@ let providersService: ProvidersService | null = null;
 app.isQuitting = false;
 
 function initDatabase() {
-  const dbPath = path.join(app.getPath('userData'), 'snapmind.db');
+  const dbPath = path.join(resolveUserDataPath(), 'snapmind.db');
   sqliteDb = openDatabase(dbPath);
   const migrationsFolder = resolveMigrationsFolder(app.isPackaged, process.resourcesPath);
   runMigrations(sqliteDb, migrationsFolder);
@@ -542,7 +543,7 @@ app.whenReady().then(async () => {
 
   try {
     initDatabase();
-    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    const settingsPath = path.join(resolveUserDataPath(), 'settings.json');
     await runImportIfNeeded({
       settingsPath,
       service: providersService!,
@@ -561,7 +562,7 @@ app.whenReady().then(async () => {
       message: "SnapMind can't open its settings database.",
       detail: String((e as Error)?.message ?? e),
     });
-    if (choice === 0) shell.openPath(app.getPath('userData'));
+    if (choice === 0) shell.openPath(resolveUserDataPath());
     app.isQuitting = true;
     app.quit();
     return;

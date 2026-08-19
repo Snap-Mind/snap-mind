@@ -7,6 +7,7 @@ import { SafeStorageService } from './SafeStorageService.js';
 import logService from './LogService.js';
 import { mergeDeep } from './utils/mergeDeep.js';
 import type { ProvidersService } from './ProvidersService.js';
+import { resolveUserDataPath } from './userDataPath.js';
 
 const __rootdir = process.cwd();
 
@@ -28,7 +29,7 @@ class SettingsService {
   private providersService: ProvidersService | null = null;
 
   constructor() {
-    this.userDataPath = app.isPackaged ? app.getPath('userData') : __rootdir;
+    this.userDataPath = resolveUserDataPath();
     this.resourcesPath = app.isPackaged ? process.resourcesPath : __rootdir;
     this.settingsPath = path.join(this.userDataPath, 'settings.json');
     this.hotkeysPath = path.join(this.userDataPath, 'hotkeys.json');
