@@ -206,7 +206,9 @@ export class ProvidersService {
     const existing = this.db
       .select()
       .from(providerModels)
-      .where(and(eq(providerModels.providerId, providerId), eq(providerModels.modelId, model.modelId)))
+      .where(
+        and(eq(providerModels.providerId, providerId), eq(providerModels.modelId, model.modelId))
+      )
       .get();
 
     const capabilitiesJson = JSON.stringify(model.capabilities ?? []);

@@ -37,7 +37,16 @@ const seedProviders = [
     apiKey: 'k',
     host: 'x',
     description: null,
-    models: [{ id: 10, modelId: 'gpt-4', name: 'GPT-4', type: 'chat', capabilities: ['chat'], description: null }],
+    models: [
+      {
+        id: 10,
+        modelId: 'gpt-4',
+        name: 'GPT-4',
+        type: 'chat',
+        capabilities: ['chat'],
+        description: null,
+      },
+    ],
   },
 ];
 

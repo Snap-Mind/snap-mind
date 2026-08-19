@@ -127,7 +127,10 @@ function SettingsModel() {
             element={<ProviderDeepSeek provider={findByKind('deepseek')!} />}
           ></Route>
           <Route path="qwen" element={<ProviderQwen provider={findByKind('qwen')!} />}></Route>
-          <Route path="ollama" element={<ProviderOllama provider={findByKind('ollama')!} />}></Route>
+          <Route
+            path="ollama"
+            element={<ProviderOllama provider={findByKind('ollama')!} />}
+          ></Route>
         </Routes>
       </div>
     </div>

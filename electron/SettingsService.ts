@@ -51,8 +51,15 @@ class SettingsService {
       typeof chat.defaultModelId === 'number' ? chat.defaultModelId : null
     );
     if (!resolved) return;
-    if (chat.defaultProviderId !== resolved.providerId || chat.defaultModelId !== resolved.modelId) {
-      let next = this.updateObjectByPath(this.settings, ['chat', 'defaultProviderId'], resolved.providerId);
+    if (
+      chat.defaultProviderId !== resolved.providerId ||
+      chat.defaultModelId !== resolved.modelId
+    ) {
+      let next = this.updateObjectByPath(
+        this.settings,
+        ['chat', 'defaultProviderId'],
+        resolved.providerId
+      );
       next = this.updateObjectByPath(next, ['chat', 'defaultModelId'], resolved.modelId);
       await this.saveSettings(next);
     }

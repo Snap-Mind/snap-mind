@@ -488,7 +488,7 @@ describe('OpenAIProvider', () => {
     it('should update config', async () => {
       const newConfig: OpenAIConfig = {
         id: 1,
-      kind: 'openai' as const,
+        kind: 'openai' as const,
         name: 'OpenAI',
         apiKey: 'new-key',
         host: 'https://new-api.com/v1',

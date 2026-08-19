@@ -3,7 +3,15 @@ import { useProvidersStore } from '../useProvidersStore';
 import type { ProviderDTO } from '@/types/provider-dto';
 
 const sample: ProviderDTO[] = [
-  { id: 1, kind: 'openai', name: 'OpenAI', host: null, apiKey: null, description: null, models: [] },
+  {
+    id: 1,
+    kind: 'openai',
+    name: 'OpenAI',
+    host: null,
+    apiKey: null,
+    description: null,
+    models: [],
+  },
 ];
 
 function installApi() {

@@ -360,7 +360,7 @@ describe('AzureOpenAIProvider', () => {
     it('should update config', async () => {
       const newConfig: AzureOpenAIConfig = {
         id: 2,
-      kind: 'azure-openai' as const,
+        kind: 'azure-openai' as const,
         name: 'Azure OpenAI',
         apiKey: 'new-key',
         host: 'https://new-resource.openai.azure.com',

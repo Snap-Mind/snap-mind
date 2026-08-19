@@ -287,7 +287,7 @@ describe('QwenProvider', () => {
     it('should update config', async () => {
       const newConfig: QwenConfig = {
         id: 6,
-      kind: 'qwen' as const,
+        kind: 'qwen' as const,
         name: 'Qwen',
         apiKey: 'new-key',
         host: 'https://new-dashscope.aliyuncs.com',

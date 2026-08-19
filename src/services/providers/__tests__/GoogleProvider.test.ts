@@ -491,7 +491,7 @@ describe('GoogleProvider', () => {
     it('should update config', async () => {
       const newConfig: GoogleConfig = {
         id: 4,
-      kind: 'google' as const,
+        kind: 'google' as const,
         name: 'Google',
         apiKey: 'new-key',
         host: 'https://new-host.com',

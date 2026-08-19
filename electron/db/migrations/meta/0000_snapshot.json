@@ -81,10 +81,7 @@
       "indexes": {
         "provider_models_provider_model_unique": {
           "name": "provider_models_provider_model_unique",
-          "columns": [
-            "provider_id",
-            "model_id"
-          ],
+          "columns": ["provider_id", "model_id"],
           "isUnique": true
         }
       },
@@ -93,12 +90,8 @@
           "name": "provider_models_provider_id_providers_id_fk",
           "tableFrom": "provider_models",
           "tableTo": "providers",
-          "columnsFrom": [
-            "provider_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["provider_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

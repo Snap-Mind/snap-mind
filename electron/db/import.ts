@@ -98,7 +98,9 @@ function importLegacyProviders(
         const existingModel = tx
           .select()
           .from(providerModels)
-          .where(and(eq(providerModels.providerId, providerId), eq(providerModels.modelId, modelId)))
+          .where(
+            and(eq(providerModels.providerId, providerId), eq(providerModels.modelId, modelId))
+          )
           .get();
 
         if (existingModel) {

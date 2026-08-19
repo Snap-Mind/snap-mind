@@ -413,7 +413,7 @@ describe('OllamaProvider', () => {
     it('should update config', async () => {
       const newConfig: BaseProviderConfig = {
         id: 7,
-      kind: 'ollama' as const,
+        kind: 'ollama' as const,
         name: 'Ollama',
         apiKey: '',
         host: 'http://new-host:8080',

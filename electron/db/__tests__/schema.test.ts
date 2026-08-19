@@ -42,10 +42,14 @@ describe('schema migrations', () => {
       })
       .run();
 
-    expect(db.select().from(providerModels).where(eq(providerModels.modelId, 'gpt-4')).all()).toHaveLength(1);
+    expect(
+      db.select().from(providerModels).where(eq(providerModels.modelId, 'gpt-4')).all()
+    ).toHaveLength(1);
 
     db.delete(providers).where(eq(providers.id, p.id)).run();
-    expect(db.select().from(providerModels).where(eq(providerModels.modelId, 'gpt-4')).all()).toHaveLength(0);
+    expect(
+      db.select().from(providerModels).where(eq(providerModels.modelId, 'gpt-4')).all()
+    ).toHaveLength(0);
   });
 
   it('enforces unique (provider_id, model_id)', () => {

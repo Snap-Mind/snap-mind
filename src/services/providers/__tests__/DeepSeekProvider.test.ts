@@ -270,7 +270,7 @@ describe('DeepSeekProvider', () => {
     it('should update config', async () => {
       const newConfig: DeepSeekConfig = {
         id: 5,
-      kind: 'deepseek' as const,
+        kind: 'deepseek' as const,
         name: 'DeepSeek',
         apiKey: 'new-key',
         host: 'https://new-api.deepseek.com',

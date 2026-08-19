@@ -482,7 +482,7 @@ describe('AnthropicProvider', () => {
     it('should update config', async () => {
       const newConfig: AnthropicConfig = {
         id: 3,
-      kind: 'anthropic' as const,
+        kind: 'anthropic' as const,
         name: 'Anthropic',
         apiKey: 'new-api-key',
         host: 'https://new.api.com',
