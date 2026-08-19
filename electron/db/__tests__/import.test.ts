@@ -45,9 +45,8 @@ describe('runImportIfNeeded', () => {
   it('imports providers, backs up, and rewrites settings.json', async () => {
     const { db } = makeTestDb();
     const svc = new ProvidersService(db);
-    await svc.__truncateForTest();
 
-    const result = await runImportIfNeeded({ settingsPath, service: svc, hasProviders: false });
+    const result = await runImportIfNeeded({ settingsPath, db });
     expect(result).toBe('imported');
 
     const bak = fs.readFileSync(settingsPath + '.pre-sqlite.bak', 'utf8');
@@ -62,16 +61,34 @@ describe('runImportIfNeeded', () => {
     expect(rewritten.builtinsSeeded).toBe(true);
 
     const list = await svc.list();
-    expect(list.map((p) => p.kind)).toEqual(['openai']);
-    expect(rewritten.chat.defaultProviderId).toBe(list[0].id);
-    expect(rewritten.chat.defaultModelId).toBe(list[0].models[0].id);
+    expect(list).toHaveLength(7);
+    const openai = list.find((p) => p.kind === 'openai')!;
+    expect(openai.apiKey).toBe('sk-x');
+    expect(openai.models).toHaveLength(1);
+    expect(openai.models[0].modelId).toBe('gpt-4');
+    expect(rewritten.chat.defaultProviderId).toBe(openai.id);
+    expect(rewritten.chat.defaultModelId).toBe(openai.models[0].id);
   });
 
-  it('returns "skipped" when providers already exist in the db', async () => {
+  it('merges legacy providers into seeded built-ins when the db is not empty', async () => {
     const { db } = makeTestDb();
     const svc = new ProvidersService(db);
-    const result = await runImportIfNeeded({ settingsPath, service: svc, hasProviders: true });
-    expect(result).toBe('skipped');
-    expect(fs.existsSync(settingsPath + '.pre-sqlite.bak')).toBe(false);
+
+    const result = await runImportIfNeeded({ settingsPath, db });
+    expect(result).toBe('imported');
+    expect(fs.existsSync(settingsPath + '.pre-sqlite.bak')).toBe(true);
+
+    const openai = (await svc.list()).find((p) => p.kind === 'openai')!;
+    expect(openai.models).toHaveLength(1);
+  });
+
+  it('returns "seeded" when settings.json has no legacy providers array', async () => {
+    const { db } = makeTestDb();
+    const emptySettingsPath = path.join(tmpDir, 'empty-settings.json');
+    fs.writeFileSync(emptySettingsPath, JSON.stringify({ chat: {} }, null, 2));
+
+    const result = await runImportIfNeeded({ settingsPath: emptySettingsPath, db });
+    expect(result).toBe('seeded');
+    expect(fs.existsSync(emptySettingsPath + '.pre-sqlite.bak')).toBe(false);
   });
 });

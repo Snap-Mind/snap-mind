@@ -73,6 +73,7 @@ let autoUpdateService: AutoUpdateService | null = null;
 let tray = null;
 let mainWindow: import('electron').BrowserWindow | null = null;
 let sqliteDb: BetterSqlite3.Database | null = null;
+let drizzleDb: ReturnType<typeof drizzle<typeof dbSchema>> | null = null;
 let providersService: ProvidersService | null = null;
 app.isQuitting = false;
 
@@ -81,14 +82,8 @@ function initDatabase() {
   sqliteDb = openDatabase(dbPath);
   const migrationsFolder = resolveMigrationsFolder(app.isPackaged, process.resourcesPath);
   runMigrations(sqliteDb, migrationsFolder);
-  const drizzleDb = drizzle(sqliteDb, { schema: dbSchema });
+  drizzleDb = drizzle(sqliteDb, { schema: dbSchema });
   providersService = new ProvidersService(drizzleDb);
-}
-
-function providerCount(): number {
-  if (!sqliteDb) return 0;
-  const row = sqliteDb.prepare('SELECT COUNT(*) AS n FROM providers').get() as { n: number };
-  return row.n;
 }
 
 function broadcastProvidersChanged(list: unknown) {
@@ -544,11 +539,13 @@ app.whenReady().then(async () => {
   try {
     initDatabase();
     const settingsPath = path.join(resolveUserDataPath(), 'settings.json');
-    await runImportIfNeeded({
+    const importResult = await runImportIfNeeded({
       settingsPath,
-      service: providersService!,
-      hasProviders: providerCount() > 0,
+      db: drizzleDb!,
     });
+    if (importResult === 'imported') {
+      settingsService.initializeConfigs();
+    }
     settingsService.setProvidersService(providersService!);
     await settingsService.resolveAndPersistDefaults();
   } catch (e) {
