@@ -100,15 +100,7 @@ function Settings() {
               />
             }
           />
-          <Route
-            path="models/*"
-            element={
-              <SettingsModel
-                settings={settings.providers}
-                onSettingsChange={setSettings}
-              ></SettingsModel>
-            }
-          ></Route>
+          <Route path="models/*" element={<SettingsModel />}></Route>
           <Route
             path="appearance"
             element={

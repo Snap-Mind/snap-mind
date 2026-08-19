@@ -79,10 +79,10 @@ export const adapterMap: Record<ProviderType, ProviderAdapter> = {
 
 class ProviderFactory {
   static createProvider(config: BaseProviderConfig): Provider {
-    const adapter = adapterMap[config.id];
+    const adapter = adapterMap[config.kind];
     if (!adapter) {
-      loggerService.error('[ProviderFactory]', `Unknown provider: ${config.id}`);
-      throw new Error(`Unknown provider: ${config.id}`);
+      loggerService.error('[ProviderFactory]', `Unknown provider kind: ${config.kind}`);
+      throw new Error(`Unknown provider kind: ${config.kind}`);
     }
     return new UnifiedProvider(config, adapter);
   }

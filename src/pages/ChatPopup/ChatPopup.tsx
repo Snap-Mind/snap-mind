@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { Button, Divider, Select, SelectSection, SelectItem, Textarea } from '@heroui/react';
 
-import { useSettingsStore } from '@/stores/useSettingsStore';
+import { useProvidersStore } from '@/stores/useProvidersStore';
 import { useChatStore } from '@/stores/useChatStore';
 
 import ChatMessage from '../ChatMessage/ChatMessage';
@@ -12,7 +12,7 @@ import Icon from '../../components/Icon';
 import LogoSvg from '@/components/LogoSvg';
 import ReasoningToggle from '@/components/ReasoningToggle';
 import WebSearchToggle from '@/components/WebSearchToggle';
-import { BaseProviderConfig, ProviderType } from '@/types/providers';
+import type { ProviderDTO } from '@/types/provider-dto';
 
 export default function ChatPopup() {
   const { t } = useTranslation();
@@ -38,13 +38,12 @@ export default function ChatPopup() {
   const send = useChatStore((s) => s.send);
   const abort = useChatStore((s) => s.abort);
 
-  const settings = useSettingsStore((s) => s.settings);
-  const providers = settings?.providers ?? [];
+  const providers = useProvidersStore((s) => s.providers);
 
   const hasUsableProvider = providers.some(
     (p) =>
-      (p.apiKey && p.host && (p.models?.length ?? 0) > 0) ||
-      (p.id === 'ollama' && p.host && (p.models?.length ?? 0) > 0)
+      (p.apiKey && p.host && p.models.length > 0) ||
+      (p.kind === 'ollama' && p.host && p.models.length > 0)
   );
 
   const isEmpty = messages.length === 0;
@@ -73,20 +72,20 @@ export default function ChatPopup() {
     if (autoScroll) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading, autoScroll]);
 
-  const buildModelKey = (providerId: string, modelId: string) => `${providerId}::${modelId}`;
+  const buildModelKey = (providerId: number, modelId: number) => `${providerId}::${modelId}`;
   const parseModelKey = (value: string) => {
-    const [providerId, ...rest] = value.split('::');
-    return { providerId, modelId: rest.join('::') };
+    const [providerId, modelId] = value.split('::');
+    return { providerId: Number(providerId), modelId: Number(modelId) };
   };
 
-  const findProviderByModelId = (modelId: string) =>
-    providers.find((p) => p.models?.some((m) => m.id === modelId));
+  const findProviderByModelPk = (modelPk: number) =>
+    providers.find((p) => p.models.some((m) => m.id === modelPk));
 
   const selectedModelKey = (() => {
     if (currentProviderId && currentModelId)
       return buildModelKey(currentProviderId, currentModelId);
     if (currentModelId) {
-      const p = findProviderByModelId(currentModelId);
+      const p = findProviderByModelPk(currentModelId);
       if (p) return buildModelKey(p.id, currentModelId);
     }
     return undefined;
@@ -106,13 +105,9 @@ export default function ChatPopup() {
   };
 
   const renderAvailableModels = () => {
-    const isValidProvider = (provider: BaseProviderConfig) => {
-      const ollamaType: ProviderType = 'ollama';
-      return (
-        (provider.apiKey && provider.host && provider.models.length !== 0) ||
-        (provider.id === ollamaType && provider.host != null && provider.models.length !== 0)
-      );
-    };
+    const isValidProvider = (provider: ProviderDTO) =>
+      (provider.apiKey && provider.host && provider.models.length !== 0) ||
+      (provider.kind === 'ollama' && provider.host != null && provider.models.length !== 0);
     return providers
       .filter((provider) => isValidProvider(provider))
       .map((provider) => (
@@ -120,10 +115,10 @@ export default function ChatPopup() {
           {provider.models.map((model) => (
             <SelectItem
               key={buildModelKey(provider.id, model.id)}
-              textValue={model.id}
-              title={model.id}
+              textValue={model.modelId}
+              title={model.modelId}
             >
-              {model.id}
+              {model.modelId}
             </SelectItem>
           ))}
         </SelectSection>
@@ -319,7 +314,7 @@ export default function ChatPopup() {
               aria-label="Select AI model"
               selectionMode="single"
               disallowEmptySelection={true}
-              defaultSelectedKeys={selectedModelKey ? [selectedModelKey] : []}
+              selectedKeys={selectedModelKey ? [selectedModelKey] : []}
               onChange={handleModelChange}
               popoverProps={{
                 classNames: {

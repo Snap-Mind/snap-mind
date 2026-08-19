@@ -3,6 +3,7 @@ import type { StoreApi } from 'zustand';
 import type { Message, ChatSource, ContentPart } from '@/types/chat';
 import { AIService } from '@/services/AIService';
 import { useSettingsStore } from './useSettingsStore';
+import { useProvidersStore } from './useProvidersStore';
 
 export interface ImageAttachment {
   data: string;
@@ -22,8 +23,8 @@ export interface ChatStoreState extends ChatInternalState {
   autoScroll: boolean;
   reasoningEnabled: boolean;
   webSearchEnabled: boolean;
-  currentProviderId: string | null;
-  currentModelId: string | null;
+  currentProviderId: number | null;
+  currentModelId: number | null;
 
   setInput(v: string): void;
   addImages(files: File[]): Promise<void>;
@@ -32,7 +33,7 @@ export interface ChatStoreState extends ChatInternalState {
   setAutoScroll(v: boolean): void;
   setReasoning(v: boolean): void;
   setWebSearch(v: boolean): void;
-  setModel(providerId: string, modelId: string): void;
+  setModel(providerId: number, modelId: number): void;
 
   send(): Promise<void>;
   abort(): void;
@@ -66,7 +67,8 @@ async function runAIRequest(
   signal: AbortSignal
 ): Promise<{ role: 'assistant'; content: string }> {
   const settings = useSettingsStore.getState().settings;
-  const service = new AIService(settings as any);
+  const providers = useProvidersStore.getState().providers;
+  const service = new AIService({ chat: settings.chat, providers });
   return service.sendMessageToAI(messages, onToken, {
     signal,
     onWebSources: onSources,
@@ -175,8 +177,8 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
 
   setModel: (providerId, modelId) => {
     set({ currentProviderId: providerId, currentModelId: modelId });
-    void useSettingsStore.getState().updateSetting(['chat', 'defaultProvider'], providerId);
-    void useSettingsStore.getState().updateSetting(['chat', 'defaultModel'], modelId);
+    void useSettingsStore.getState().updateSetting(['chat', 'defaultProviderId'], providerId);
+    void useSettingsStore.getState().updateSetting(['chat', 'defaultModelId'], modelId);
   },
 
   hydrateFromSettings: () => {
@@ -184,8 +186,8 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     set({
       reasoningEnabled: s?.chat?.reasoningEnabled ?? false,
       webSearchEnabled: s?.chat?.webSearchEnabled ?? false,
-      currentProviderId: s?.chat?.defaultProvider ?? null,
-      currentModelId: s?.chat?.defaultModel ?? null,
+      currentProviderId: s?.chat?.defaultProviderId ?? null,
+      currentModelId: s?.chat?.defaultModelId ?? null,
     });
 
     window.electronAPI?.chat?.onResetWithSeed?.((seed) => {

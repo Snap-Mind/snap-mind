@@ -96,7 +96,11 @@ function rowToModelDTO(row: ProviderModelRow): ModelDTO {
 }
 
 export class ProvidersService {
-  constructor(private db: BetterSQLite3Database<typeof schema>) {}
+  private db: BetterSQLite3Database<typeof schema>;
+
+  constructor(db: BetterSQLite3Database<typeof schema>) {
+    this.db = db;
+  }
 
   async list(): Promise<ProviderDTO[]> {
     const providerRows = this.db

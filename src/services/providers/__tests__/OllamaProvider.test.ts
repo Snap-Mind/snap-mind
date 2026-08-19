@@ -21,7 +21,8 @@ describe('OllamaProvider', () => {
     vi.clearAllMocks();
     (global.fetch as any).mockClear();
     config = {
-      id: 'ollama' as any,
+      id: 7,
+      kind: 'ollama' as const,
       name: 'Ollama',
       apiKey: '',
       host: 'http://localhost:11434',
@@ -411,7 +412,8 @@ describe('OllamaProvider', () => {
   describe('initialize', () => {
     it('should update config', async () => {
       const newConfig: BaseProviderConfig = {
-        id: 'ollama' as any,
+        id: 7,
+      kind: 'ollama' as const,
         name: 'Ollama',
         apiKey: '',
         host: 'http://new-host:8080',

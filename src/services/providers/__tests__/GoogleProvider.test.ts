@@ -26,7 +26,8 @@ describe('GoogleProvider', () => {
     vi.clearAllMocks();
     (global.fetch as any).mockClear();
     config = {
-      id: 'google' as any,
+      id: 4,
+      kind: 'google' as const,
       name: 'Google',
       apiKey: 'test-api-key',
       host: 'https://generativelanguage.googleapis.com',
@@ -489,7 +490,8 @@ describe('GoogleProvider', () => {
   describe('initialize', () => {
     it('should update config', async () => {
       const newConfig: GoogleConfig = {
-        id: 'google' as any,
+        id: 4,
+      kind: 'google' as const,
         name: 'Google',
         apiKey: 'new-key',
         host: 'https://new-host.com',
@@ -505,7 +507,8 @@ describe('GoogleProvider', () => {
   describe('buildChatBody — thinking budget calculation', () => {
     const baseMessages: Message[] = [{ role: 'user', content: 'Hello' }];
     const baseConfig: GoogleConfig = {
-      id: 'google' as any,
+      id: 4,
+      kind: 'google' as const,
       name: 'Google',
       apiKey: 'test-key',
       host: 'https://generativelanguage.googleapis.com',

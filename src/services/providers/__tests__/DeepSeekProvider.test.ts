@@ -22,7 +22,8 @@ describe('DeepSeekProvider', () => {
     vi.clearAllMocks();
     (global.fetch as any).mockClear();
     config = {
-      id: 'deepseek' as any,
+      id: 5,
+      kind: 'deepseek' as const,
       name: 'DeepSeek',
       apiKey: 'test-api-key',
       host: 'https://api.deepseek.com',
@@ -268,7 +269,8 @@ describe('DeepSeekProvider', () => {
   describe('initialize', () => {
     it('should update config', async () => {
       const newConfig: DeepSeekConfig = {
-        id: 'deepseek' as any,
+        id: 5,
+      kind: 'deepseek' as const,
         name: 'DeepSeek',
         apiKey: 'new-key',
         host: 'https://new-api.deepseek.com',

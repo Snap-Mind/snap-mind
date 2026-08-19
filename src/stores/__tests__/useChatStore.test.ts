@@ -24,11 +24,22 @@ const seedSettings = {
     streamingEnabled: true,
     reasoningEnabled: false,
     webSearchEnabled: false,
-    defaultModel: 'gpt-4',
-    defaultProvider: 'openai',
+    defaultModelId: 10,
+    defaultProviderId: 1,
   },
-  providers: [{ id: 'openai', name: 'OpenAI', apiKey: 'k', host: 'x', models: [{ id: 'gpt-4' }] }],
 };
+
+const seedProviders = [
+  {
+    id: 1,
+    kind: 'openai',
+    name: 'OpenAI',
+    apiKey: 'k',
+    host: 'x',
+    description: null,
+    models: [{ id: 10, modelId: 'gpt-4', name: 'GPT-4', type: 'chat', capabilities: ['chat'], description: null }],
+  },
+];
 
 async function freshStores() {
   vi.resetModules();
@@ -37,6 +48,15 @@ async function freshStores() {
     {
       ...settingsMod.useSettingsStore.getInitialState(),
       settings: seedSettings as any,
+      isHydrated: true,
+    },
+    true
+  );
+  const providersMod = await import('../useProvidersStore');
+  providersMod.useProvidersStore.setState(
+    {
+      ...providersMod.useProvidersStore.getInitialState(),
+      providers: seedProviders as any,
       isHydrated: true,
     },
     true
@@ -101,18 +121,18 @@ describe('useChatStore', () => {
     expect(settings.getState().settings.chat.reasoningEnabled).toBe(true);
   });
 
-  it('setModel writes both defaultProvider and defaultModel to settings', async () => {
+  it('setModel writes both defaultProviderId and defaultModelId to settings', async () => {
     const { chat, settings } = await freshStores();
     const spy = window.electronAPI.updateSetting as any;
 
-    chat.getState().setModel('anthropic', 'claude-3');
+    chat.getState().setModel(2, 20);
 
-    expect(spy).toHaveBeenCalledWith(['chat', 'defaultProvider'], 'anthropic');
-    expect(spy).toHaveBeenCalledWith(['chat', 'defaultModel'], 'claude-3');
-    expect(chat.getState().currentProviderId).toBe('anthropic');
-    expect(chat.getState().currentModelId).toBe('claude-3');
-    expect(settings.getState().settings.chat.defaultProvider).toBe('anthropic');
-    expect(settings.getState().settings.chat.defaultModel).toBe('claude-3');
+    expect(spy).toHaveBeenCalledWith(['chat', 'defaultProviderId'], 2);
+    expect(spy).toHaveBeenCalledWith(['chat', 'defaultModelId'], 20);
+    expect(chat.getState().currentProviderId).toBe(2);
+    expect(chat.getState().currentModelId).toBe(20);
+    expect(settings.getState().settings.chat.defaultProviderId).toBe(2);
+    expect(settings.getState().settings.chat.defaultModelId).toBe(20);
   });
 
   it('abort() sets loading false and marks controller aborted', async () => {

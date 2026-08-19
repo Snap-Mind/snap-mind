@@ -25,7 +25,8 @@ describe('AnthropicProvider', () => {
     vi.clearAllMocks();
     (global.fetch as any).mockClear();
     config = {
-      id: 'anthropic' as any,
+      id: 3,
+      kind: 'anthropic' as const,
       name: 'Anthropic',
       apiKey: 'test-api-key',
       host: 'https://api.anthropic.com',
@@ -480,7 +481,8 @@ describe('AnthropicProvider', () => {
   describe('initialize', () => {
     it('should update config', async () => {
       const newConfig: AnthropicConfig = {
-        id: 'anthropic' as any,
+        id: 3,
+      kind: 'anthropic' as const,
         name: 'Anthropic',
         apiKey: 'new-api-key',
         host: 'https://new.api.com',
@@ -496,7 +498,8 @@ describe('AnthropicProvider', () => {
   describe('buildChatBody — thinking budget calculation', () => {
     const baseMessages: Message[] = [{ role: 'user', content: 'Hello' }];
     const baseConfig: AnthropicConfig = {
-      id: 'anthropic' as any,
+      id: 3,
+      kind: 'anthropic' as const,
       name: 'Anthropic',
       apiKey: 'test-api-key',
       host: 'https://api.anthropic.com',

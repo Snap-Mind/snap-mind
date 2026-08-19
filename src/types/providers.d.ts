@@ -14,7 +14,8 @@ export interface ProviderOptions {
 }
 
 export interface BaseProviderConfig {
-  id: ProviderType;
+  id: number;
+  kind: ProviderType;
   name: string;
   apiKey: string;
   host: string;

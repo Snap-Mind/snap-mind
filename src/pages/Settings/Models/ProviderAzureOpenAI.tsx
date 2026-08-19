@@ -1,51 +1,68 @@
+import { useState, useEffect } from 'react';
 import { Form, Input } from '@heroui/react';
 import ModelTable from '../../../components/ModelTable';
-import { SettingsChangeHandler } from '@/types';
-import { AzureOpenAIConfig } from '@/types/providers';
 import PasswordInput from '../../../components/PasswordInput';
 import { useTranslation } from 'react-i18next';
+import type { ProviderDTO } from '@/types/provider-dto';
+import { useProvidersStore } from '@/stores/useProvidersStore';
 
 interface ProviderAzureOpenAIProps {
-  settings: AzureOpenAIConfig;
-  onSettingsChange: SettingsChangeHandler;
+  provider: ProviderDTO;
 }
 
-function ProviderAzureOpenAI({ settings, onSettingsChange }: ProviderAzureOpenAIProps) {
+function ProviderAzureOpenAI({ provider }: ProviderAzureOpenAIProps) {
   const { t } = useTranslation();
+  const updateProvider = useProvidersStore((s) => s.updateProvider);
+  const [host, setHost] = useState(provider.host ?? '');
+  const [apiKey, setApiKey] = useState(provider.apiKey ?? '');
+  const [apiVersion, setApiVersion] = useState(provider.apiVersion ?? '');
+
+  useEffect(() => {
+    setHost(provider.host ?? '');
+    setApiKey(provider.apiKey ?? '');
+    setApiVersion(provider.apiVersion ?? '');
+  }, [provider.host, provider.apiKey, provider.apiVersion]);
+
   return (
     <div className="p-1 flex flex-col gap-5">
-      <h1 className="font-bold text-2xl">{settings.name}</h1>
+      <h1 className="font-bold text-2xl">{provider.name}</h1>
       <Form className="w-full flex flex-col gap-5">
         <Input
           label="Host"
           labelPlacement="outside"
           placeholder="e.g. https://{your-resource-name}.openai.azure.com"
-          defaultValue={settings.host ? settings.host : ''}
+          value={host}
           type="url"
-          onValueChange={(value) => onSettingsChange(['providers', 1, 'host'], value)}
+          onValueChange={(value) => {
+            setHost(value);
+            void updateProvider(provider.id, { host: value });
+          }}
         />
         <PasswordInput
           label="API Token"
           labelPlacement="outside"
           placeholder="Enter your API token"
-          defaultValue={settings.apiKey ? settings.apiKey : ''}
-          onValueChange={(value) => onSettingsChange(['providers', 1, 'apiKey'], value)}
+          value={apiKey}
+          onValueChange={(value) => {
+            setApiKey(value);
+            void updateProvider(provider.id, { apiKey: value });
+          }}
         />
         <Input
           label="API Version"
           labelPlacement="outside"
           placeholder="2024-10-21"
-          defaultValue={settings.apiVersion ? settings.apiVersion : ''}
+          value={apiVersion}
           type="text"
-          onValueChange={(value) => onSettingsChange(['providers', 1, 'apiVersion'], value)}
+          onValueChange={(value) => {
+            setApiVersion(value);
+            void updateProvider(provider.id, { apiVersion: value });
+          }}
         />
       </Form>
       <div className="max-w-full flex flex-col gap-4">
         <div className="font-weight-bold">{t('settings.providers.models')}</div>
-        <ModelTable
-          providerConfig={settings}
-          onModelsChange={(newModels) => onSettingsChange(['providers', 1, 'models'], newModels)}
-        />
+        <ModelTable provider={provider} />
       </div>
     </div>
   );
