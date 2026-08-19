@@ -11,7 +11,6 @@ export type Setting = {
   general: GeneralSetting;
   appearance: AppearanceSetting;
   chat: ChatSetting;
-  providers: ProviderSetting[];
 };
 
 export interface GeneralSetting {
@@ -38,8 +37,8 @@ export interface ChatSetting {
   streamingEnabled: boolean;
   reasoningEnabled: boolean;
   webSearchEnabled: boolean;
-  defaultModel: string;
-  defaultProvider: string;
+  defaultModelId: number | null;
+  defaultProviderId: number | null;
 }
 
 export interface Hotkey {

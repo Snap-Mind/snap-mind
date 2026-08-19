@@ -22,8 +22,8 @@ export interface SettingsStoreState {
 const EMPTY_SETTINGS: Setting = {} as unknown as Setting;
 
 function scrubSecrets(s: Setting): Setting {
-  // Renderer never needs general.azureApiKey — mirrors SettingsManager's historical scrub.
-  // provider apiKeys stay for Phase 1 (AIService still runs in renderer).
+  // Providers (incl. apiKeys) live in SQLite as of Phase 2 and are not part of `settings`.
+  // Only the legacy general.azureApiKey scrub remains.
   if (s?.general && (s.general as any).azureApiKey) {
     return {
       ...s,

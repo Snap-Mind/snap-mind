@@ -25,11 +25,10 @@ const seedSettings: Setting = {
     streamingEnabled: true,
     reasoningEnabled: false,
     webSearchEnabled: false,
-    defaultModel: 'gpt-4',
-    defaultProvider: 'openai',
+    defaultModelId: 1,
+    defaultProviderId: 1,
   },
-  providers: [{ id: 'openai', name: 'OpenAI', apiKey: 'plain-key', host: 'x', models: [] }],
-} as unknown as Setting;
+};
 
 const seedHotkeys: Hotkey[] = [{ id: 0, key: 'Ctrl+`', enabled: true } as unknown as Hotkey];
 
@@ -78,7 +77,7 @@ describe('useSettingsStore', () => {
 
     const s = store.getState();
     expect(s.isHydrated).toBe(true);
-    expect(s.settings.chat.defaultModel).toBe('gpt-4');
+    expect(s.settings.chat.defaultModelId).toBe(1);
     expect(s.hotkeys[0].key).toBe('Ctrl+`');
     expect(s.permissions[0].isGranted).toBe(true);
   });
@@ -114,6 +113,15 @@ describe('useSettingsStore', () => {
     expect(store.getState().settings.appearance.theme).toBe('dark');
     await promise;
     expect(ipc.updateSetting).toHaveBeenCalledWith(['appearance', 'theme'], 'dark');
+  });
+
+  it('updateSetting optimistically sets defaultProviderId', async () => {
+    installIPC();
+    const store = await freshStore();
+    await store.getState().hydrate();
+
+    await store.getState().updateSetting(['chat', 'defaultProviderId'], 3);
+    expect(store.getState().settings.chat.defaultProviderId).toBe(3);
   });
 
   it('updateSetting reverts optimistic write on IPC rejection', async () => {
