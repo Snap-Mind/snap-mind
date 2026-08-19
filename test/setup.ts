@@ -23,6 +23,11 @@ vi.mock('electron', () => ({
     send: vi.fn(),
   },
   BrowserWindow: vi.fn(),
+  safeStorage: {
+    isEncryptionAvailable: () => true,
+    encryptString: (s: string) => Buffer.from('enc:' + s, 'utf8'),
+    decryptString: (b: Buffer) => b.toString('utf8').slice(4),
+  },
 }));
 
 // Mock electron-log
