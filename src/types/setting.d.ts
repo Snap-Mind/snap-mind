@@ -1,7 +1,6 @@
 import {
   AnthropicConfig,
   AzureOpenAIConfig,
-  FoundryConfig,
   GoogleConfig,
   OpenAIConfig,
   DeepSeekConfig,
@@ -80,7 +79,6 @@ export type Capability =
 export type ProviderSetting =
   | OpenAIConfig
   | AzureOpenAIConfig
-  | FoundryConfig
   | AnthropicConfig
   | GoogleConfig
   | DeepSeekConfig

@@ -44,8 +44,7 @@ export default function ChatPopup() {
   const hasUsableProvider = providers.some(
     (p) =>
       (p.apiKey && p.host && (p.models?.length ?? 0) > 0) ||
-      (p.id === 'ollama' && p.host && (p.models?.length ?? 0) > 0) ||
-      (p.id === 'foundry' && p.host && (p.models?.length ?? 0) > 0)
+      (p.id === 'ollama' && p.host && (p.models?.length ?? 0) > 0)
   );
 
   const isEmpty = messages.length === 0;
@@ -109,11 +108,9 @@ export default function ChatPopup() {
   const renderAvailableModels = () => {
     const isValidProvider = (provider: BaseProviderConfig) => {
       const ollamaType: ProviderType = 'ollama';
-      const foundryType: ProviderType = 'foundry';
       return (
         (provider.apiKey && provider.host && provider.models.length !== 0) ||
-        (provider.id === ollamaType && provider.host != null && provider.models.length !== 0) ||
-        (provider.id === foundryType && provider.host != null && provider.models.length !== 0)
+        (provider.id === ollamaType && provider.host != null && provider.models.length !== 0)
       );
     };
     return providers

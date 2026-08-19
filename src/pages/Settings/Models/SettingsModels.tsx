@@ -9,12 +9,11 @@ import ProviderGoogle from './ProviderGoogle';
 import ProviderDeepSeek from './ProviderDeepSeek';
 import ProviderQwen from './ProviderQwen';
 import ProviderOllama from './ProviderOllama';
-import ProviderFoundry from './ProviderFoundry';
 import Icon from '@/components/Icon';
 
 import { ProviderSetting } from '@/types/setting';
 import { SettingsChangeHandler } from '@/types';
-import { AzureOpenAIConfig, FoundryConfig } from '@/types/providers';
+import { AzureOpenAIConfig } from '@/types/providers';
 import { useTranslation } from 'react-i18next';
 
 interface SettingsModelProps {
@@ -28,12 +27,11 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
   const providerOrder: Record<string, number> = {
     openai: 1,
     'azure-openai': 2,
-    foundry: 3,
-    anthropic: 4,
-    google: 5,
-    deepseek: 6,
-    qwen: 7,
-    ollama: 8,
+    anthropic: 3,
+    google: 4,
+    deepseek: 5,
+    qwen: 6,
+    ollama: 7,
   };
 
   const providers = settings
@@ -44,8 +42,6 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
         newProvider = { ...provider, path: '/settings/models/openai' };
       } else if (provider.id == 'azure-openai') {
         newProvider = { ...provider, path: '/settings/models/azure-openai' };
-      } else if (provider.id == 'foundry') {
-        newProvider = { ...provider, path: '/settings/models/foundry' };
       } else if (provider.id == 'anthropic') {
         newProvider = { ...provider, path: '/settings/models/anthropic' };
       } else if (provider.id == 'google') {
@@ -77,8 +73,6 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
       case 'openai':
         return <Icon icon="openai" className="inline-block ml-2" size={18} />;
       case 'azure-openai':
-        return <Icon icon="azure-openai" className="inline-block ml-2" size={18} />;
-      case 'foundry':
         return <Icon icon="azure-openai" className="inline-block ml-2" size={18} />;
       case 'anthropic':
         return <Icon icon="anthropic" className="inline-block ml-2" size={18} />;
@@ -140,16 +134,6 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
                 settings={settings.find((s) => s.id === 'azure-openai') as AzureOpenAIConfig}
                 onSettingsChange={onSettingsChange}
               ></ProviderAzureOpenAI>
-            }
-          ></Route>
-          <Route
-            path="foundry"
-            element={
-              <ProviderFoundry
-                settings={settings.find((s) => s.id === 'foundry') as FoundryConfig}
-                providerIndex={settings.findIndex((s) => s.id === 'foundry')}
-                onSettingsChange={onSettingsChange}
-              ></ProviderFoundry>
             }
           ></Route>
           <Route

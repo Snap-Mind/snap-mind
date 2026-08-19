@@ -19,7 +19,6 @@ import logService from './electron/LogService';
 import AutoUpdateService from './electron/AutoUpdateService';
 import OpenAtLoginService from './electron/OpenAtLoginService';
 import ThemeService from './electron/ThemeService';
-import FoundryCliTokenService from './electron/FoundryCliTokenService';
 import pathService from './electron/PathService';
 
 declare module 'electron' {
@@ -33,8 +32,7 @@ const __dirname = path.dirname(__filename);
 const resourcesPath = isDev() ? path.join(__dirname, '..') : process.resourcesPath;
 
 // GUI-launched apps on macOS/Windows may inherit an incomplete PATH that omits
-// user-installed binaries (e.g. Azure CLI for Foundry auth). Restore the full
-// PATH so child processes resolve as they do in a terminal.
+// user-installed binaries. Restore the full PATH so child processes resolve as they do in a terminal.
 pathService.fix();
 
 // ---- SINGLE INSTANCE LOCK ----
@@ -54,7 +52,6 @@ app.on('before-quit', () => {
 
 const settingsService = new SettingsService();
 const openAtLoginService = new OpenAtLoginService();
-const foundryCliTokenService = new FoundryCliTokenService();
 const themeService = new ThemeService({
   getAppearanceMode: () => settingsService.getSettings()?.appearance?.theme,
 });
@@ -356,16 +353,6 @@ ipcMain.handle('settings:update-path', async (event, { path, value }) => {
   } catch (error) {
     console.error('[main] Failed to update setting:', error);
     return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle('auth:foundry-cli-token', async (_event, { scope }) => {
-  try {
-    const token = await foundryCliTokenService.getAccessToken(scope);
-    return { success: true, token };
-  } catch (error: any) {
-    logService.error('[main] Failed to get Foundry CLI token:', error);
-    return { success: false, error: error?.message || 'Unknown Foundry token error' };
   }
 });
 

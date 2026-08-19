@@ -28,11 +28,6 @@ export interface AzureOpenAIConfig extends BaseProviderConfig {
   apiVersion: string;
 }
 
-export interface FoundryConfig extends BaseProviderConfig {
-  projectName: string;
-  entraScope: string;
-}
-
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- intentional placeholder for future Anthropic-specific fields
 export interface AnthropicConfig extends BaseProviderConfig {}
 
@@ -66,7 +61,6 @@ export interface Provider {
 export type ProviderType =
   | 'openai'
   | 'azure-openai'
-  | 'foundry'
   | 'anthropic'
   | 'google'
   | 'deepseek'
