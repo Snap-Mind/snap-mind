@@ -1,5 +1,12 @@
 import { UpdateEvent } from './autoUpdate';
 import { Hotkey, ModelSetting, Setting } from './setting';
+import type {
+  ProviderDTO,
+  CreateProviderInput,
+  UpdateProviderPatch,
+  UpsertModelInput,
+  ModelDTO,
+} from './provider-dto';
 
 export interface LoggerService {
   debug: (message: string, ...args: any[]) => void;
@@ -93,6 +100,19 @@ interface ElectronAPI {
     supported: boolean;
     error?: string;
   }>;
+
+  providers: {
+    list: () => Promise<ProviderDTO[]>;
+    create: (input: CreateProviderInput) => Promise<ProviderDTO>;
+    update: (id: number, patch: UpdateProviderPatch) => Promise<ProviderDTO>;
+    delete: (id: number) => Promise<void>;
+    onChanged: (callback: (list: ProviderDTO[]) => void) => void;
+    offChanged: () => void;
+  };
+  models: {
+    upsert: (providerId: number, model: UpsertModelInput) => Promise<ModelDTO>;
+    delete: (providerId: number, modelId: number) => Promise<void>;
+  };
 }
 
 export type SettingsChangeHandler = (
