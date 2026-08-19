@@ -20,6 +20,13 @@ import AutoUpdateService from './electron/AutoUpdateService';
 import OpenAtLoginService from './electron/OpenAtLoginService';
 import ThemeService from './electron/ThemeService';
 import pathService from './electron/PathService';
+import BetterSqlite3 from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { openDatabase } from './electron/db/client.js';
+import { resolveMigrationsFolder, runMigrations } from './electron/db/migrate.js';
+import { runImportIfNeeded } from './electron/db/import.js';
+import { ProvidersService } from './electron/ProvidersService.js';
+import * as dbSchema from './electron/db/schema.js';
 
 declare module 'electron' {
   interface App {
@@ -48,6 +55,11 @@ if (!gotTheLock) {
 
 app.on('before-quit', () => {
   app.isQuitting = true;
+  try {
+    sqliteDb?.close();
+  } catch (e) {
+    logService.warn('[main] failed to close db', e);
+  }
 });
 
 const settingsService = new SettingsService();
@@ -59,7 +71,30 @@ let autoUpdateService: AutoUpdateService | null = null;
 
 let tray = null;
 let mainWindow: import('electron').BrowserWindow | null = null;
+let sqliteDb: BetterSqlite3.Database | null = null;
+let providersService: ProvidersService | null = null;
 app.isQuitting = false;
+
+function initDatabase() {
+  const dbPath = path.join(app.getPath('userData'), 'snapmind.db');
+  sqliteDb = openDatabase(dbPath);
+  const migrationsFolder = resolveMigrationsFolder(app.isPackaged, process.resourcesPath);
+  runMigrations(sqliteDb, migrationsFolder);
+  const drizzleDb = drizzle(sqliteDb, { schema: dbSchema });
+  providersService = new ProvidersService(drizzleDb);
+}
+
+function providerCount(): number {
+  if (!sqliteDb) return 0;
+  const row = sqliteDb.prepare('SELECT COUNT(*) AS n FROM providers').get() as { n: number };
+  return row.n;
+}
+
+function broadcastProvidersChanged(list: unknown) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('providers:changed', list);
+  }
+}
 
 function isDev() {
   return !app.isPackaged;
@@ -356,6 +391,39 @@ ipcMain.handle('settings:update-path', async (event, { path, value }) => {
   }
 });
 
+ipcMain.handle('providers:list', async () => providersService!.list());
+
+ipcMain.handle('providers:create', async (_e, input) => {
+  const dto = await providersService!.create(input);
+  broadcastProvidersChanged(await providersService!.list());
+  return dto;
+});
+
+ipcMain.handle('providers:update', async (_e, id: number, patch) => {
+  if (!Number.isInteger(id) || id <= 0) throw new Error('Invalid provider id');
+  const dto = await providersService!.update(id, patch);
+  broadcastProvidersChanged(await providersService!.list());
+  return dto;
+});
+
+ipcMain.handle('providers:delete', async (_e, id: number) => {
+  if (!Number.isInteger(id) || id <= 0) throw new Error('Invalid provider id');
+  await providersService!.delete(id);
+  broadcastProvidersChanged(await providersService!.list());
+});
+
+ipcMain.handle('models:upsert', async (_e, providerId: number, model) => {
+  if (!Number.isInteger(providerId) || providerId <= 0) throw new Error('Invalid provider id');
+  const dto = await providersService!.upsertModel(providerId, model);
+  broadcastProvidersChanged(await providersService!.list());
+  return dto;
+});
+
+ipcMain.handle('models:delete', async (_e, providerId: number, modelId: number) => {
+  await providersService!.deleteModel(providerId, modelId);
+  broadcastProvidersChanged(await providersService!.list());
+});
+
 // IPC handler to trigger text selection (for testing or manual triggers)
 ipcMain.handle('text-selection:trigger', (_event, text: string, prompt: string) => {
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -466,11 +534,39 @@ app.on('window-all-closed', function () {
   // do nothing, so app stays active in tray
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Log system info at startup
   logService.logSystemInfo();
 
   settingsService.initializeConfigs();
+
+  try {
+    initDatabase();
+    const settingsPath = path.join(app.getPath('userData'), 'settings.json');
+    await runImportIfNeeded({
+      settingsPath,
+      service: providersService!,
+      hasProviders: providerCount() > 0,
+    });
+    settingsService.setProvidersService(providersService!);
+    await settingsService.resolveAndPersistDefaults();
+  } catch (e) {
+    logService.error('[main] database init failed', e);
+    const { dialog } = await import('electron');
+    const choice = dialog.showMessageBoxSync({
+      type: 'error',
+      buttons: ['Open user data folder', 'Quit'],
+      defaultId: 1,
+      title: 'SnapMind',
+      message: "SnapMind can't open its settings database.",
+      detail: String((e as Error)?.message ?? e),
+    });
+    if (choice === 0) shell.openPath(app.getPath('userData'));
+    app.isQuitting = true;
+    app.quit();
+    return;
+  }
+
   themeService.initialize();
 
   // Initialize auto update service based on settings (general.autoUpdate)

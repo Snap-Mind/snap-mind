@@ -70,4 +70,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     offGo: () => ipcRenderer.removeAllListeners('nav:go'),
   },
+  providers: {
+    list: () => ipcRenderer.invoke('providers:list'),
+    create: (input: unknown) => ipcRenderer.invoke('providers:create', input),
+    update: (id: number, patch: unknown) => ipcRenderer.invoke('providers:update', id, patch),
+    delete: (id: number) => ipcRenderer.invoke('providers:delete', id),
+    onChanged: (callback: (_list: unknown) => void) => {
+      ipcRenderer.removeAllListeners('providers:changed');
+      ipcRenderer.on('providers:changed', (_e, list) => callback(list));
+    },
+    offChanged: () => ipcRenderer.removeAllListeners('providers:changed'),
+  },
+  models: {
+    upsert: (providerId: number, model: unknown) =>
+      ipcRenderer.invoke('models:upsert', providerId, model),
+    delete: (providerId: number, modelId: number) =>
+      ipcRenderer.invoke('models:delete', providerId, modelId),
+  },
 });

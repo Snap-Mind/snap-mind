@@ -6,8 +6,16 @@ import { app } from 'electron';
 import { SafeStorageService } from './SafeStorageService.js';
 import logService from './LogService.js';
 import { mergeDeep } from './utils/mergeDeep.js';
+import type { ProvidersService } from './ProvidersService.js';
 
 const __rootdir = process.cwd();
+
+function stripProviders(settings: any) {
+  if (!settings || typeof settings !== 'object') return settings;
+  const next = { ...settings };
+  delete next.providers;
+  return next;
+}
 
 class SettingsService {
   private userDataPath: string;
@@ -17,6 +25,7 @@ class SettingsService {
   private settings: any;
   private hotkeys: any[];
   private encryptedFields: string[];
+  private providersService: ProvidersService | null = null;
 
   constructor() {
     this.userDataPath = app.isPackaged ? app.getPath('userData') : __rootdir;
@@ -29,47 +38,23 @@ class SettingsService {
     this.encryptedFields = ['general.azureApiKey'];
   }
 
-  private ensureDefaultChatModel(settings) {
-    if (!settings.chat) settings.chat = {};
-    const providers = Array.isArray(settings.providers) ? settings.providers : [];
+  setProvidersService(svc: ProvidersService) {
+    this.providersService = svc;
+  }
 
-    const resolveByProviderAndModel = (providerId, modelId) => {
-      const provider = providers.find((p) => p.id === providerId);
-      if (!provider || !Array.isArray(provider.models))
-        return { provider: undefined, model: undefined };
-      const model = provider.models.find((m) => m.id === modelId);
-      if (!model) return { provider: undefined, model: undefined };
-      return { provider, model };
-    };
-
-    let provider;
-    let model;
-
-    if (settings.chat.defaultProvider && settings.chat.defaultModel) {
-      const resolved = resolveByProviderAndModel(
-        settings.chat.defaultProvider,
-        settings.chat.defaultModel
-      );
-      provider = resolved.provider;
-      model = resolved.model;
+  async resolveAndPersistDefaults(): Promise<void> {
+    if (!this.providersService) return;
+    const chat = this.settings.chat ?? {};
+    const resolved = await this.providersService.resolveDefault(
+      typeof chat.defaultProviderId === 'number' ? chat.defaultProviderId : null,
+      typeof chat.defaultModelId === 'number' ? chat.defaultModelId : null
+    );
+    if (!resolved) return;
+    if (chat.defaultProviderId !== resolved.providerId || chat.defaultModelId !== resolved.modelId) {
+      let next = this.updateObjectByPath(this.settings, ['chat', 'defaultProviderId'], resolved.providerId);
+      next = this.updateObjectByPath(next, ['chat', 'defaultModelId'], resolved.modelId);
+      await this.saveSettings(next);
     }
-
-    if (!provider && settings.chat.defaultModel) {
-      provider = providers.find((p) => p.models?.some((m) => m.id === settings.chat.defaultModel));
-      model = provider?.models?.find((m) => m.id === settings.chat.defaultModel);
-    }
-
-    if (!provider) {
-      provider = providers.find((p) => Array.isArray(p.models) && p.models.length > 0);
-      model = provider?.models?.[0];
-    }
-
-    if (provider && model) {
-      settings.chat.defaultProvider = provider.id;
-      settings.chat.defaultModel = model.id;
-    }
-
-    return { settings };
   }
 
   /**
@@ -128,18 +113,12 @@ class SettingsService {
 
     // Deep merge default settings with user settings
     // This will preserve all user settings while adding any missing fields from default settings
-    const mergedSettings = mergeDeep(userSettings, defaultSettings, {
-      // Don't merge providers.*.models; keep user's models array if present
-      preservePaths: ['providers.*.models'],
-    });
-
-    const { settings: normalizedSettings } = this.ensureDefaultChatModel(mergedSettings);
-    // Add app info to the settings
+    const mergedSettings = mergeDeep(userSettings, defaultSettings);
+    const normalizedSettings = stripProviders(mergedSettings);
     normalizedSettings.general.app = {
       version: app.getVersion(),
     };
-    // Encrypt any API keys
-    this.settings = this.processApiKeys(normalizedSettings, false);
+    this.settings = normalizedSettings;
 
     // Load hotkeys
     this.loadHotkeys();
@@ -209,6 +188,11 @@ class SettingsService {
    * @param {any} value - New value
    */
   async updateSetting(path, value) {
+    if (path[0] === 'providers') {
+      throw new Error(
+        'providers are stored in SQLite; use the providers:* / models:* IPC channels, not settings:update-path'
+      );
+    }
     const newSettings = this.updateObjectByPath(this.settings, path, value);
     await this.saveSettings(newSettings);
     return this.settings;
@@ -220,9 +204,9 @@ class SettingsService {
    */
   async saveSettings(newSettings) {
     try {
-      const secureSettings = this.processApiKeys(newSettings, true);
-      fs.writeFileSync(this.settingsPath, JSON.stringify(secureSettings, null, 2));
-      this.settings = newSettings;
+      const toWrite = stripProviders(newSettings);
+      fs.writeFileSync(this.settingsPath, JSON.stringify(toWrite, null, 2));
+      this.settings = stripProviders(newSettings);
       logService.info('Settings saved successfully');
     } catch (error) {
       logService.error('Failed to save settings:', error);
@@ -282,22 +266,6 @@ class SettingsService {
     } catch (error) {
       logService.error('Failed to save hotkeys:', error);
     }
-  }
-
-  processApiKeys(settings, encrypt = true) {
-    const processed = JSON.parse(JSON.stringify(settings));
-
-    if (processed.providers && Array.isArray(processed.providers)) {
-      processed.providers.forEach((provider) => {
-        if (provider.apiKey) {
-          provider.apiKey = encrypt
-            ? SafeStorageService.encrypt(provider.apiKey)
-            : SafeStorageService.decrypt(provider.apiKey);
-        }
-      });
-    }
-
-    return processed;
   }
 
   processSecureFields(settings, encrypt = true) {
