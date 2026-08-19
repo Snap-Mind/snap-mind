@@ -29,12 +29,6 @@ import * as dbSchema from './electron/db/schema.js';
 import { resolveUserDataPath } from './electron/userDataPath.js';
 import { registerIpcHandlers } from './electron/IpcHandlers.js';
 
-declare module 'electron' {
-  interface App {
-    isQuitting: boolean;
-  }
-}
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const resourcesPath = isDev() ? path.join(__dirname, '..') : process.resourcesPath;
@@ -55,7 +49,7 @@ if (!gotTheLock) {
 }
 
 app.on('before-quit', () => {
-  app.isQuitting = true;
+  isQuitting = true;
   try {
     sqliteDb?.close();
   } catch (e) {
@@ -75,7 +69,14 @@ let mainWindow: import('electron').BrowserWindow | null = null;
 let sqliteDb: BetterSqlite3.Database | null = null;
 let drizzleDb: ReturnType<typeof drizzle<typeof dbSchema>> | null = null;
 let providersService: ProvidersService | null = null;
-app.isQuitting = false;
+let isQuitting = false;
+
+function quitApp() {
+  isQuitting = true;
+  BrowserWindow.getAllWindows().forEach((win) => win.destroy());
+  app.quit();
+  app.exit(0);
+}
 
 function initDatabase() {
   const dbPath = path.join(resolveUserDataPath(), 'snapmind.db');
@@ -130,7 +131,7 @@ function createMainWindow() {
   });
 
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
+    if (!isQuitting) {
       event.preventDefault();
       hideMainWindow();
     }
@@ -293,6 +294,7 @@ registerIpcHandlers({
   registerHotkeys,
   showMainWindow,
   getAppRootDir: () => (isDev() ? path.join(__dirname, '..') : path.dirname(process.execPath)),
+  quitApp,
 });
 
 app.on('window-all-closed', function () {
@@ -329,7 +331,7 @@ app.whenReady().then(async () => {
       detail: String((e as Error)?.message ?? e),
     });
     if (choice === 0) shell.openPath(resolveUserDataPath());
-    app.isQuitting = true;
+    isQuitting = true;
     app.quit();
     return;
   }
@@ -419,12 +421,7 @@ app.whenReady().then(async () => {
     { type: 'separator' },
     {
       label: 'Quit  ',
-      click: () => {
-        app.isQuitting = true;
-        BrowserWindow.getAllWindows().forEach((win) => win.destroy());
-        app.quit();
-        app.exit(0);
-      },
+      click: () => quitApp(),
     },
   ]);
 

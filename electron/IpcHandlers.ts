@@ -18,6 +18,7 @@ export interface IpcHandlerContext {
   registerHotkeys: () => void;
   showMainWindow: () => void;
   getAppRootDir: () => string;
+  quitApp: () => void;
 }
 
 export function registerIpcHandlers(ctx: IpcHandlerContext): void {
@@ -31,6 +32,7 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
     registerHotkeys,
     showMainWindow,
     getAppRootDir,
+    quitApp,
   } = ctx;
 
   const broadcastProvidersChanged = async () => {
@@ -48,10 +50,7 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
   });
 
   ipcMain.on('app:quit', () => {
-    app.isQuitting = true;
-    BrowserWindow.getAllWindows().forEach((win) => win.destroy());
-    app.quit();
-    app.exit(0);
+    quitApp();
   });
 
   ipcMain.handle('hotkeys:get', () => settingsService.getHotkeys());

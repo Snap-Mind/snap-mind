@@ -23,7 +23,6 @@ vi.mock('electron', () => ({
     getPath: vi.fn(() => '/mock/userData'),
     getVersion: vi.fn(() => '0.0.0'),
     setActivationPolicy: vi.fn(),
-    isQuitting: false,
     dock: { setMenu: vi.fn() },
   },
   BrowserWindow: Object.assign(

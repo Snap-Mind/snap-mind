@@ -16,7 +16,7 @@ export type Setting = {
 export interface GeneralSetting {
   language: string;
   clipboardEnabled: boolean;
-  app: App;
+  app: AppMeta;
   autoUpdate?: AutoUpdateSetting;
 }
 
@@ -83,6 +83,6 @@ export type ProviderSetting =
   | DeepSeekConfig
   | QwenConfig;
 
-export interface App {
+export interface AppMeta {
   version: string;
 }
