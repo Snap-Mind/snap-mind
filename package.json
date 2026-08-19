@@ -34,7 +34,7 @@
     "test:coverage": "vitest run --coverage",
     "db:generate": "drizzle-kit generate",
     "db:rebuild": "electron-rebuild -f -w better-sqlite3",
-    "postinstall": "electron-rebuild -f -w better-sqlite3"
+    "postinstall": "npm run db:rebuild"
   },
   "dependencies": {
     "@heroui/react": "^2.8.9",
