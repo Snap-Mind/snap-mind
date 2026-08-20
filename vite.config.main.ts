@@ -25,6 +25,7 @@ export default defineConfig({
         'electron-log',
         'electron-log/main',
         'electron-log/renderer',
+        'better-sqlite3',
         ...builtinModules,
         ...builtinModules.map((m) => `node:${m}`),
       ],

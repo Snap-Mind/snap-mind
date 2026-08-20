@@ -15,9 +15,9 @@ export function readRegistryPath(registryKey: string): string {
   });
   const match = output.match(REG_PATH_PATTERN);
   if (!match) return '';
-  return match[1].trim().replace(/%([^%]+)%/g, (_, varName: string) =>
-    process.env[varName] || `%${varName}%`
-  );
+  return match[1]
+    .trim()
+    .replace(/%([^%]+)%/g, (_, varName: string) => process.env[varName] || `%${varName}%`);
 }
 
 export default function fixPathWindows(): string[] {

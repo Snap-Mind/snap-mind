@@ -1,21 +1,18 @@
-import { useContext, useEffect, useState } from 'react';
-import { AutoUpdateManagerContext } from '@/contexts/ServiceProvider';
+import { useEffect, useState } from 'react';
+import { autoUpdateManager } from '@/services/AutoUpdateManager';
 import { UpdateStatus } from '@/types/autoUpdate';
 
 export const useAutoUpdate = () => {
-  const manager = useContext(AutoUpdateManagerContext);
-  if (!manager) throw new Error('useAutoUpdate must be used within ServiceProvider');
-
-  const [status, setStatus] = useState<UpdateStatus>(manager.getStatus());
+  const [status, setStatus] = useState<UpdateStatus>(autoUpdateManager.getStatus());
 
   useEffect(() => {
-    const off = manager.onStatusChange(setStatus);
+    const off = autoUpdateManager.onStatusChange(setStatus);
     return () => off();
-  }, [manager]);
+  }, []);
 
   return {
     status,
-    checkForUpdates: () => manager.checkForUpdates(),
-    installUpdateNow: () => manager.installUpdateNow(),
+    checkForUpdates: () => autoUpdateManager.checkForUpdates(),
+    installUpdateNow: () => autoUpdateManager.installUpdateNow(),
   };
 };

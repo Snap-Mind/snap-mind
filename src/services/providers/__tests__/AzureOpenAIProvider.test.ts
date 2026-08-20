@@ -17,7 +17,8 @@ describe('AzureOpenAIProvider', () => {
     vi.clearAllMocks();
     (global.fetch as any).mockClear();
     config = {
-      id: 'azure-openai' as any,
+      id: 2,
+      kind: 'azure-openai' as const,
       name: 'Azure OpenAI',
       apiKey: 'test-api-key',
       host: 'https://my-resource.openai.azure.com',
@@ -358,7 +359,8 @@ describe('AzureOpenAIProvider', () => {
   describe('initialize', () => {
     it('should update config', async () => {
       const newConfig: AzureOpenAIConfig = {
-        id: 'azure-openai' as any,
+        id: 2,
+        kind: 'azure-openai' as const,
         name: 'Azure OpenAI',
         apiKey: 'new-key',
         host: 'https://new-resource.openai.azure.com',

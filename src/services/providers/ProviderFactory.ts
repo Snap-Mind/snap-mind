@@ -13,12 +13,10 @@ import { anthropicRequestBuilder } from './adapters/anthropicRequestBuilder';
 import { googleRequestBuilder } from './adapters/googleRequestBuilder';
 import { ollamaRequestBuilder } from './adapters/ollamaRequestBuilder';
 import { azureRequestBuilder } from './adapters/azureRequestBuilder';
-import { foundryRequestBuilder } from './adapters/foundryRequestBuilder';
 import { createOpenAIResponseParser } from './parsers/openaiResponseParser';
 import { anthropicResponseParser } from './parsers/anthropicResponseParser';
 import { googleResponseParser } from './parsers/googleResponseParser';
 import { ollamaResponseParser } from './parsers/ollamaResponseParser';
-import { foundryResponseParser } from './parsers/foundryResponseParser';
 import { deriveV1ApiBase, deriveQwenApiBase } from './core/urlResolvers';
 import loggerService from '../LoggerService';
 
@@ -47,8 +45,6 @@ export const adapterMap: Record<ProviderType, ProviderAdapter> = {
       providerName: 'Azure OpenAI',
     })
   ),
-
-  foundry: composeAdapter(foundryRequestBuilder, foundryResponseParser),
 
   anthropic: composeAdapter(anthropicRequestBuilder, anthropicResponseParser),
 
@@ -83,10 +79,10 @@ export const adapterMap: Record<ProviderType, ProviderAdapter> = {
 
 class ProviderFactory {
   static createProvider(config: BaseProviderConfig): Provider {
-    const adapter = adapterMap[config.id];
+    const adapter = adapterMap[config.kind];
     if (!adapter) {
-      loggerService.error('[ProviderFactory]', `Unknown provider: ${config.id}`);
-      throw new Error(`Unknown provider: ${config.id}`);
+      loggerService.error('[ProviderFactory]', `Unknown provider kind: ${config.kind}`);
+      throw new Error(`Unknown provider kind: ${config.kind}`);
     }
     return new UnifiedProvider(config, adapter);
   }

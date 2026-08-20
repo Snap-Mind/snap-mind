@@ -17,8 +17,8 @@ vi.mock('../providers/ProviderFactory', () => ({
 function makeSettings() {
   return {
     chat: {
-      defaultProvider: 'openai',
-      defaultModel: 'gpt-4',
+      defaultProviderId: 1,
+      defaultModelId: 10,
       temperature: 0.7,
       max_tokens: 2048,
       top_p: 0.95,
@@ -28,14 +28,25 @@ function makeSettings() {
     },
     providers: [
       {
-        id: 'openai',
+        id: 1,
+        kind: 'openai',
         name: 'OpenAI',
         apiKey: 'test-key',
         host: 'https://api.openai.com/v1',
-        models: [{ id: 'gpt-4' }],
+        description: null,
+        models: [
+          {
+            id: 10,
+            modelId: 'gpt-4',
+            name: 'GPT-4',
+            type: 'chat',
+            capabilities: ['chat'],
+            description: null,
+          },
+        ],
       },
     ],
-  } as any;
+  };
 }
 
 describe('AIService.sendMessageToAI', () => {

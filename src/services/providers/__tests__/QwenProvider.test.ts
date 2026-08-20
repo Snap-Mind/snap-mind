@@ -22,7 +22,8 @@ describe('QwenProvider', () => {
     vi.clearAllMocks();
     (global.fetch as any).mockClear();
     config = {
-      id: 'qwen' as any,
+      id: 6,
+      kind: 'qwen' as const,
       name: 'Qwen',
       apiKey: 'test-api-key',
       host: 'https://dashscope.aliyuncs.com',
@@ -285,7 +286,8 @@ describe('QwenProvider', () => {
   describe('initialize', () => {
     it('should update config', async () => {
       const newConfig: QwenConfig = {
-        id: 'qwen' as any,
+        id: 6,
+        kind: 'qwen' as const,
         name: 'Qwen',
         apiKey: 'new-key',
         host: 'https://new-dashscope.aliyuncs.com',

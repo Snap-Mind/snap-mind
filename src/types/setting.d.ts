@@ -1,7 +1,6 @@
 import {
   AnthropicConfig,
   AzureOpenAIConfig,
-  FoundryConfig,
   GoogleConfig,
   OpenAIConfig,
   DeepSeekConfig,
@@ -12,13 +11,12 @@ export type Setting = {
   general: GeneralSetting;
   appearance: AppearanceSetting;
   chat: ChatSetting;
-  providers: ProviderSetting[];
 };
 
 export interface GeneralSetting {
   language: string;
   clipboardEnabled: boolean;
-  app: App;
+  app: AppMeta;
   autoUpdate?: AutoUpdateSetting;
 }
 
@@ -39,8 +37,8 @@ export interface ChatSetting {
   streamingEnabled: boolean;
   reasoningEnabled: boolean;
   webSearchEnabled: boolean;
-  defaultModel: string;
-  defaultProvider: string;
+  defaultModelId: number | null;
+  defaultProviderId: number | null;
 }
 
 export interface Hotkey {
@@ -80,12 +78,11 @@ export type Capability =
 export type ProviderSetting =
   | OpenAIConfig
   | AzureOpenAIConfig
-  | FoundryConfig
   | AnthropicConfig
   | GoogleConfig
   | DeepSeekConfig
   | QwenConfig;
 
-export interface App {
+export interface AppMeta {
   version: string;
 }

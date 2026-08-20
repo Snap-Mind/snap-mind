@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1787109031141,
+      "tag": "0000_magenta_rocket_racer",
+      "breakpoints": true
+    }
+  ]
+}

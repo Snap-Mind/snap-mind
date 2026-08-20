@@ -1,5 +1,12 @@
 import { UpdateEvent } from './autoUpdate';
 import { Hotkey, ModelSetting, Setting } from './setting';
+import type {
+  ProviderDTO,
+  CreateProviderInput,
+  UpdateProviderPatch,
+  UpsertModelInput,
+  ModelDTO,
+} from './provider-dto';
 
 export interface LoggerService {
   debug: (message: string, ...args: any[]) => void;
@@ -22,14 +29,19 @@ export interface NativeThemeState {
 }
 
 interface ElectronAPI {
-  // Chat popup events
-  showChatPopup: (position: { x: number; y: number }) => void;
-  onInitMessage: (callback: (message: any) => void) => void;
-  sendToChatPopup: (channel: string, payload: any) => void;
-  chatPopupReady: () => void;
-  onChatPopupReady: (callback: () => void) => void;
-  offChatPopupReady: () => void;
-  closeChatPopup: () => void;
+  chat?: {
+    onResetWithSeed: (callback: (seed: { text?: string; prompt?: string }) => void) => void;
+    offResetWithSeed: () => void;
+    onAbort: (callback: () => void) => void;
+    offAbort: () => void;
+  };
+  window?: {
+    hide: () => void;
+  };
+  nav?: {
+    onGo: (callback: (path: string) => void) => void;
+    offGo: () => void;
+  };
 
   // Hotkey management
   getHotkeys: () => Promise<any[]>;
@@ -46,9 +58,6 @@ interface ElectronAPI {
     path: (string | number)[],
     value: string | number | boolean | ModelSetting[]
   ) => Promise<{ setting: Setting; success: boolean }>;
-  getFoundryCliToken: (
-    scope: string
-  ) => Promise<{ success: boolean; token?: string; error?: string }>;
   onSettingsUpdated: (callback: (updatedSettings: Setting) => void) => void;
   offSettingsUpdated: () => void;
   getNativeTheme: () => Promise<NativeThemeState>;
@@ -91,6 +100,19 @@ interface ElectronAPI {
     supported: boolean;
     error?: string;
   }>;
+
+  providers: {
+    list: () => Promise<ProviderDTO[]>;
+    create: (input: CreateProviderInput) => Promise<ProviderDTO>;
+    update: (id: number, patch: UpdateProviderPatch) => Promise<ProviderDTO>;
+    delete: (id: number) => Promise<void>;
+    onChanged: (callback: (list: ProviderDTO[]) => void) => void;
+    offChanged: () => void;
+  };
+  models: {
+    upsert: (providerId: number, model: UpsertModelInput) => Promise<ModelDTO>;
+    delete: (providerId: number, modelId: number) => Promise<void>;
+  };
 }
 
 export type SettingsChangeHandler = (

@@ -1,20 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  // Chat popup events
-  showChatPopup: (position) => ipcRenderer.send('chat-popup:show', { position }),
-  onInitMessage: (callback) => {
-    ipcRenderer.removeAllListeners('chat-popup:init-message');
-    ipcRenderer.on('chat-popup:init-message', (_event, message) => callback(message));
-  },
-  sendToChatPopup: (channel, payload) => {
-    ipcRenderer.send('chat-popup:send-message', channel, payload);
-  },
-  chatPopupReady: () => ipcRenderer.send('chat-popup:ready'),
-  onChatPopupReady: (callback) => ipcRenderer.on('chat-popup:ready', callback),
-  offChatPopupReady: () => ipcRenderer.removeAllListeners('chat-popup:ready'),
-  closeChatPopup: () => ipcRenderer.send('chat-popup:close'),
-
   // Hotkey management
   getHotkeys: () => ipcRenderer.invoke('hotkeys:get'),
   updateHotkeys: (newHotkeys) => ipcRenderer.invoke('hotkeys:update', newHotkeys),
@@ -23,7 +9,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (newSettings) => ipcRenderer.invoke('settings:update', newSettings),
   updateSetting: (path, value) => ipcRenderer.invoke('settings:update-path', { path, value }),
-  getFoundryCliToken: (scope) => ipcRenderer.invoke('auth:foundry-cli-token', { scope }),
   onSettingsUpdated: (callback) =>
     ipcRenderer.on('settings:updated', (_event, updatedSettings) => callback(updatedSettings)),
   offSettingsUpdated: () => ipcRenderer.removeAllListeners('settings:updated'),
@@ -62,4 +47,44 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAppVersion: () => ipcRenderer.invoke('app:get-version'),
   getOpenAtLogin: () => ipcRenderer.invoke('app:get-open-at-login'),
   setOpenAtLogin: (enabled) => ipcRenderer.invoke('app:set-open-at-login', enabled),
+
+  chat: {
+    onResetWithSeed: (callback: (_seed: { text?: string; prompt?: string }) => void) => {
+      ipcRenderer.removeAllListeners('chat:reset-with-seed');
+      ipcRenderer.on('chat:reset-with-seed', (_e, payload) => callback(payload));
+    },
+    offResetWithSeed: () => ipcRenderer.removeAllListeners('chat:reset-with-seed'),
+    onAbort: (callback: () => void) => {
+      ipcRenderer.removeAllListeners('chat:abort');
+      ipcRenderer.on('chat:abort', () => callback());
+    },
+    offAbort: () => ipcRenderer.removeAllListeners('chat:abort'),
+  },
+  window: {
+    hide: () => ipcRenderer.send('window:hide'),
+  },
+  nav: {
+    onGo: (callback: (_path: string) => void) => {
+      ipcRenderer.removeAllListeners('nav:go');
+      ipcRenderer.on('nav:go', (_e, path) => callback(path));
+    },
+    offGo: () => ipcRenderer.removeAllListeners('nav:go'),
+  },
+  providers: {
+    list: () => ipcRenderer.invoke('providers:list'),
+    create: (input: unknown) => ipcRenderer.invoke('providers:create', input),
+    update: (id: number, patch: unknown) => ipcRenderer.invoke('providers:update', id, patch),
+    delete: (id: number) => ipcRenderer.invoke('providers:delete', id),
+    onChanged: (callback: (_list: unknown) => void) => {
+      ipcRenderer.removeAllListeners('providers:changed');
+      ipcRenderer.on('providers:changed', (_e, list) => callback(list));
+    },
+    offChanged: () => ipcRenderer.removeAllListeners('providers:changed'),
+  },
+  models: {
+    upsert: (providerId: number, model: unknown) =>
+      ipcRenderer.invoke('models:upsert', providerId, model),
+    delete: (providerId: number, modelId: number) =>
+      ipcRenderer.invoke('models:delete', providerId, modelId),
+  },
 });

@@ -106,7 +106,9 @@ function SettingsOther() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-sm${row.url ? ' text-primary' : ''}`}>{row.value}</span>
-                    {row.url && <Icon icon="external-link" size={12} className="text-default-400" />}
+                    {row.url && (
+                      <Icon icon="external-link" size={12} className="text-default-400" />
+                    )}
                   </div>
                 </div>
               </Fragment>

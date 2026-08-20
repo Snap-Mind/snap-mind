@@ -21,7 +21,8 @@ describe('OllamaProvider', () => {
     vi.clearAllMocks();
     (global.fetch as any).mockClear();
     config = {
-      id: 'ollama' as any,
+      id: 7,
+      kind: 'ollama' as const,
       name: 'Ollama',
       apiKey: '',
       host: 'http://localhost:11434',
@@ -276,14 +277,13 @@ describe('OllamaProvider', () => {
         ])
       );
 
-      const result = await provider.sendMessage(
-        messages,
-        { model: 'deepseek-r1', stream: true, reasoning: true }
-      );
+      const result = await provider.sendMessage(messages, {
+        model: 'deepseek-r1',
+        stream: true,
+        reasoning: true,
+      });
 
-      expect(result).toBe(
-        '<think>\nLet me reason.\n</think>\n\nAnswer.'
-      );
+      expect(result).toBe('<think>\nLet me reason.\n</think>\n\nAnswer.');
     });
 
     it('should pass messages in Ollama format', async () => {
@@ -412,7 +412,8 @@ describe('OllamaProvider', () => {
   describe('initialize', () => {
     it('should update config', async () => {
       const newConfig: BaseProviderConfig = {
-        id: 'ollama' as any,
+        id: 7,
+        kind: 'ollama' as const,
         name: 'Ollama',
         apiKey: '',
         host: 'http://new-host:8080',

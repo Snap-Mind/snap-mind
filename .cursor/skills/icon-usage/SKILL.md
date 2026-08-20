@@ -38,7 +38,7 @@ When you need an icon that doesn't exist in the `Icon` component yet, update `sr
 // WRONG — never do this in page/feature components
 import { LuGithub, LuHeart } from 'react-icons/lu';
 
-<LuGithub size={18} />
+<LuGithub size={18} />;
 ```
 
 ## Existing Icon Names

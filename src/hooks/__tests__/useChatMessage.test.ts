@@ -124,9 +124,7 @@ describe('useChatMessage', () => {
   });
 
   it('parses thinking blocks for an assistant string message', () => {
-    const { result } = renderHook(() =>
-      useChatMessage('<think>reasoning</think>answer', false)
-    );
+    const { result } = renderHook(() => useChatMessage('<think>reasoning</think>answer', false));
     expect(result.current.thinking).toBe('reasoning');
     expect(result.current.main).toBe('answer');
   });

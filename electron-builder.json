@@ -26,6 +26,10 @@
     {
       "from": "hotkeys.default.json",
       "to": "hotkeys.default.json"
+    },
+    {
+      "from": "electron/db/migrations",
+      "to": "db-migrations"
     }
   ],
   "mac": {

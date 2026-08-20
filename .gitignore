@@ -39,6 +39,10 @@ helper/selectedtext
 .env
 hotkeys.json
 settings.json
+snapmind.db
+snapmind.db-shm
+snapmind.db-wal
+settings.json.pre-sqlite.bak
 
 # TypeScript build info
 *.tsbuildinfo
@@ -46,3 +50,6 @@ settings.json
 # Test coverage
 coverage/
 .vitest/
+
+# Superpowers brainstorming companion (mockups + session state)
+.superpowers/

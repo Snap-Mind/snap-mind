@@ -1,8 +1,9 @@
 import { useEffect, useCallback, useState, useMemo } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useSettings } from '../../hooks/useSettings';
+import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useLogService } from '../../hooks/useLogService';
+import type { SettingsChangeHandler, HotkeysChangeHandler } from '@/types';
 
 import SettingsCategory from './SettingsCategory';
 import SettingsGeneral from './SettingsGeneral';
@@ -31,8 +32,27 @@ function Settings() {
   }, [location.pathname, categories]);
 
   const [activeCategory, setActiveCategory] = useState(getCurrentCategory());
-  const [isCategoryCollapsed, setIsCategoryCollapsed] = useState(false);
-  const { settings, hotkeys, permissions, setSettings, setHotkeys } = useSettings();
+  const settings = useSettingsStore((s) => s.settings);
+  const hotkeys = useSettingsStore((s) => s.hotkeys);
+  const permissions = useSettingsStore((s) => s.permissions);
+  const updateSetting = useSettingsStore((s) => s.updateSetting);
+  const updateHotkey = useSettingsStore((s) => s.updateHotkey);
+
+  const setSettings = useCallback<SettingsChangeHandler>(
+    async (path, value) => {
+      await updateSetting(path, value);
+      return useSettingsStore.getState().settings;
+    },
+    [updateSetting]
+  );
+
+  const setHotkeys = useCallback<HotkeysChangeHandler>(
+    async (path, value) => {
+      await updateHotkey(path, value);
+      return useSettingsStore.getState().hotkeys;
+    },
+    [updateHotkey]
+  );
 
   const logger = useLogService();
   const navigate = useNavigate();
@@ -58,23 +78,14 @@ function Settings() {
     return activeCategory.id === 'models' ? '' : 'px-3 py-3';
   }, [activeCategory]);
 
-  const sidebarWidthStyle = useMemo(() => {
-    return isCategoryCollapsed
-      ? 'grid-cols-[68px_minmax(0,1fr)]'
-      : 'grid-cols-[230px_minmax(0,1fr)]';
-  }, [isCategoryCollapsed]);
-
   return (
-    <div
-      className={`setting-container grid w-full min-w-0 ${sidebarWidthStyle} grid-rows-1 h-[100vh] overflow-hidden transition-all duration-200 ease-in-out`}
-    >
+    <div className="setting-container grid w-full min-w-0 grid-cols-[230px_minmax(0,1fr)] grid-rows-1 h-[100vh] overflow-hidden">
       <div className="setting-category bg-background min-w-0 px-3 py-3 border-r-1 border-default">
         <SettingsCategory
           categories={categories}
           activeCategory={activeCategory}
           onCategoryChange={onCategoryChange}
-          isCollapsed={isCategoryCollapsed}
-          onToggleCollapse={() => setIsCategoryCollapsed((prev) => !prev)}
+          onBack={() => navigate('/chat')}
         />
       </div>
       <div className={`setting-details bg-background min-w-0 ${settingDetailsStyle}`}>
@@ -89,15 +100,7 @@ function Settings() {
               />
             }
           />
-          <Route
-            path="models/*"
-            element={
-              <SettingsModel
-                settings={settings.providers}
-                onSettingsChange={setSettings}
-              ></SettingsModel>
-            }
-          ></Route>
+          <Route path="models/*" element={<SettingsModel />}></Route>
           <Route
             path="appearance"
             element={

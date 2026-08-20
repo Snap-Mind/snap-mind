@@ -17,12 +17,14 @@ import { useTheme } from '@heroui/use-theme';
 
 import Icon from './Icon';
 import { ModelCreateForm } from './ModelCreateForm';
-import { ModelSetting } from '@/types/setting';
+import { Capability, ModelSetting } from '@/types/setting';
 import { ModelEditForm } from './ModelEditForm';
 import { useTranslation } from 'react-i18next';
 import ProviderFactory from '@/services/providers/ProviderFactory';
 import { useLogService } from '@/hooks/useLogService';
-import { BaseProviderConfig } from '@/types/providers';
+import type { ModelCapability, ModelDTO, ProviderDTO } from '@/types/provider-dto';
+import { useProvidersStore } from '@/stores/useProvidersStore';
+import { providerDtoToBaseConfig } from '@/utils/providerMapper';
 
 interface Column {
   name: string;
@@ -30,8 +32,7 @@ interface Column {
 }
 
 interface ModelTableProps {
-  providerConfig: BaseProviderConfig;
-  onModelsChange: (models: ModelSetting[]) => void;
+  provider: ProviderDTO;
   showSyncedButton?: boolean;
 }
 
@@ -43,9 +44,21 @@ const initialFormData: ModelSetting = {
   description: '',
 };
 
-function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }: ModelTableProps) {
+function modelDtoToForm(model: ModelDTO): ModelSetting {
+  return {
+    id: model.modelId,
+    name: model.name,
+    type: (model.type ?? 'chat') as ModelSetting['type'],
+    capabilities: model.capabilities as Capability[],
+    description: model.description ?? '',
+  };
+}
+
+function ModelTable({ provider, showSyncedButton = false }: ModelTableProps) {
   const { t } = useTranslation();
   const logger = useLogService();
+  const upsertModel = useProvidersStore((s) => s.upsertModel);
+  const deleteModel = useProvidersStore((s) => s.deleteModel);
   const [discovering, setDiscovering] = useState(false);
   const { theme } = useTheme();
   const columns: Column[] = [
@@ -67,13 +80,13 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
     onOpen: onDeleteModelOpen,
     onOpenChange: onDeleteModelOpenChange,
   } = useDisclosure();
-  const [localModels, setLocalModels] = useState<ModelSetting[]>([...providerConfig.models]);
+  const [localModels, setLocalModels] = useState<ModelDTO[]>([...provider.models]);
   const [addFormData, setAddFormData] = useState<ModelSetting>(initialFormData);
   const [editFormData, setEditFormData] = useState<ModelSetting>();
   const [searchQuery, setSearchQuery] = useState('');
   const addFormRef = useRef<HTMLFormElement>(null);
   const editFormRef = useRef<HTMLFormElement>(null);
-  const [deleteModelId, setDeleteModelId] = useState<string | null>(null);
+  const [deleteModelPk, setDeleteModelPk] = useState<number | null>(null);
   const [deleteModelName, setDeleteModelName] = useState<string>('');
   const [addModelErrors, setAddModelErrors] = useState<Partial<Record<keyof ModelSetting, string>>>(
     {}
@@ -83,22 +96,26 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
   >({});
 
   useEffect(() => {
-    setLocalModels([...providerConfig.models]);
-  }, [providerConfig.models]);
+    setLocalModels([...provider.models]);
+  }, [provider.models]);
 
-  const handleAddModel = () => {
+  const handleAddModel = async () => {
     if (addFormRef.current && addFormRef.current.checkValidity()) {
       const errors: Partial<Record<keyof ModelSetting, string>> = {};
-      const isDuplicate = localModels.some((model) => model.id === addFormData.id);
+      const isDuplicate = localModels.some((model) => model.modelId === addFormData.id);
       if (isDuplicate) {
         errors.id = 'Model id already exists. Please use a unique id.';
         setAddModelErrors(errors);
         return;
       }
       setAddModelErrors({});
-      const updatedModels = [...localModels, addFormData];
-      setLocalModels(updatedModels);
-      onModelsChange(updatedModels);
+      await upsertModel(provider.id, {
+        modelId: addFormData.id,
+        name: addFormData.name,
+        type: addFormData.type,
+        capabilities: addFormData.capabilities as ModelCapability[],
+        description: addFormData.description,
+      });
       setAddFormData(initialFormData);
       onAddModelOpenChange();
     } else {
@@ -106,14 +123,16 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
     }
   };
 
-  const handleEditModel = () => {
-    if (editFormRef.current && editFormRef.current.checkValidity()) {
+  const handleEditModel = async () => {
+    if (editFormRef.current && editFormRef.current.checkValidity() && editFormData) {
       setEditModelErrors({});
-      const updatedModels = localModels.map((model) =>
-        model.id === editFormData.id ? editFormData : model
-      );
-      setLocalModels(updatedModels);
-      onModelsChange(updatedModels);
+      await upsertModel(provider.id, {
+        modelId: editFormData.id,
+        name: editFormData.name,
+        type: editFormData.type,
+        capabilities: editFormData.capabilities as ModelCapability[],
+        description: editFormData.description,
+      });
       setEditFormData(undefined);
       onEditModelOpenChange();
     } else {
@@ -122,49 +141,44 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
   };
 
   const handleDeleteModelRequest = useCallback(
-    (id: string, name: string) => {
-      setDeleteModelId(id);
+    (pk: number, name: string) => {
+      setDeleteModelPk(pk);
       setDeleteModelName(name);
       onDeleteModelOpen();
     },
     [onDeleteModelOpen]
   );
 
-  const handleDeleteModelConfirm = useCallback(() => {
-    if (deleteModelId) {
-      setLocalModels((prevModels) => {
-        const updatedModels = prevModels.filter((model) => model.id !== deleteModelId);
-        onModelsChange(updatedModels);
-        return updatedModels;
-      });
-      setDeleteModelId(null);
+  const handleDeleteModelConfirm = useCallback(async () => {
+    if (deleteModelPk != null) {
+      await deleteModel(provider.id, deleteModelPk);
+      setDeleteModelPk(null);
       setDeleteModelName('');
       onDeleteModelOpenChange();
     }
-  }, [deleteModelId, onModelsChange, onDeleteModelOpenChange]);
+  }, [deleteModelPk, deleteModel, provider.id, onDeleteModelOpenChange]);
 
-  // Cancel deletion
-  const handleDeleteModelCancel = useCallback((onClose) => {
-    setDeleteModelId(null);
+  const handleDeleteModelCancel = useCallback((onClose: () => void) => {
+    setDeleteModelPk(null);
     setDeleteModelName('');
     onClose();
   }, []);
 
   const openEditModel = useCallback(
-    (model: ModelSetting) => {
-      setEditFormData({ ...model });
+    (model: ModelDTO) => {
+      setEditFormData(modelDtoToForm(model));
       onEditModelOpen();
     },
     [onEditModelOpen]
   );
 
-  const handleAddModelCancel = (onClose) => {
+  const handleAddModelCancel = (onClose: () => void) => {
     setAddFormData(initialFormData);
     setAddModelErrors({});
     onClose();
   };
 
-  const handleEditModelCancel = (onClose) => {
+  const handleEditModelCancel = (onClose: () => void) => {
     setEditFormData(undefined);
     setEditModelErrors({});
     onClose();
@@ -173,14 +187,21 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
   const handleDiscover = async () => {
     setDiscovering(true);
     try {
-      const provider = ProviderFactory.createProvider(providerConfig);
-      const syncedModels = await provider.listModels();
+      const adapter = ProviderFactory.createProvider(providerDtoToBaseConfig(provider));
+      const syncedModels = await adapter.listModels();
       if (Array.isArray(syncedModels) && syncedModels.length > 0) {
-        onModelsChange(syncedModels);
-        setLocalModels(syncedModels);
+        for (const model of syncedModels) {
+          await upsertModel(provider.id, {
+            modelId: model.id,
+            name: model.name,
+            type: model.type,
+            capabilities: model.capabilities as ModelCapability[],
+            description: model.description,
+          });
+        }
       }
     } catch (e) {
-      logger.error(`[${providerConfig.id}] auto discover failed:`, e);
+      logger.error(`[${provider.kind}] auto discover failed:`, e);
     } finally {
       setDiscovering(false);
     }
@@ -189,16 +210,16 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
   const handleCleanModels = async () => {
     setDiscovering(true);
     try {
-      onModelsChange([]);
-      setLocalModels([]);
+      for (const model of localModels) {
+        await deleteModel(provider.id, model.id);
+      }
     } catch (e) {
-      logger.error(`[${providerConfig.id}] clean models failed:`, e);
+      logger.error(`[${provider.kind}] clean models failed:`, e);
     } finally {
       setDiscovering(false);
     }
   };
 
-  // Use HeroUI controlled pattern so clear button works reliably
   const handleSearchValueChange = (value: string) => {
     setSearchQuery(value);
   };
@@ -208,7 +229,7 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
   );
 
   const renderCell = useCallback(
-    (model: ModelSetting, columnKey: string) => {
+    (model: ModelDTO, columnKey: string) => {
       if (columnKey === 'name') {
         return model.name;
       } else if (columnKey === 'actions') {
@@ -320,7 +341,7 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
                 >
                   {t('common.cancel')}
                 </Button>
-                <Button color="primary" onPress={handleAddModel}>
+                <Button color="primary" onPress={() => void handleAddModel()}>
                   {t('common.create')}
                 </Button>
               </ModalFooter>
@@ -351,7 +372,7 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
                 >
                   {t('common.cancel')}
                 </Button>
-                <Button color="primary" onPress={handleEditModel}>
+                <Button color="primary" onPress={() => void handleEditModel()}>
                   {t('common.confirm')}
                 </Button>
               </ModalFooter>
@@ -383,7 +404,7 @@ function ModelTable({ providerConfig, onModelsChange, showSyncedButton = false }
                 >
                   {t('common.cancel')}
                 </Button>
-                <Button color="danger" onPress={handleDeleteModelConfirm}>
+                <Button color="danger" onPress={() => void handleDeleteModelConfirm()}>
                   {t('common.delete')}
                 </Button>
               </ModalFooter>

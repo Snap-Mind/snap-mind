@@ -9,76 +9,56 @@ import ProviderGoogle from './ProviderGoogle';
 import ProviderDeepSeek from './ProviderDeepSeek';
 import ProviderQwen from './ProviderQwen';
 import ProviderOllama from './ProviderOllama';
-import ProviderFoundry from './ProviderFoundry';
 import Icon from '@/components/Icon';
 
-import { ProviderSetting } from '@/types/setting';
-import { SettingsChangeHandler } from '@/types';
-import { AzureOpenAIConfig, FoundryConfig } from '@/types/providers';
+import type { ProviderDTO } from '@/types/provider-dto';
+import { useProvidersStore } from '@/stores/useProvidersStore';
 import { useTranslation } from 'react-i18next';
 
-interface SettingsModelProps {
-  settings: ProviderSetting[];
-  onSettingsChange: SettingsChangeHandler;
-}
+type ProviderNavItem = ProviderDTO & { path?: string };
 
-function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
+function SettingsModel() {
   const { t } = useTranslation();
-  const [activeProvider, setActiveProvider] = useState<ProviderSetting | null>(null);
+  const providers = useProvidersStore((s) => s.providers);
+  const [activeProvider, setActiveProvider] = useState<ProviderNavItem | null>(null);
   const providerOrder: Record<string, number> = {
     openai: 1,
     'azure-openai': 2,
-    foundry: 3,
-    anthropic: 4,
-    google: 5,
-    deepseek: 6,
-    qwen: 7,
-    ollama: 8,
+    anthropic: 3,
+    google: 4,
+    deepseek: 5,
+    qwen: 6,
+    ollama: 7,
   };
 
-  const providers = settings
+  const navProviders: ProviderNavItem[] = providers
     .map((provider) => {
-    let newProvider = null;
-
-      if (provider.id === 'openai') {
-        newProvider = { ...provider, path: '/settings/models/openai' };
-      } else if (provider.id == 'azure-openai') {
-        newProvider = { ...provider, path: '/settings/models/azure-openai' };
-      } else if (provider.id == 'foundry') {
-        newProvider = { ...provider, path: '/settings/models/foundry' };
-      } else if (provider.id == 'anthropic') {
-        newProvider = { ...provider, path: '/settings/models/anthropic' };
-      } else if (provider.id == 'google') {
-        newProvider = { ...provider, path: '/settings/models/google' };
-      } else if (provider.id == 'deepseek') {
-        newProvider = { ...provider, path: '/settings/models/deepseek' };
-      } else if (provider.id == 'qwen') {
-        newProvider = { ...provider, path: '/settings/models/qwen' };
-      } else if (provider.id == 'ollama') {
-        newProvider = { ...provider, path: '/settings/models/ollama' };
-      } else {
-        newProvider = provider;
-      }
-
-      return newProvider;
+      const paths: Record<string, string> = {
+        openai: '/settings/models/openai',
+        'azure-openai': '/settings/models/azure-openai',
+        anthropic: '/settings/models/anthropic',
+        google: '/settings/models/google',
+        deepseek: '/settings/models/deepseek',
+        qwen: '/settings/models/qwen',
+        ollama: '/settings/models/ollama',
+      };
+      return { ...provider, path: paths[provider.kind] };
     })
     .sort((a, b) => {
-      const orderA = providerOrder[a.id] ?? 999;
-      const orderB = providerOrder[b.id] ?? 999;
+      const orderA = providerOrder[a.kind] ?? 999;
+      const orderB = providerOrder[b.kind] ?? 999;
       return orderA - orderB;
     });
 
-  const activeStyle = (provider) => {
+  const activeStyle = (provider: ProviderNavItem) => {
     return activeProvider != null && provider.id === activeProvider.id ? 'bg-default' : '';
   };
 
-  const renderIcon = (provider) => {
-    switch (provider.id) {
+  const renderIcon = (provider: ProviderNavItem) => {
+    switch (provider.kind) {
       case 'openai':
         return <Icon icon="openai" className="inline-block ml-2" size={18} />;
       case 'azure-openai':
-        return <Icon icon="azure-openai" className="inline-block ml-2" size={18} />;
-      case 'foundry':
         return <Icon icon="azure-openai" className="inline-block ml-2" size={18} />;
       case 'anthropic':
         return <Icon icon="anthropic" className="inline-block ml-2" size={18} />;
@@ -95,6 +75,8 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
     }
   };
 
+  const findByKind = (kind: string) => providers.find((p) => p.kind === kind);
+
   return (
     <div className="setting-container grid grid-cols-[250px_1px_1fr] grid-rows-1 h-[100vh]">
       <div className="setting-category bg-background">
@@ -105,11 +87,11 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
           </div>
           <div className="body overflow-y-auto">
             <Listbox aria-label="Actions">
-              {providers.map((provider) => (
+              {navProviders.map((provider) => (
                 <ListboxItem
                   className={activeStyle(provider)}
                   key={provider.id}
-                  href={provider?.path ? provider.path : ''}
+                  href={provider.path ?? ''}
                   startContent={renderIcon(provider)}
                   onClick={() => setActiveProvider(provider)}
                   textValue={provider.name}
@@ -126,76 +108,28 @@ function SettingsModel({ settings, onSettingsChange }: SettingsModelProps) {
         <Routes>
           <Route
             path="openai"
-            element={
-              <ProviderOpenAI
-                settings={settings.find((s) => s.id === 'openai')}
-                onSettingsChange={onSettingsChange}
-              ></ProviderOpenAI>
-            }
+            element={<ProviderOpenAI provider={findByKind('openai')!} />}
           ></Route>
           <Route
             path="azure-openai"
-            element={
-              <ProviderAzureOpenAI
-                settings={settings.find((s) => s.id === 'azure-openai') as AzureOpenAIConfig}
-                onSettingsChange={onSettingsChange}
-              ></ProviderAzureOpenAI>
-            }
-          ></Route>
-          <Route
-            path="foundry"
-            element={
-              <ProviderFoundry
-                settings={settings.find((s) => s.id === 'foundry') as FoundryConfig}
-                providerIndex={settings.findIndex((s) => s.id === 'foundry')}
-                onSettingsChange={onSettingsChange}
-              ></ProviderFoundry>
-            }
+            element={<ProviderAzureOpenAI provider={findByKind('azure-openai')!} />}
           ></Route>
           <Route
             path="anthropic"
-            element={
-              <ProviderAnthropic
-                settings={settings.find((s) => s.id === 'anthropic')}
-                onSettingsChange={onSettingsChange}
-              ></ProviderAnthropic>
-            }
+            element={<ProviderAnthropic provider={findByKind('anthropic')!} />}
           ></Route>
           <Route
             path="google"
-            element={
-              <ProviderGoogle
-                settings={settings.find((s) => s.id === 'google')}
-                onSettingsChange={onSettingsChange}
-              ></ProviderGoogle>
-            }
+            element={<ProviderGoogle provider={findByKind('google')!} />}
           ></Route>
           <Route
             path="deepseek"
-            element={
-              <ProviderDeepSeek
-                settings={settings.find((s) => s.id === 'deepseek')}
-                onSettingsChange={onSettingsChange}
-              ></ProviderDeepSeek>
-            }
+            element={<ProviderDeepSeek provider={findByKind('deepseek')!} />}
           ></Route>
-          <Route
-            path="qwen"
-            element={
-              <ProviderQwen
-                settings={settings.find((s) => s.id === 'qwen')}
-                onSettingsChange={onSettingsChange}
-              ></ProviderQwen>
-            }
-          ></Route>
+          <Route path="qwen" element={<ProviderQwen provider={findByKind('qwen')!} />}></Route>
           <Route
             path="ollama"
-            element={
-              <ProviderOllama
-                settings={settings.find((s) => s.id === 'ollama')}
-                onSettingsChange={onSettingsChange}
-              ></ProviderOllama>
-            }
+            element={<ProviderOllama provider={findByKind('ollama')!} />}
           ></Route>
         </Routes>
       </div>

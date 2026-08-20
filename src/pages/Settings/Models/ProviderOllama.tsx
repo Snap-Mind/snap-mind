@@ -1,40 +1,43 @@
+import { useState, useEffect } from 'react';
 import { Form, Input } from '@heroui/react';
 import ModelTable from '../../../components/ModelTable';
-import { SettingsChangeHandler } from '@/types';
-import { OllamaConfig } from '@/types/providers';
 import { useTranslation } from 'react-i18next';
+import type { ProviderDTO } from '@/types/provider-dto';
+import { useProvidersStore } from '@/stores/useProvidersStore';
 
 interface ProviderOllamaProps {
-  settings: OllamaConfig;
-  onSettingsChange: SettingsChangeHandler;
+  provider: ProviderDTO;
 }
 
-function ProviderOllama({ settings, onSettingsChange }: ProviderOllamaProps) {
+function ProviderOllama({ provider }: ProviderOllamaProps) {
   const { t } = useTranslation();
-  // In default config, ollama is appended after qwen (index 6 if zero-based)
-  const idx = 6;
+  const updateProvider = useProvidersStore((s) => s.updateProvider);
+  const [host, setHost] = useState(provider.host ?? '');
+
+  useEffect(() => {
+    setHost(provider.host ?? '');
+  }, [provider.host]);
 
   return (
     <div className="overflow-y-auto p-1 flex flex-col gap-5">
-      <h1 className="font-bold text-2xl">{settings.name}</h1>
+      <h1 className="font-bold text-2xl">{provider.name}</h1>
       <Form className="w-full flex flex-col gap-5">
         <Input
           label="Host"
           labelPlacement="outside"
           placeholder="e.g. http://localhost:11434/api/chat"
-          defaultValue={settings.host ? settings.host : ''}
+          value={host}
           type="url"
-          onValueChange={(value) => onSettingsChange(['providers', idx, 'host'], value)}
+          onValueChange={(value) => {
+            setHost(value);
+            void updateProvider(provider.id, { host: value });
+          }}
         />
       </Form>
 
       <div className="max-w-full flex flex-col gap-4">
         <div className="font-weight-bold">{t('settings.providers.models')}</div>
-        <ModelTable
-          providerConfig={settings}
-          onModelsChange={(newModels) => onSettingsChange(['providers', idx, 'models'], newModels)}
-          showSyncedButton={true}
-        />
+        <ModelTable provider={provider} showSyncedButton={true} />
       </div>
     </div>
   );
