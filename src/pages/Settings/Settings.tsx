@@ -79,7 +79,7 @@ function Settings() {
   }, [activeCategory]);
 
   return (
-    <div className="setting-container grid w-full min-w-0 grid-cols-[230px_minmax(0,1fr)] h-[100vh] overflow-hidden">
+    <div className="setting-container grid w-full min-w-0 grid-cols-[230px_minmax(0,1fr)] grid-rows-1 h-[100vh] overflow-hidden">
       <div className="setting-category bg-background min-w-0 px-3 py-3 border-r-1 border-default">
         <SettingsCategory
           categories={categories}
