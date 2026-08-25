@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Routes, Route } from 'react-router';
-import { Divider, Listbox, ListboxItem } from '@heroui/react';
+import { Listbox, ListboxItem } from '@heroui/react';
 
 import ProviderOpenAI from './ProviderOpenAI';
 import ProviderAzureOpenAI from './ProviderAzureOpenAI';
@@ -10,6 +10,7 @@ import ProviderDeepSeek from './ProviderDeepSeek';
 import ProviderQwen from './ProviderQwen';
 import ProviderOllama from './ProviderOllama';
 import Icon from '@/components/Icon';
+import SettingsSplitLayout from '../SettingsSplitLayout';
 
 import type { ProviderDTO } from '@/types/provider-dto';
 import { useProvidersStore } from '@/stores/useProvidersStore';
@@ -78,62 +79,39 @@ function SettingsModel() {
   const findByKind = (kind: string) => providers.find((p) => p.kind === kind);
 
   return (
-    <div className="setting-container grid grid-cols-[250px_1px_1fr] grid-rows-1 h-[100vh]">
-      <div className="setting-category bg-background">
-        <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full px-3 py-3">
-          <div className="header">
-            <h1 className="font-bold text-2xl">{t('settings.providers.title')}</h1>
-            <Divider className="my-4" />
-          </div>
-          <div className="body overflow-y-auto">
-            <Listbox aria-label="Actions">
-              {navProviders.map((provider) => (
-                <ListboxItem
-                  className={activeStyle(provider)}
-                  key={provider.id}
-                  href={provider.path ?? ''}
-                  startContent={renderIcon(provider)}
-                  onClick={() => setActiveProvider(provider)}
-                  textValue={provider.name}
-                >
-                  {provider.name}
-                </ListboxItem>
-              ))}
-            </Listbox>
-          </div>
-        </div>
-      </div>
-      <Divider orientation="vertical" />
-      <div className="setting-details h-[100vh] overflow-y-auto bg-background px-3 py-3">
+    <SettingsSplitLayout
+      title={t('settings.providers.title')}
+      list={
+        <Listbox aria-label="Actions">
+          {navProviders.map((provider) => (
+            <ListboxItem
+              className={activeStyle(provider)}
+              key={provider.id}
+              href={provider.path ?? ''}
+              startContent={renderIcon(provider)}
+              onClick={() => setActiveProvider(provider)}
+              textValue={provider.name}
+            >
+              {provider.name}
+            </ListboxItem>
+          ))}
+        </Listbox>
+      }
+      details={
         <Routes>
-          <Route
-            path="openai"
-            element={<ProviderOpenAI provider={findByKind('openai')!} />}
-          ></Route>
+          <Route path="openai" element={<ProviderOpenAI provider={findByKind('openai')!} />} />
           <Route
             path="azure-openai"
             element={<ProviderAzureOpenAI provider={findByKind('azure-openai')!} />}
-          ></Route>
-          <Route
-            path="anthropic"
-            element={<ProviderAnthropic provider={findByKind('anthropic')!} />}
-          ></Route>
-          <Route
-            path="google"
-            element={<ProviderGoogle provider={findByKind('google')!} />}
-          ></Route>
-          <Route
-            path="deepseek"
-            element={<ProviderDeepSeek provider={findByKind('deepseek')!} />}
-          ></Route>
-          <Route path="qwen" element={<ProviderQwen provider={findByKind('qwen')!} />}></Route>
-          <Route
-            path="ollama"
-            element={<ProviderOllama provider={findByKind('ollama')!} />}
-          ></Route>
+          />
+          <Route path="anthropic" element={<ProviderAnthropic provider={findByKind('anthropic')!} />} />
+          <Route path="google" element={<ProviderGoogle provider={findByKind('google')!} />} />
+          <Route path="deepseek" element={<ProviderDeepSeek provider={findByKind('deepseek')!} />} />
+          <Route path="qwen" element={<ProviderQwen provider={findByKind('qwen')!} />} />
+          <Route path="ollama" element={<ProviderOllama provider={findByKind('ollama')!} />} />
         </Routes>
-      </div>
-    </div>
+      }
+    />
   );
 }
 

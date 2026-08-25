@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Button,
-  Divider,
   Input,
   Modal,
   ModalBody,
@@ -86,8 +85,8 @@ function AgentEditor({ agent }: AgentEditorProps) {
   };
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-4 pb-6">
-      <div className="header flex items-start justify-between">
+    <div className="p-1 flex flex-col gap-5 pb-6">
+      <div className="flex items-start justify-between">
         <h1 className="font-bold text-2xl">{name}</h1>
         {!agent.isBuiltin && (
           <Button
@@ -102,102 +101,101 @@ function AgentEditor({ agent }: AgentEditorProps) {
           </Button>
         )}
       </div>
-      <Divider />
-        <Input
-          label={t('settings.agents.name')}
-          value={name}
-          isReadOnly={agent.isBuiltin}
-          description={agent.isBuiltin ? t('settings.agents.builtinNameLocked') : undefined}
-          onValueChange={setName}
-        />
-        <Input
-          label={t('settings.agents.description')}
-          value={description}
-          onValueChange={setDescription}
-        />
-        <Textarea
-          label={t('settings.agents.instructions')}
-          placeholder={t('settings.agents.instructionsPlaceholder')}
-          minRows={4}
-          value={instructions}
-          onValueChange={setInstructions}
-        />
-        <Select
-          label={t('settings.agents.provider')}
-          isRequired
-          selectedKeys={providerId != null ? [String(providerId)] : []}
-          onSelectionChange={(keys) => {
-            setProviderId(selectionToId(keys));
-            setModelId(null);
-          }}
-        >
-          {providers.map((provider) => (
-            <SelectItem key={String(provider.id)}>{provider.name}</SelectItem>
-          ))}
-        </Select>
-        <Select
-          label={t('settings.agents.model')}
-          isRequired
-          isDisabled={providerId == null}
-          description={
-            providerId != null && models.length === 0
-              ? t('settings.agents.noModelsForProvider')
-              : undefined
-          }
-          selectedKeys={modelId != null ? [String(modelId)] : []}
-          onSelectionChange={(keys) => setModelId(selectionToId(keys))}
-        >
-          {models.map((model) => (
-            <SelectItem key={String(model.id)}>{model.modelId}</SelectItem>
-          ))}
-        </Select>
-        <Slider
-          label={t('settings.chat.maxTokens')}
-          className="max-w-full"
-          size="sm"
-          minValue={1}
-          maxValue={16000}
-          step={1}
-          defaultValue={agent.maxTokens ?? 2048}
-          onChangeEnd={(value) => void updateAgent(agent.id, { maxTokens: value as number })}
-        />
-        <Slider
-          label={t('settings.chat.temperature')}
-          className="max-w-full"
-          size="sm"
-          minValue={0}
-          maxValue={1}
-          step={0.01}
-          defaultValue={agent.temperature ?? 0.7}
-          onChangeEnd={(value) => void updateAgent(agent.id, { temperature: value as number })}
-        />
-        <Slider
-          label={t('settings.chat.topP')}
-          className="max-w-full"
-          size="sm"
-          minValue={0.1}
-          maxValue={1}
-          step={0.01}
-          defaultValue={agent.topP ?? 0.95}
-          onChangeEnd={(value) => void updateAgent(agent.id, { topP: value as number })}
-        />
-        <BooleanInput
-          id="agent-reasoning"
-          label={t('settings.chat.reasoning')}
-          description={t('settings.chat.reasoningDescription')}
-          isSelected={agent.reasoning ?? false}
-          onValueChange={(checked) => void updateAgent(agent.id, { reasoning: checked })}
-        />
-        <BooleanInput
-          id="agent-web-search"
-          label={t('settings.chat.webSearch')}
-          description={t('settings.chat.webSearchDescription')}
-          isSelected={agent.webSearch ?? false}
-          onValueChange={(checked) => void updateAgent(agent.id, { webSearch: checked })}
-        />
-        <Button color="primary" isDisabled={!canSave} isLoading={isSaving} onPress={handleSave}>
-          {t('common.save')}
-        </Button>
+      <Input
+        label={t('settings.agents.name')}
+        value={name}
+        isReadOnly={agent.isBuiltin}
+        description={agent.isBuiltin ? t('settings.agents.builtinNameLocked') : undefined}
+        onValueChange={setName}
+      />
+      <Input
+        label={t('settings.agents.description')}
+        value={description}
+        onValueChange={setDescription}
+      />
+      <Textarea
+        label={t('settings.agents.instructions')}
+        placeholder={t('settings.agents.instructionsPlaceholder')}
+        minRows={4}
+        value={instructions}
+        onValueChange={setInstructions}
+      />
+      <Select
+        label={t('settings.agents.provider')}
+        isRequired
+        selectedKeys={providerId != null ? [String(providerId)] : []}
+        onSelectionChange={(keys) => {
+          setProviderId(selectionToId(keys));
+          setModelId(null);
+        }}
+      >
+        {providers.map((provider) => (
+          <SelectItem key={String(provider.id)}>{provider.name}</SelectItem>
+        ))}
+      </Select>
+      <Select
+        label={t('settings.agents.model')}
+        isRequired
+        isDisabled={providerId == null}
+        description={
+          providerId != null && models.length === 0
+            ? t('settings.agents.noModelsForProvider')
+            : undefined
+        }
+        selectedKeys={modelId != null ? [String(modelId)] : []}
+        onSelectionChange={(keys) => setModelId(selectionToId(keys))}
+      >
+        {models.map((model) => (
+          <SelectItem key={String(model.id)}>{model.modelId}</SelectItem>
+        ))}
+      </Select>
+      <Slider
+        label={t('settings.chat.maxTokens')}
+        className="max-w-full"
+        size="sm"
+        minValue={1}
+        maxValue={16000}
+        step={1}
+        defaultValue={agent.maxTokens ?? 2048}
+        onChangeEnd={(value) => void updateAgent(agent.id, { maxTokens: value as number })}
+      />
+      <Slider
+        label={t('settings.chat.temperature')}
+        className="max-w-full"
+        size="sm"
+        minValue={0}
+        maxValue={1}
+        step={0.01}
+        defaultValue={agent.temperature ?? 0.7}
+        onChangeEnd={(value) => void updateAgent(agent.id, { temperature: value as number })}
+      />
+      <Slider
+        label={t('settings.chat.topP')}
+        className="max-w-full"
+        size="sm"
+        minValue={0.1}
+        maxValue={1}
+        step={0.01}
+        defaultValue={agent.topP ?? 0.95}
+        onChangeEnd={(value) => void updateAgent(agent.id, { topP: value as number })}
+      />
+      <BooleanInput
+        id="agent-reasoning"
+        label={t('settings.chat.reasoning')}
+        description={t('settings.chat.reasoningDescription')}
+        isSelected={agent.reasoning ?? false}
+        onValueChange={(checked) => void updateAgent(agent.id, { reasoning: checked })}
+      />
+      <BooleanInput
+        id="agent-web-search"
+        label={t('settings.chat.webSearch')}
+        description={t('settings.chat.webSearchDescription')}
+        isSelected={agent.webSearch ?? false}
+        onValueChange={(checked) => void updateAgent(agent.id, { webSearch: checked })}
+      />
+      <Button color="primary" isDisabled={!canSave} isLoading={isSaving} onPress={handleSave}>
+        {t('common.save')}
+      </Button>
 
       <Modal isOpen={isDeleteOpen} onOpenChange={onDeleteOpenChange}>
         <ModalContent>
