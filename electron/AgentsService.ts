@@ -120,6 +120,27 @@ export class AgentsService {
     return rowToDTO(row);
   }
 
+  async update(id: number, patch: UpdateAgentPatch): Promise<AgentDTO> {
+    const existing = this.db.select().from(agents).where(eq(agents.id, id)).get();
+    if (!existing) throw new Error(`Agent ${id} not found`);
+    if (existing.isBuiltin === 1 && patch.name !== undefined && patch.name !== existing.name) {
+      throw new Error('Cannot rename a built-in agent');
+    }
+
+    const values: Partial<AgentRow> = { updatedAt: Date.now() };
+    if (patch.name !== undefined) values.name = patch.name;
+    if (patch.description !== undefined) values.description = patch.description ?? null;
+    if (patch.instructions !== undefined) values.instructions = patch.instructions;
+    if (patch.providerId !== undefined) values.providerId = patch.providerId ?? null;
+    if (patch.modelId !== undefined) values.modelId = patch.modelId ?? null;
+    if (PARAM_KEYS.some((key) => patch[key] !== undefined)) {
+      values.configJson = packConfig(patch, existing.configJson);
+    }
+
+    this.db.update(agents).set(values).where(eq(agents.id, id)).run();
+    return rowToDTO(this.db.select().from(agents).where(eq(agents.id, id)).get()!);
+  }
+
   __rawAgentRow(id: number): AgentRow {
     return this.db.select().from(agents).where(eq(agents.id, id)).get()!;
   }

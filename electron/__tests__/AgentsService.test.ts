@@ -1,9 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { makeTestDb } from '../db/__tests__/testDb.js';
 import { AgentsService } from '../AgentsService.js';
+import { providerModels } from '../db/schema.js';
 
 function newService() {
   const { db } = makeTestDb();
+  db.insert(providerModels)
+    .values({
+      id: 2,
+      providerId: 1,
+      modelId: 'test-model',
+      name: 'Test Model',
+      sortOrder: 10,
+      createdAt: 0,
+      updatedAt: 0,
+    })
+    .run();
   return new AgentsService(db);
 }
 
@@ -46,5 +58,45 @@ describe('AgentsService.create', () => {
     expect(created.instructions).toBe('');
     expect(created.temperature).toBeUndefined();
     expect(created.reasoning).toBeUndefined();
+  });
+});
+
+describe('AgentsService.update', () => {
+  it('patches given fields and leaves the rest intact', async () => {
+    const svc = newService();
+    const agent = await svc.create({ name: 'Explain', instructions: 'Explain:' });
+
+    const updated = await svc.update(agent.id, { providerId: 1, modelId: 2, temperature: 0.9 });
+    expect(updated.providerId).toBe(1);
+    expect(updated.modelId).toBe(2);
+    expect(updated.temperature).toBe(0.9);
+    expect(updated.instructions).toBe('Explain:');
+    expect(updated.name).toBe('Explain');
+  });
+
+  it('merges config_json instead of replacing it', async () => {
+    const svc = newService();
+    const agent = await svc.create({ name: 'Merge', temperature: 0.2, maxTokens: 100 });
+
+    const updated = await svc.update(agent.id, { webSearch: true });
+    expect(updated.temperature).toBe(0.2);
+    expect(updated.maxTokens).toBe(100);
+    expect(updated.webSearch).toBe(true);
+  });
+
+  it('allows editing a built-in agent but refuses to rename it', async () => {
+    const svc = newService();
+    const builtin = (await svc.list())[0];
+
+    const updated = await svc.update(builtin.id, { instructions: 'Be terse.', topP: 0.5 });
+    expect(updated.instructions).toBe('Be terse.');
+    expect(updated.topP).toBe(0.5);
+
+    await expect(svc.update(builtin.id, { name: 'Renamed' })).rejects.toThrow(/built-in/i);
+  });
+
+  it('throws for an unknown id', async () => {
+    const svc = newService();
+    await expect(svc.update(9999, { name: 'Nope' })).rejects.toThrow(/not found/i);
   });
 });
