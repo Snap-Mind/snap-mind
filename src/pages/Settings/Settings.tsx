@@ -9,7 +9,6 @@ import SettingsCategory from './SettingsCategory';
 import SettingsGeneral from './SettingsGeneral';
 import SettingsModel from './Models/SettingsModels';
 import SettingsAgents from './Agents/SettingsAgents';
-import SettingsChat from './SettingsChat';
 import SettingsHotkeys from './SettingsHotkeys';
 import SettingsOther from './SettingsOther';
 import SettingsAppearance from './SettingsAppearance';
@@ -22,7 +21,6 @@ function Settings() {
       { id: 'appearance', name: t('settings.appearance.title'), path: '/settings/appearance' },
       { id: 'models', name: t('settings.providers.title'), path: '/settings/models' },
       { id: 'agents', name: t('settings.agents.title'), path: '/settings/agents' },
-      { id: 'chat', name: t('settings.chat.title'), path: '/settings/chat' },
       { id: 'hotkeys', name: t('settings.hotkeys.title'), path: '/settings/hotkeys' },
       { id: 'others', name: t('settings.others.title'), path: '/settings/others' },
     ],
@@ -99,10 +97,6 @@ function Settings() {
             element={
               <SettingsAppearance settings={settings.appearance} onSettingsChange={setSettings} />
             }
-          />
-          <Route
-            path="chat"
-            element={<SettingsChat settings={settings.chat} onSettingsChange={setSettings} />}
           />
           <Route path="hotkeys" element={<SettingsHotkeys />} />
           <Route index element={<Navigate to="general" replace />} />

@@ -249,7 +249,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     const next = [...s.messages, userMsg];
 
     const res = resolveActiveAgent(s.activeAgentId);
-    if (!res.ok) {
+    if (res.ok === false) {
       set({ messages: next, input: '', images: [] });
       pushErrorMessage(set, agentErrorMessage(res));
       return;
@@ -291,7 +291,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     if (!seed?.text) return;
 
     const res = resolveActiveAgent(agentId);
-    if (!res.ok) {
+    if (res.ok === false) {
       pushErrorMessage(set, agentErrorMessage(res));
       return;
     }

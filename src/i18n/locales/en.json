@@ -79,12 +79,9 @@
       "builtinNameLocked": "The built-in agent cannot be renamed."
     },
     "chat": {
-      "title": "Chat",
       "maxTokens": "Max Tokens",
       "temperature": "Temperature",
       "topP": "Top P",
-      "streaming": "Response Streaming",
-      "streamingDescription": "Show responses as they are being generated",
       "reasoning": "Reasoning",
       "reasoningDescription": "Enable extended thinking / reasoning mode for supported models",
       "webSearch": "Web search",

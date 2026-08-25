@@ -79,12 +79,9 @@
       "builtinNameLocked": "内置智能体无法重命名。"
     },
     "chat": {
-      "title": "聊天",
       "maxTokens": "Max Tokens",
       "temperature": "Temperature",
       "topP": "Top P",
-      "streaming": "响应流式传输",
-      "streamingDescription": "实时显示生成的回应",
       "reasoning": "推理模式",
       "reasoningDescription": "为支持的模型启用深度思考 / 推理模式",
       "webSearch": "联网搜索",
