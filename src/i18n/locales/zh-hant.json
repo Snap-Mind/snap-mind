@@ -64,6 +64,20 @@
       "name": "名稱",
       "actions": "操作"
     },
+    "agents": {
+      "title": "智能體",
+      "addAgent": "添加智能體",
+      "deleteAgent": "刪除智能體",
+      "newAgentName": "新智能體",
+      "name": "名稱",
+      "description": "描述",
+      "instructions": "指令",
+      "instructionsPlaceholder": "告訴智能體如何行為，例如：將以下文本翻譯成中文。",
+      "provider": "提供商",
+      "model": "模型",
+      "noModelsForProvider": "此提供商尚無模型。請在設定 > 模型中添加。",
+      "builtinNameLocked": "內置智能體無法重命名。"
+    },
     "chat": {
       "title": "聊天",
       "maxTokens": "Max Tokens",

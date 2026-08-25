@@ -8,6 +8,7 @@ import type { SettingsChangeHandler, HotkeysChangeHandler } from '@/types';
 import SettingsCategory from './SettingsCategory';
 import SettingsGeneral from './SettingsGeneral';
 import SettingsModel from './Models/SettingsModels';
+import SettingsAgents from './Agents/SettingsAgents';
 import SettingsChat from './SettingsChat';
 import SettingsHotkeys from './SettingsHotkeys';
 import SettingsOther from './SettingsOther';
@@ -20,6 +21,7 @@ function Settings() {
       { id: 'general', name: t('settings.general.title'), path: '/settings/general' },
       { id: 'appearance', name: t('settings.appearance.title'), path: '/settings/appearance' },
       { id: 'models', name: t('settings.providers.title'), path: '/settings/models' },
+      { id: 'agents', name: t('settings.agents.title'), path: '/settings/agents' },
       { id: 'chat', name: t('settings.chat.title'), path: '/settings/chat' },
       { id: 'hotkeys', name: t('settings.hotkeys.title'), path: '/settings/hotkeys' },
       { id: 'others', name: t('settings.others.title'), path: '/settings/others' },
@@ -75,7 +77,7 @@ function Settings() {
   );
 
   const settingDetailsStyle = useMemo(() => {
-    return activeCategory.id === 'models' ? '' : 'px-3 py-3';
+    return activeCategory.id === 'models' || activeCategory.id === 'agents' ? '' : 'px-3 py-3';
   }, [activeCategory]);
 
   return (
@@ -101,6 +103,7 @@ function Settings() {
             }
           />
           <Route path="models/*" element={<SettingsModel />}></Route>
+          <Route path="agents/*" element={<SettingsAgents />}></Route>
           <Route
             path="appearance"
             element={

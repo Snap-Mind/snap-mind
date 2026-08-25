@@ -64,6 +64,20 @@
       "name": "Name",
       "actions": "Actions"
     },
+    "agents": {
+      "title": "Agents",
+      "addAgent": "Add agent",
+      "deleteAgent": "Delete agent",
+      "newAgentName": "New agent",
+      "name": "Name",
+      "description": "Description",
+      "instructions": "Instructions",
+      "instructionsPlaceholder": "Tell the agent how to behave, for example: Translate the following text to Chinese.",
+      "provider": "Provider",
+      "model": "Model",
+      "noModelsForProvider": "This provider has no models yet. Add one in Settings > Models.",
+      "builtinNameLocked": "The built-in agent cannot be renamed."
+    },
     "chat": {
       "title": "Chat",
       "maxTokens": "Max Tokens",
