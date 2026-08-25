@@ -141,6 +141,13 @@ export class AgentsService {
     return rowToDTO(this.db.select().from(agents).where(eq(agents.id, id)).get()!);
   }
 
+  async delete(id: number): Promise<void> {
+    const existing = this.db.select().from(agents).where(eq(agents.id, id)).get();
+    if (!existing) return;
+    if (existing.isBuiltin === 1) throw new Error('Cannot delete a built-in agent');
+    this.db.delete(agents).where(eq(agents.id, id)).run();
+  }
+
   __rawAgentRow(id: number): AgentRow {
     return this.db.select().from(agents).where(eq(agents.id, id)).get()!;
   }

@@ -1,7 +1,14 @@
 import { describe, it, expect } from 'vitest';
+import { eq } from 'drizzle-orm';
 import { makeTestDb } from '../db/__tests__/testDb.js';
 import { AgentsService } from '../AgentsService.js';
+import * as schema from '../db/schema.js';
 import { providerModels } from '../db/schema.js';
+
+function newServiceWithDb() {
+  const { db } = makeTestDb();
+  return { svc: new AgentsService(db), db };
+}
 
 function newService() {
   const { db } = makeTestDb();
@@ -98,5 +105,39 @@ describe('AgentsService.update', () => {
   it('throws for an unknown id', async () => {
     const svc = newService();
     await expect(svc.update(9999, { name: 'Nope' })).rejects.toThrow(/not found/i);
+  });
+});
+
+describe('AgentsService.delete', () => {
+  it('deletes an ordinary agent and unassigns the hotkeys that referenced it', async () => {
+    const { svc, db } = newServiceWithDb();
+    const agent = await svc.create({ name: 'Doomed' });
+
+    const selectionRow = db
+      .select()
+      .from(schema.hotkeys)
+      .where(eq(schema.hotkeys.mode, 'selection'))
+      .get()!;
+    db.update(schema.hotkeys)
+      .set({ agentId: agent.id })
+      .where(eq(schema.hotkeys.id, selectionRow.id))
+      .run();
+
+    await svc.delete(agent.id);
+
+    expect(await svc.list()).toHaveLength(1);
+    const after = db
+      .select()
+      .from(schema.hotkeys)
+      .where(eq(schema.hotkeys.id, selectionRow.id))
+      .get()!;
+    expect(after.agentId).toBeNull();
+  });
+
+  it('refuses to delete the built-in agent', async () => {
+    const { svc } = newServiceWithDb();
+    const builtin = (await svc.list())[0];
+    await expect(svc.delete(builtin.id)).rejects.toThrow(/built-in/i);
+    expect(await svc.list()).toHaveLength(1);
   });
 });
