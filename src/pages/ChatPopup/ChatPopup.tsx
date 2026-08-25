@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
-import { Button, Divider, Select, SelectSection, SelectItem, Textarea } from '@heroui/react';
+import { Button, Divider, Textarea } from '@heroui/react';
 
 import { useProvidersStore } from '@/stores/useProvidersStore';
 import { useChatStore } from '@/stores/useChatStore';
+import { useAgentsStore } from '@/stores/useAgentsStore';
+import { resolveAgent } from '@/services/agentResolver';
 
 import ChatMessage from '../ChatMessage/ChatMessage';
 
@@ -12,7 +14,6 @@ import Icon from '../../components/Icon';
 import LogoSvg from '@/components/LogoSvg';
 import ReasoningToggle from '@/components/ReasoningToggle';
 import WebSearchToggle from '@/components/WebSearchToggle';
-import type { ProviderDTO } from '@/types/provider-dto';
 
 export default function ChatPopup() {
   const { t } = useTranslation();
@@ -25,20 +26,19 @@ export default function ChatPopup() {
   const autoScroll = useChatStore((s) => s.autoScroll);
   const reasoningEnabled = useChatStore((s) => s.reasoningEnabled);
   const webSearchEnabled = useChatStore((s) => s.webSearchEnabled);
-  const currentProviderId = useChatStore((s) => s.currentProviderId);
-  const currentModelId = useChatStore((s) => s.currentModelId);
+  const activeAgentId = useChatStore((s) => s.activeAgentId);
 
   const setInput = useChatStore((s) => s.setInput);
   const setAutoScroll = useChatStore((s) => s.setAutoScroll);
   const setReasoning = useChatStore((s) => s.setReasoning);
   const setWebSearch = useChatStore((s) => s.setWebSearch);
-  const setModel = useChatStore((s) => s.setModel);
   const addImages = useChatStore((s) => s.addImages);
   const removeImage = useChatStore((s) => s.removeImage);
   const send = useChatStore((s) => s.send);
   const abort = useChatStore((s) => s.abort);
 
   const providers = useProvidersStore((s) => s.providers);
+  const agents = useAgentsStore((s) => s.agents);
 
   const hasUsableProvider = providers.some(
     (p) =>
@@ -72,25 +72,6 @@ export default function ChatPopup() {
     if (autoScroll) chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading, autoScroll]);
 
-  const buildModelKey = (providerId: number, modelId: number) => `${providerId}::${modelId}`;
-  const parseModelKey = (value: string) => {
-    const [providerId, modelId] = value.split('::');
-    return { providerId: Number(providerId), modelId: Number(modelId) };
-  };
-
-  const findProviderByModelPk = (modelPk: number) =>
-    providers.find((p) => p.models.some((m) => m.id === modelPk));
-
-  const selectedModelKey = (() => {
-    if (currentProviderId && currentModelId)
-      return buildModelKey(currentProviderId, currentModelId);
-    if (currentModelId) {
-      const p = findProviderByModelPk(currentModelId);
-      if (p) return buildModelKey(p.id, currentModelId);
-    }
-    return undefined;
-  })();
-
   const handleMessagesScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     const current = el.scrollTop;
@@ -102,27 +83,6 @@ export default function ChatPopup() {
       if (!autoScroll && atBottom) setAutoScroll(true);
     }
     lastScrollTopRef.current = current;
-  };
-
-  const renderAvailableModels = () => {
-    const isValidProvider = (provider: ProviderDTO) =>
-      (provider.apiKey && provider.host && provider.models.length !== 0) ||
-      (provider.kind === 'ollama' && provider.host != null && provider.models.length !== 0);
-    return providers
-      .filter((provider) => isValidProvider(provider))
-      .map((provider) => (
-        <SelectSection key={provider.name} title={provider.name}>
-          {provider.models.map((model) => (
-            <SelectItem
-              key={buildModelKey(provider.id, model.id)}
-              textValue={model.modelId}
-              title={model.modelId}
-            >
-              {model.modelId}
-            </SelectItem>
-          ))}
-        </SelectSection>
-      ));
   };
 
   const handlePaste = useCallback(
@@ -178,15 +138,14 @@ export default function ChatPopup() {
     }
   };
 
-  const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = (e.target as HTMLSelectElement).value;
-    if (!value) return;
-    const { providerId, modelId } = parseModelKey(value);
-    setModel(providerId, modelId);
-  };
-
   const streamingMessageIndex =
     loading && messages.at(-1)?.role === 'assistant' ? messages.length - 1 : -1;
+
+  const agentResolution = resolveAgent(activeAgentId, agents, providers);
+  const activeAgent = agents.find((a) => a.id === activeAgentId) ?? null;
+  const badgeLabel = agentResolution.ok
+    ? `${agentResolution.agent.name} · ${agentResolution.model.modelId}`
+    : `${activeAgent?.name ?? 'No agent'} · not configured`;
 
   return (
     <div className="w-full h-full">
@@ -226,8 +185,21 @@ export default function ChatPopup() {
                 Open Settings
               </Button>
               <p className="text-default-400 text-xs">
-                Add a model, then hit a hotkey or type below.
+                Add a model, then pick it in Settings &gt; Agents.
               </p>
+            </div>
+          ) : isEmpty && !agentResolution.ok ? (
+            <div className="flex flex-col items-center justify-center h-full text-center gap-3 px-6">
+              <p className="text-default-500">This agent has no model yet.</p>
+              <Button
+                size="sm"
+                color="primary"
+                onPress={() =>
+                  navigate(activeAgent ? `/settings/agents/${activeAgent.id}` : '/settings/agents')
+                }
+              >
+                Choose a model
+              </Button>
             </div>
           ) : null}
           {messages.map((msg, i) => (
@@ -306,24 +278,18 @@ export default function ChatPopup() {
               isSelected={reasoningEnabled}
               onValueChange={setReasoning}
             />
-            <Select
-              className="flex-1 max-w-xs"
-              size="md"
-              variant="bordered"
-              placeholder="model"
-              aria-label="Select AI model"
-              selectionMode="single"
-              disallowEmptySelection={true}
-              selectedKeys={selectedModelKey ? [selectedModelKey] : []}
-              onChange={handleModelChange}
-              popoverProps={{
-                classNames: {
-                  content: 'w-[210px]',
-                },
-              }}
+            <Button
+              className="flex-1 max-w-xs justify-start truncate"
+              size="sm"
+              variant="light"
+              startContent={<Icon icon="bot" size={16} />}
+              onPress={() =>
+                navigate(activeAgent ? `/settings/agents/${activeAgent.id}` : '/settings/agents')
+              }
+              aria-label="Active agent"
             >
-              {renderAvailableModels()}
-            </Select>
+              <span className="truncate text-tiny">{badgeLabel}</span>
+            </Button>
 
             {loading ? (
               <Button isIconOnly color="danger" onPress={abort} aria-label="Stop response">
