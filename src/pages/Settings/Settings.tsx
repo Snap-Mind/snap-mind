@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/useSettingsStore';
 import { useLogService } from '../../hooks/useLogService';
-import type { SettingsChangeHandler, HotkeysChangeHandler } from '@/types';
+import type { SettingsChangeHandler } from '@/types';
 
 import SettingsCategory from './SettingsCategory';
 import SettingsGeneral from './SettingsGeneral';
@@ -35,10 +35,8 @@ function Settings() {
 
   const [activeCategory, setActiveCategory] = useState(getCurrentCategory());
   const settings = useSettingsStore((s) => s.settings);
-  const hotkeys = useSettingsStore((s) => s.hotkeys);
   const permissions = useSettingsStore((s) => s.permissions);
   const updateSetting = useSettingsStore((s) => s.updateSetting);
-  const updateHotkey = useSettingsStore((s) => s.updateHotkey);
 
   const setSettings = useCallback<SettingsChangeHandler>(
     async (path, value) => {
@@ -46,14 +44,6 @@ function Settings() {
       return useSettingsStore.getState().settings;
     },
     [updateSetting]
-  );
-
-  const setHotkeys = useCallback<HotkeysChangeHandler>(
-    async (path, value) => {
-      await updateHotkey(path, value);
-      return useSettingsStore.getState().hotkeys;
-    },
-    [updateHotkey]
   );
 
   const logger = useLogService();
@@ -114,10 +104,7 @@ function Settings() {
             path="chat"
             element={<SettingsChat settings={settings.chat} onSettingsChange={setSettings} />}
           />
-          <Route
-            path="hotkeys"
-            element={<SettingsHotkeys hotkeys={hotkeys} onHotkeysChange={setHotkeys} />}
-          />
+          <Route path="hotkeys" element={<SettingsHotkeys />} />
           <Route index element={<Navigate to="general" replace />} />
           <Route path="others" element={<SettingsOther />} />
         </Routes>
