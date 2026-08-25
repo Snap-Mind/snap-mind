@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Setting, Hotkey } from '@/types/setting';
+import type { Setting } from '@/types/setting';
 import type { SystemPermission } from '@/types';
 
 // Mock the electronAPI surface the store consumes.
 type IPC = {
   getSettings: ReturnType<typeof vi.fn>;
-  getHotkeys: ReturnType<typeof vi.fn>;
   checkPermission: ReturnType<typeof vi.fn>;
   updateSetting: ReturnType<typeof vi.fn>;
-  updateHotkey: ReturnType<typeof vi.fn>;
   onSettingsUpdated: ReturnType<typeof vi.fn>;
   offSettingsUpdated: ReturnType<typeof vi.fn>;
   onPermissionChanged: ReturnType<typeof vi.fn>;
@@ -30,8 +28,6 @@ const seedSettings: Setting = {
   },
 };
 
-const seedHotkeys: Hotkey[] = [{ id: 0, key: 'Ctrl+`', enabled: true } as unknown as Hotkey];
-
 const seedPermissions: SystemPermission[] = [
   { id: 'accessibility', name: 'Accessibility', isGranted: true } as unknown as SystemPermission,
 ];
@@ -39,10 +35,8 @@ const seedPermissions: SystemPermission[] = [
 function installIPC(overrides: Partial<IPC> = {}): IPC {
   const ipc: IPC = {
     getSettings: vi.fn(async () => JSON.parse(JSON.stringify(seedSettings))),
-    getHotkeys: vi.fn(async () => JSON.parse(JSON.stringify(seedHotkeys))),
     checkPermission: vi.fn(async () => seedPermissions),
     updateSetting: vi.fn(async (_p, _v) => ({ success: true, setting: seedSettings })),
-    updateHotkey: vi.fn(async (_p, _v) => ({ success: true, hotkeys: seedHotkeys })),
     onSettingsUpdated: vi.fn(),
     offSettingsUpdated: vi.fn(),
     onPermissionChanged: vi.fn(),
@@ -68,7 +62,7 @@ describe('useSettingsStore', () => {
     vi.restoreAllMocks();
   });
 
-  it('hydrates from all three IPCs and flips isHydrated', async () => {
+  it('hydrates from settings and permissions IPCs and flips isHydrated', async () => {
     installIPC();
     const store = await freshStore();
     expect(store.getState().isHydrated).toBe(false);
@@ -78,7 +72,6 @@ describe('useSettingsStore', () => {
     const s = store.getState();
     expect(s.isHydrated).toBe(true);
     expect(s.settings.chat.defaultModelId).toBe(1);
-    expect(s.hotkeys[0].key).toBe('Ctrl+`');
     expect(s.permissions[0].isGranted).toBe(true);
   });
 

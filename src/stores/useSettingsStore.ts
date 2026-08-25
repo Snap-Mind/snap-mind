@@ -1,18 +1,16 @@
 import { create } from 'zustand';
-import type { Setting, Hotkey, ModelSetting } from '@/types/setting';
+import type { Setting, ModelSetting } from '@/types/setting';
 import type { SystemPermission } from '@/types';
 
 type SettingValue = string | number | boolean | ModelSetting[];
 
 export interface SettingsStoreState {
   settings: Setting;
-  hotkeys: Hotkey[];
   permissions: SystemPermission[];
   isHydrated: boolean;
 
   hydrate: () => Promise<void>;
   updateSetting: (path: (string | number)[], value: unknown) => Promise<void>;
-  updateHotkey: (path: (string | number)[], value: unknown) => Promise<void>;
   updateSettings: (next: Setting) => Promise<void>;
 
   _applyRemoteSettings: (next: Setting) => void;
@@ -49,21 +47,15 @@ function setImmutable(obj: any, path: (string | number)[], value: unknown): any 
 
 export const useSettingsStore = create<SettingsStoreState>((set, get) => ({
   settings: EMPTY_SETTINGS,
-  hotkeys: [],
   permissions: [],
   isHydrated: false,
 
   hydrate: async () => {
     const api = window.electronAPI;
-    const [settings, hotkeys, permissions] = await Promise.all([
-      api.getSettings(),
-      api.getHotkeys(),
-      api.checkPermission(),
-    ]);
+    const [settings, permissions] = await Promise.all([api.getSettings(), api.checkPermission()]);
 
     set({
       settings: scrubSecrets(settings as Setting),
-      hotkeys: hotkeys as Hotkey[],
       permissions: (permissions ?? []) as SystemPermission[],
       isHydrated: true,
     });
@@ -89,26 +81,6 @@ export const useSettingsStore = create<SettingsStoreState>((set, get) => ({
       }
     } catch (err) {
       set({ settings: prev });
-      throw err;
-    }
-  },
-
-  updateHotkey: async (path, value) => {
-    const prev = get().hotkeys;
-    const optimistic = setImmutable(prev, path, value) as Hotkey[];
-    set({ hotkeys: optimistic });
-
-    try {
-      const res = await window.electronAPI.updateHotkey(path, value as SettingValue);
-      if (res && res.success === false) {
-        set({ hotkeys: prev });
-        throw new Error((res as { error?: string }).error || 'hotkeys:update-path failed');
-      }
-      if (res && Array.isArray(res.hotkeys)) {
-        set({ hotkeys: res.hotkeys as Hotkey[] });
-      }
-    } catch (err) {
-      set({ hotkeys: prev });
       throw err;
     }
   },
