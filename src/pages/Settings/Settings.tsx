@@ -78,7 +78,7 @@ function Settings() {
           onBack={() => navigate('/chat')}
         />
       </div>
-      <div className={`setting-details bg-background min-w-0 ${settingDetailsStyle}`}>
+      <div className={`setting-details bg-background min-w-0 min-h-0 h-full ${settingDetailsStyle}`}>
         <Routes>
           <Route
             path="general"

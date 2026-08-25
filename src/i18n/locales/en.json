@@ -68,6 +68,7 @@
       "title": "Agents",
       "addAgent": "Add agent",
       "deleteAgent": "Delete agent",
+      "deleteAgentConfirm": "Are you sure you want to delete <b>{{agentName}}</b>? Hotkeys assigned to this agent will be unassigned.",
       "newAgentName": "New agent",
       "name": "Name",
       "description": "Description",

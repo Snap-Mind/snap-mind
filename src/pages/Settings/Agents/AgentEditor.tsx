@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Button, Divider, Input, Select, SelectItem, Slider, Textarea } from '@heroui/react';
+import {
+  Button,
+  Divider,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Select,
+  SelectItem,
+  Slider,
+  Textarea,
+  useDisclosure,
+} from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
 import Icon from '@/components/Icon';
@@ -13,18 +27,29 @@ interface AgentEditorProps {
   agent: AgentDTO;
 }
 
+function selectionToId(keys: 'all' | Set<React.Key>): number | null {
+  if (keys === 'all' || keys.size === 0) return null;
+  return Number(Array.from(keys)[0]);
+}
+
 function AgentEditor({ agent }: AgentEditorProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const providers = useProvidersStore((s) => s.providers);
   const updateAgent = useAgentsStore((s) => s.updateAgent);
   const deleteAgent = useAgentsStore((s) => s.deleteAgent);
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onOpenChange: onDeleteOpenChange,
+  } = useDisclosure();
 
   const [name, setName] = useState(agent.name);
   const [description, setDescription] = useState(agent.description ?? '');
   const [instructions, setInstructions] = useState(agent.instructions);
   const [providerId, setProviderId] = useState<number | null>(agent.providerId);
   const [modelId, setModelId] = useState<number | null>(agent.modelId);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Re-seed local form state only when the user selects a different agent row.
   useEffect(() => {
@@ -36,43 +61,48 @@ function AgentEditor({ agent }: AgentEditorProps) {
   }, [agent.id]);
 
   const models = providers.find((p) => p.id === providerId)?.models ?? [];
-  const canSave = name.trim().length > 0 && providerId != null && modelId != null;
+  const canSave = name.trim().length > 0;
 
   const handleSave = async () => {
-    if (!canSave) return;
-    await updateAgent(agent.id, {
-      ...(agent.isBuiltin ? {} : { name: name.trim() }),
-      description: description.trim() || null,
-      instructions,
-      providerId,
-      modelId,
-    });
+    if (!canSave || isSaving) return;
+    setIsSaving(true);
+    try {
+      await updateAgent(agent.id, {
+        ...(agent.isBuiltin ? {} : { name: name.trim() }),
+        description: description.trim() || null,
+        instructions,
+        providerId,
+        modelId,
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteConfirm = async (onClose: () => void) => {
     await deleteAgent(agent.id);
+    onClose();
     navigate('/settings/agents');
   };
 
   return (
-    <div className="grid grid-cols-1 grid-rows-[65px_1fr] w-full min-w-0 h-full">
+    <div className="flex w-full min-w-0 flex-col gap-4 pb-6">
       <div className="header flex items-start justify-between">
-        <h1 className="font-bold text-2xl">{agent.name}</h1>
+        <h1 className="font-bold text-2xl">{name}</h1>
         {!agent.isBuiltin && (
           <Button
             isIconOnly
             size="sm"
             variant="light"
             color="danger"
-            onPress={handleDelete}
+            onPress={onDeleteOpen}
             aria-label={t('settings.agents.deleteAgent')}
           >
             <Icon icon="trash-2" size={16} />
           </Button>
         )}
       </div>
-      <div className="body min-w-0 overflow-y-auto flex flex-col gap-4">
-        <Divider />
+      <Divider />
         <Input
           label={t('settings.agents.name')}
           value={name}
@@ -96,9 +126,8 @@ function AgentEditor({ agent }: AgentEditorProps) {
           label={t('settings.agents.provider')}
           isRequired
           selectedKeys={providerId != null ? [String(providerId)] : []}
-          onChange={(e) => {
-            const next = e.target.value ? Number(e.target.value) : null;
-            setProviderId(next);
+          onSelectionChange={(keys) => {
+            setProviderId(selectionToId(keys));
             setModelId(null);
           }}
         >
@@ -116,7 +145,7 @@ function AgentEditor({ agent }: AgentEditorProps) {
               : undefined
           }
           selectedKeys={modelId != null ? [String(modelId)] : []}
-          onChange={(e) => setModelId(e.target.value ? Number(e.target.value) : null)}
+          onSelectionChange={(keys) => setModelId(selectionToId(keys))}
         >
           {models.map((model) => (
             <SelectItem key={String(model.id)}>{model.modelId}</SelectItem>
@@ -166,10 +195,36 @@ function AgentEditor({ agent }: AgentEditorProps) {
           isSelected={agent.webSearch ?? false}
           onValueChange={(checked) => void updateAgent(agent.id, { webSearch: checked })}
         />
-        <Button color="primary" isDisabled={!canSave} onPress={handleSave}>
+        <Button color="primary" isDisabled={!canSave} isLoading={isSaving} onPress={handleSave}>
           {t('common.save')}
         </Button>
-      </div>
+
+      <Modal isOpen={isDeleteOpen} onOpenChange={onDeleteOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                {t('settings.agents.deleteAgent')}
+              </ModalHeader>
+              <ModalBody>
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: t('settings.agents.deleteAgentConfirm', { agentName: agent.name }),
+                  }}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button color="default" variant="light" onPress={onClose}>
+                  {t('common.cancel')}
+                </Button>
+                <Button color="danger" onPress={() => void handleDeleteConfirm(onClose)}>
+                  {t('common.delete')}
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

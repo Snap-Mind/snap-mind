@@ -29,9 +29,9 @@ function SettingsAgents() {
   };
 
   return (
-    <div className="setting-container grid grid-cols-[250px_1px_1fr] grid-rows-1 h-[100vh]">
-      <div className="setting-category bg-background">
-        <div className="container grid grid-cols-1 grid-rows-[65px_1fr] h-full px-3 py-3">
+    <div className="setting-container grid grid-cols-[250px_1px_1fr] grid-rows-1 h-full min-h-0">
+      <div className="setting-category bg-background min-h-0">
+        <div className="container grid grid-cols-1 grid-rows-[65px_minmax(0,1fr)] h-full min-h-0 px-3 py-3">
           <div className="header flex items-start justify-between">
             <h1 className="font-bold text-2xl">{t('settings.agents.title')}</h1>
             <Button
@@ -44,7 +44,7 @@ function SettingsAgents() {
               <Icon icon="plus" size={16} />
             </Button>
           </div>
-          <div className="body overflow-y-auto">
+          <div className="body min-h-0 overflow-y-auto">
             <Divider className="mb-4" />
             <Listbox aria-label={t('settings.agents.title')}>
               {agents.map((agent) => (
@@ -63,7 +63,7 @@ function SettingsAgents() {
         </div>
       </div>
       <Divider orientation="vertical" />
-      <div className="setting-details h-[100vh] overflow-y-auto bg-background px-3 py-3">
+      <div className="setting-details h-full min-h-0 overflow-y-auto bg-background px-3 py-3">
         <Routes>
           <Route path=":id" element={<AgentEditorRoute />} />
         </Routes>

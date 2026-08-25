@@ -68,6 +68,7 @@
       "title": "智能體",
       "addAgent": "添加智能體",
       "deleteAgent": "刪除智能體",
+      "deleteAgentConfirm": "確定要刪除 <b>{{agentName}}</b> 嗎？已分配給此智能體的快捷鍵將被取消分配。",
       "newAgentName": "新智能體",
       "name": "名稱",
       "description": "描述",

@@ -29,6 +29,7 @@ function SettingsCategory({ categories, activeCategory, onBack }: SettingsCatego
     if (categoryId === 'appearance')
       return <Icon icon="paint-roller" className={iconClass} size={18} />;
     if (categoryId === 'models') return <Icon icon="bot" className={iconClass} size={18} />;
+    if (categoryId === 'agents') return <Icon icon="user" className={iconClass} size={18} />;
     if (categoryId === 'chat')
       return <Icon icon="message-circle" className={iconClass} size={18} />;
     if (categoryId === 'hotkeys') return <Icon icon="flame" className={iconClass} size={18} />;
