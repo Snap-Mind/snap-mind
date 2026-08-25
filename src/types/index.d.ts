@@ -1,5 +1,7 @@
 import { UpdateEvent } from './autoUpdate';
-import { Hotkey, ModelSetting, Setting } from './setting';
+import { ModelSetting, Setting } from './setting';
+import type { AgentDTO, CreateAgentInput, UpdateAgentPatch } from './agent-dto';
+import type { HotkeyDTO, UpdateHotkeyPatch } from './hotkey-dto';
 import type {
   ProviderDTO,
   CreateProviderInput,
@@ -30,7 +32,7 @@ export interface NativeThemeState {
 
 interface ElectronAPI {
   chat?: {
-    onResetWithSeed: (callback: (seed: { text?: string; prompt?: string }) => void) => void;
+    onResetWithSeed: (callback: (seed: { text?: string; agentId?: number | null }) => void) => void;
     offResetWithSeed: () => void;
     onAbort: (callback: () => void) => void;
     offAbort: () => void;
@@ -42,14 +44,6 @@ interface ElectronAPI {
     onGo: (callback: (path: string) => void) => void;
     offGo: () => void;
   };
-
-  // Hotkey management
-  getHotkeys: () => Promise<any[]>;
-  updateHotkeys: (newHotkeys: Hotkey[]) => Promise<{ hotkeys: Hotkey[]; success: boolean }>;
-  updateHotkey: (
-    path: (string | number)[],
-    value: string | number | boolean | ModelSetting[]
-  ) => Promise<{ hotkeys: Hotkey[]; success: boolean }>;
 
   // Settings management
   getSettings: () => Promise<any>;
@@ -70,7 +64,7 @@ interface ElectronAPI {
   log: (level: string, message: string, ...args: any[]) => Promise<void>;
 
   // Manual text selection trigger
-  triggerTextSelection: (text: string, prompt: string) => Promise<any>;
+  triggerTextSelection: (text: string, agentId: number | null) => Promise<any>;
 
   // System permission
   checkPermission: () => Promise<SystemPermission[]>;
@@ -101,6 +95,20 @@ interface ElectronAPI {
     error?: string;
   }>;
 
+  agents: {
+    list: () => Promise<AgentDTO[]>;
+    create: (input: CreateAgentInput) => Promise<AgentDTO>;
+    update: (id: number, patch: UpdateAgentPatch) => Promise<AgentDTO>;
+    delete: (id: number) => Promise<void>;
+    onChanged: (callback: (list: AgentDTO[]) => void) => void;
+    offChanged: () => void;
+  };
+  hotkeys: {
+    list: () => Promise<HotkeyDTO[]>;
+    update: (id: number, patch: UpdateHotkeyPatch) => Promise<HotkeyDTO>;
+    onChanged: (callback: (list: HotkeyDTO[]) => void) => void;
+    offChanged: () => void;
+  };
   providers: {
     list: () => Promise<ProviderDTO[]>;
     create: (input: CreateProviderInput) => Promise<ProviderDTO>;
@@ -119,11 +127,6 @@ export type SettingsChangeHandler = (
   path: (string | number)[],
   value: string | number | boolean | ModelSetting[]
 ) => Promise<Setting>;
-
-export type HotkeysChangeHandler = (
-  path: (string | number)[],
-  value: string | number | boolean | ModelSetting[]
-) => Promise<Hotkey[]>;
 
 declare global {
   interface Window {
