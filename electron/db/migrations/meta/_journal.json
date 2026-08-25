@@ -8,6 +8,13 @@
       "when": 1787109031141,
       "tag": "0000_magenta_rocket_racer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787641397325,
+      "tag": "0001_round_avengers",
+      "breakpoints": true
     }
   ]
 }
