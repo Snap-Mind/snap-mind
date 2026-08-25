@@ -2,8 +2,10 @@ import { create } from 'zustand';
 import type { StoreApi } from 'zustand';
 import type { Message, ChatSource, ContentPart } from '@/types/chat';
 import { AIService } from '@/services/AIService';
-import { useSettingsStore } from './useSettingsStore';
+import { useAgentsStore } from './useAgentsStore';
 import { useProvidersStore } from './useProvidersStore';
+import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '@/services/agentResolver';
+import type { AgentResolution } from '@/services/agentResolver';
 
 export interface ImageAttachment {
   data: string;
@@ -23,8 +25,7 @@ export interface ChatStoreState extends ChatInternalState {
   autoScroll: boolean;
   reasoningEnabled: boolean;
   webSearchEnabled: boolean;
-  currentProviderId: number | null;
-  currentModelId: number | null;
+  activeAgentId: number | null;
 
   setInput(v: string): void;
   addImages(files: File[]): Promise<void>;
@@ -33,11 +34,11 @@ export interface ChatStoreState extends ChatInternalState {
   setAutoScroll(v: boolean): void;
   setReasoning(v: boolean): void;
   setWebSearch(v: boolean): void;
-  setModel(providerId: number, modelId: number): void;
+  setActiveAgent(id: number | null): void;
 
   send(): Promise<void>;
   abort(): void;
-  resetWithSeed(seed?: { text?: string; prompt?: string }): Promise<void>;
+  resetWithSeed(seed?: { text?: string; agentId?: number | null }): Promise<void>;
   hydrateFromSettings(): void;
 }
 
@@ -60,15 +61,38 @@ function readFileAsBase64(file: File): Promise<ImageAttachment> {
   });
 }
 
+function resolveActiveAgent(agentId: number | null): AgentResolution {
+  return resolveAgent(
+    agentId,
+    useAgentsStore.getState().agents,
+    useProvidersStore.getState().providers
+  );
+}
+
+function pushErrorMessage(set: ChatSet, message: string) {
+  set((cur) => ({
+    messages: [...cur.messages, { role: 'error', content: message } as unknown as Message],
+  }));
+}
+
 async function runAIRequest(
+  res: Extract<AgentResolution, { ok: true }>,
   messages: Message[],
   onToken: (t: string) => void,
   onSources: (s: ChatSource[]) => void,
   signal: AbortSignal
 ): Promise<{ role: 'assistant'; content: string }> {
-  const settings = useSettingsStore.getState().settings;
-  const providers = useProvidersStore.getState().providers;
-  const service = new AIService({ chat: settings.chat, providers });
+  const service = new AIService({
+    provider: res.provider,
+    model: res.model,
+    params: {
+      temperature: res.agent.temperature,
+      maxTokens: res.agent.maxTokens,
+      topP: res.agent.topP,
+      reasoning: res.agent.reasoning,
+      webSearch: res.agent.webSearch,
+    },
+  });
   return service.sendMessageToAI(messages, onToken, {
     signal,
     onWebSources: onSources,
@@ -98,6 +122,7 @@ function attachSourcesToLastAssistant(set: ChatSet, sources: ChatSource[]) {
 }
 
 async function executeStreamingRequest(
+  res: Extract<AgentResolution, { ok: true }>,
   set: ChatSet,
   messages: Message[],
   signal: AbortSignal,
@@ -107,6 +132,7 @@ async function executeStreamingRequest(
 
   try {
     await runAIRequest(
+      res,
       messages,
       (token) => appendTokenToLastAssistant(set, token),
       (sources) => attachSourcesToLastAssistant(set, sources),
@@ -148,8 +174,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
   autoScroll: true,
   reasoningEnabled: false,
   webSearchEnabled: false,
-  currentProviderId: null,
-  currentModelId: null,
+  activeAgentId: null,
   abortController: null,
 
   setInput: (v) => set({ input: v }),
@@ -165,29 +190,27 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
   clearImages: () => set({ images: [] }),
   setAutoScroll: (v) => set({ autoScroll: v }),
 
+  setActiveAgent: (id) => set({ activeAgentId: id }),
+
   setReasoning: (v) => {
     set({ reasoningEnabled: v });
-    void useSettingsStore.getState().updateSetting(['chat', 'reasoningEnabled'], v);
+    const id = get().activeAgentId;
+    if (id != null) void useAgentsStore.getState().updateAgent(id, { reasoning: v });
   },
 
   setWebSearch: (v) => {
     set({ webSearchEnabled: v });
-    void useSettingsStore.getState().updateSetting(['chat', 'webSearchEnabled'], v);
-  },
-
-  setModel: (providerId, modelId) => {
-    set({ currentProviderId: providerId, currentModelId: modelId });
-    void useSettingsStore.getState().updateSetting(['chat', 'defaultProviderId'], providerId);
-    void useSettingsStore.getState().updateSetting(['chat', 'defaultModelId'], modelId);
+    const id = get().activeAgentId;
+    if (id != null) void useAgentsStore.getState().updateAgent(id, { webSearch: v });
   },
 
   hydrateFromSettings: () => {
-    const s = useSettingsStore.getState().settings;
+    const builtinId = findBuiltinAgentId(useAgentsStore.getState().agents);
+    const agent = useAgentsStore.getState().agents.find((a) => a.id === builtinId);
     set({
-      reasoningEnabled: s?.chat?.reasoningEnabled ?? false,
-      webSearchEnabled: s?.chat?.webSearchEnabled ?? false,
-      currentProviderId: s?.chat?.defaultProviderId ?? null,
-      currentModelId: s?.chat?.defaultModelId ?? null,
+      activeAgentId: builtinId,
+      reasoningEnabled: agent?.reasoning ?? false,
+      webSearchEnabled: agent?.webSearch ?? false,
     });
 
     window.electronAPI?.chat?.onResetWithSeed?.((seed) => {
@@ -224,8 +247,21 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
 
     const userMsg: Message = { role: 'user', content };
     const next = [...s.messages, userMsg];
+
+    const res = resolveActiveAgent(s.activeAgentId);
+    if (!res.ok) {
+      set({ messages: next, input: '', images: [] });
+      pushErrorMessage(set, agentErrorMessage(res));
+      return;
+    }
+
+    const seeded =
+      res.agent.instructions.trim().length > 0 && s.messages.length === 0
+        ? [{ role: 'system', content: res.agent.instructions } as Message, ...next]
+        : next;
+
     set({
-      messages: [...next, { role: 'assistant', content: '' } as Message],
+      messages: [...seeded, { role: 'assistant', content: '' } as Message],
       input: '',
       images: [],
       loading: true,
@@ -235,7 +271,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     set({ abortController: ctrl });
 
     try {
-      await executeStreamingRequest(set, next, ctrl.signal, { onAbort: 'append-system' });
+      await executeStreamingRequest(res, set, seeded, ctrl.signal, { onAbort: 'append-system' });
     } finally {
       set({ loading: false, abortController: null });
     }
@@ -243,14 +279,28 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
 
   resetWithSeed: async (seed) => {
     get().abort();
-    set({ messages: [], input: '', images: [], loading: false });
+    const agentId = seed?.agentId ?? get().activeAgentId ?? null;
+    set({ messages: [], input: '', images: [], loading: false, activeAgentId: agentId });
 
-    if (!seed?.text || !seed?.prompt) return;
+    const agent = useAgentsStore.getState().agents.find((a) => a.id === agentId);
+    set({
+      reasoningEnabled: agent?.reasoning ?? false,
+      webSearchEnabled: agent?.webSearch ?? false,
+    });
 
-    const seeded: Message[] = [
-      { role: 'system', content: seed.prompt } as Message,
-      { role: 'user', content: seed.text } as Message,
-    ];
+    if (!seed?.text) return;
+
+    const res = resolveActiveAgent(agentId);
+    if (!res.ok) {
+      pushErrorMessage(set, agentErrorMessage(res));
+      return;
+    }
+
+    const seeded: Message[] = [];
+    if (res.agent.instructions.trim().length > 0) {
+      seeded.push({ role: 'system', content: res.agent.instructions } as Message);
+    }
+    seeded.push({ role: 'user', content: seed.text } as Message);
 
     const ctrl = new AbortController();
     set({
@@ -260,7 +310,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     });
 
     try {
-      await executeStreamingRequest(set, seeded, ctrl.signal, { onAbort: 'ignore' });
+      await executeStreamingRequest(res, set, seeded, ctrl.signal, { onAbort: 'ignore' });
     } finally {
       set({ loading: false, abortController: null });
     }
