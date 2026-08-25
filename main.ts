@@ -324,7 +324,6 @@ app.whenReady().then(async () => {
     if (importResult === 'imported' || agentImportResult === 'imported') {
       settingsService.initializeConfigs();
     }
-    settingsService.setProvidersService(providersService!);
   } catch (e) {
     logService.error('[main] database init failed', e);
     const { dialog } = await import('electron');

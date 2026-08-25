@@ -10,7 +10,6 @@ import {
 export type Setting = {
   general: GeneralSetting;
   appearance: AppearanceSetting;
-  chat: ChatSetting;
 };
 
 export interface GeneralSetting {
@@ -28,24 +27,6 @@ export interface AutoUpdateSetting {
   enabled: boolean;
   checkOnLaunchDelaySec: number;
   betaChannel: boolean;
-}
-
-export interface ChatSetting {
-  temperature: number;
-  max_tokens: number;
-  top_p: number;
-  streamingEnabled: boolean;
-  reasoningEnabled: boolean;
-  webSearchEnabled: boolean;
-  defaultModelId: number | null;
-  defaultProviderId: number | null;
-}
-
-export interface Hotkey {
-  id: number;
-  key: string;
-  prompt: string;
-  enabled: boolean;
 }
 
 export interface ModelSetting {

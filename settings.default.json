@@ -11,15 +11,5 @@
   },
   "appearance": {
     "theme": "auto"
-  },
-  "chat": {
-    "temperature": 0.7,
-    "max_tokens": 2048,
-    "top_p": 0.95,
-    "streamingEnabled": true,
-    "reasoningEnabled": false,
-    "webSearchEnabled": false,
-    "defaultProviderId": null,
-    "defaultModelId": null
   }
 }

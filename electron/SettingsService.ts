@@ -6,7 +6,6 @@ import { app } from 'electron';
 import { SafeStorageService } from './SafeStorageService.js';
 import logService from './LogService.js';
 import { mergeDeep } from './utils/mergeDeep.js';
-import type { ProvidersService } from './ProvidersService.js';
 import { resolveUserDataPath } from './userDataPath.js';
 
 const __rootdir = process.cwd();
@@ -22,47 +21,16 @@ class SettingsService {
   private userDataPath: string;
   private resourcesPath: string;
   private settingsPath: string;
-  private hotkeysPath: string;
   private settings: any;
-  private hotkeys: any[];
   private encryptedFields: string[];
-  private providersService: ProvidersService | null = null;
 
   constructor() {
     this.userDataPath = resolveUserDataPath();
     this.resourcesPath = app.isPackaged ? process.resourcesPath : __rootdir;
     this.settingsPath = path.join(this.userDataPath, 'settings.json');
-    this.hotkeysPath = path.join(this.userDataPath, 'hotkeys.json');
     this.settings = {};
-    this.hotkeys = [];
 
     this.encryptedFields = ['general.azureApiKey'];
-  }
-
-  setProvidersService(svc: ProvidersService) {
-    this.providersService = svc;
-  }
-
-  async resolveAndPersistDefaults(): Promise<void> {
-    if (!this.providersService) return;
-    const chat = this.settings.chat ?? {};
-    const resolved = await this.providersService.resolveDefault(
-      typeof chat.defaultProviderId === 'number' ? chat.defaultProviderId : null,
-      typeof chat.defaultModelId === 'number' ? chat.defaultModelId : null
-    );
-    if (!resolved) return;
-    if (
-      chat.defaultProviderId !== resolved.providerId ||
-      chat.defaultModelId !== resolved.modelId
-    ) {
-      let next = this.updateObjectByPath(
-        this.settings,
-        ['chat', 'defaultProviderId'],
-        resolved.providerId
-      );
-      next = this.updateObjectByPath(next, ['chat', 'defaultModelId'], resolved.modelId);
-      await this.saveSettings(next);
-    }
   }
 
   /**
@@ -95,7 +63,6 @@ class SettingsService {
     }
 
     this.ensureDefaultConfig('settings.json', 'settings.default.json');
-    this.ensureDefaultConfig('hotkeys.json', 'hotkeys.default.json');
 
     // Load both default and user settings
     const defaultSettings = this.loadDefaultSettings();
@@ -127,9 +94,6 @@ class SettingsService {
       version: app.getVersion(),
     };
     this.settings = normalizedSettings;
-
-    // Load hotkeys
-    this.loadHotkeys();
   }
 
   /**
@@ -222,60 +186,6 @@ class SettingsService {
     }
   }
 
-  /**
-   * Load hotkeys from file
-   * @private
-   */
-  loadHotkeys() {
-    try {
-      const stored = fs.readFileSync(this.hotkeysPath, 'utf8');
-      this.hotkeys = JSON.parse(stored);
-    } catch {
-      logService.info('No stored hotkeys found, using defaults');
-    }
-  }
-
-  /**
-   * Get all hotkeys
-   */
-  getHotkeys() {
-    return this.hotkeys;
-  }
-
-  /**
-   * Update hotkeys
-   * @param {Array} newHotkeys
-   */
-  async updateHotkeys(newHotkeys) {
-    await this.saveHotkeys(newHotkeys);
-    return this.hotkeys;
-  }
-
-  /**
-   * Update a single hotkey field by path. Reuses the same update logic as updateSetting.
-   * @param {Array<string|number>} path
-   * @param {any} value
-   */
-  async updateHotkey(path, value) {
-    const newHotkeys = this.updateObjectByPath(this.hotkeys, path, value);
-    await this.saveHotkeys(newHotkeys);
-    return this.hotkeys;
-  }
-
-  /**
-   * Save hotkeys to file
-   * @private
-   */
-  saveHotkeys(newHotkeys) {
-    try {
-      fs.writeFileSync(this.hotkeysPath, JSON.stringify(newHotkeys, null, 2));
-      this.hotkeys = newHotkeys;
-      logService.info('Hotkeys saved successfully');
-    } catch (error) {
-      logService.error('Failed to save hotkeys:', error);
-    }
-  }
-
   processSecureFields(settings, encrypt = true) {
     const processed = JSON.parse(JSON.stringify(settings));
 
@@ -356,7 +266,7 @@ class SettingsService {
 
   /**
    * Ensure userData path is stable across renames and migrate legacy files if needed.
-   * Must be called before reading/writing settings/hotkeys.
+   * Must be called before reading/writing settings.
    */
   private stabilizeUserDataAndMigrate() {
     try {
@@ -405,12 +315,10 @@ class SettingsService {
 
       ensureDir(desiredUserData);
       const targetMissingSettings = !exists(path.join(desiredUserData, 'settings.json'));
-      const targetMissingHotkeys = !exists(path.join(desiredUserData, 'hotkeys.json'));
-      if (targetMissingSettings || targetMissingHotkeys) {
+      if (targetMissingSettings) {
         for (const c of candidates) {
           if (exists(c)) {
-            if (targetMissingSettings) copyIfExists(c, 'settings.json', desiredUserData);
-            if (targetMissingHotkeys) copyIfExists(c, 'hotkeys.json', desiredUserData);
+            copyIfExists(c, 'settings.json', desiredUserData);
             break;
           }
         }
@@ -427,7 +335,6 @@ class SettingsService {
   private refreshPaths() {
     this.userDataPath = app.getPath('userData');
     this.settingsPath = path.join(this.userDataPath, 'settings.json');
-    this.hotkeysPath = path.join(this.userDataPath, 'hotkeys.json');
   }
 }
 
