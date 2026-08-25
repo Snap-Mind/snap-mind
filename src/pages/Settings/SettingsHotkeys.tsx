@@ -1,5 +1,16 @@
 import { useState } from 'react';
-import { Alert, Card, CardHeader, CardBody, Switch, Kbd, Select, SelectItem, Divider, KbdKey } from '@heroui/react';
+import {
+  Alert,
+  Card,
+  CardHeader,
+  CardBody,
+  Switch,
+  Kbd,
+  Select,
+  SelectItem,
+  Divider,
+  KbdKey,
+} from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
 import HotkeyPickerModal from '@/components/HotkeyPickerModal';

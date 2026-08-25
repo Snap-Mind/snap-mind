@@ -26,14 +26,14 @@ function AgentEditor({ agent }: AgentEditorProps) {
   const [providerId, setProviderId] = useState<number | null>(agent.providerId);
   const [modelId, setModelId] = useState<number | null>(agent.modelId);
 
-  // Switching rows in the list remounts nothing, so re-seed local state on agent change.
+  // Re-seed local form state only when the user selects a different agent row.
   useEffect(() => {
     setName(agent.name);
     setDescription(agent.description ?? '');
     setInstructions(agent.instructions);
     setProviderId(agent.providerId);
     setModelId(agent.modelId);
-  }, [agent]);
+  }, [agent.id]);
 
   const models = providers.find((p) => p.id === providerId)?.models ?? [];
   const canSave = name.trim().length > 0 && providerId != null && modelId != null;

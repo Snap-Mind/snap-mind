@@ -93,12 +93,8 @@
           "name": "agents_provider_id_providers_id_fk",
           "tableFrom": "agents",
           "tableTo": "providers",
-          "columnsFrom": [
-            "provider_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["provider_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -106,12 +102,8 @@
           "name": "agents_model_id_provider_models_id_fk",
           "tableFrom": "agents",
           "tableTo": "provider_models",
-          "columnsFrom": [
-            "model_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["model_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -188,12 +180,8 @@
           "name": "hotkeys_agent_id_agents_id_fk",
           "tableFrom": "hotkeys",
           "tableTo": "agents",
-          "columnsFrom": [
-            "agent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["agent_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -279,10 +267,7 @@
       "indexes": {
         "provider_models_provider_model_unique": {
           "name": "provider_models_provider_model_unique",
-          "columns": [
-            "provider_id",
-            "model_id"
-          ],
+          "columns": ["provider_id", "model_id"],
           "isUnique": true
         }
       },
@@ -291,12 +276,8 @@
           "name": "provider_models_provider_id_providers_id_fk",
           "tableFrom": "provider_models",
           "tableTo": "providers",
-          "columnsFrom": [
-            "provider_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["provider_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

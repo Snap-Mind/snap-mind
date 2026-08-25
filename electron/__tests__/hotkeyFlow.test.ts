@@ -81,7 +81,11 @@ describe('runSelectionHelper', () => {
 
   it('resolves {} when helper reports no selection', async () => {
     execFileMock.mockImplementationOnce(
-      (_bin: string, _args: string[], cb: (_err: any, _stdout: string, _stderr: string) => void) => {
+      (
+        _bin: string,
+        _args: string[],
+        cb: (_err: any, _stdout: string, _stderr: string) => void
+      ) => {
         cb(null, JSON.stringify({ success: false, error: 'no selection' }), '');
       }
     );

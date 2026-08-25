@@ -37,7 +37,11 @@ function writeLegacy(chat: Record<string, unknown> | null) {
 }
 
 function seedProviderWithModel(db: ReturnType<typeof makeTestDb>['db']) {
-  const provider = db.select().from(schema.providers).where(eq(schema.providers.kind, 'openai')).get()!;
+  const provider = db
+    .select()
+    .from(schema.providers)
+    .where(eq(schema.providers.kind, 'openai'))
+    .get()!;
   const [model] = db
     .insert(schema.providerModels)
     .values({
