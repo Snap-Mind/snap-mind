@@ -102,10 +102,10 @@ function isDev() {
 function createMainWindow() {
   const titleBase = 'SnapMind';
   mainWindow = new BrowserWindow({
-    width: 500,
-    height: 700,
-    minWidth: 400,
-    minHeight: 500,
+    width: 960,
+    height: 600,
+    minWidth: 720,
+    minHeight: 480,
     frame: true,
     alwaysOnTop: false,
     skipTaskbar: false,
