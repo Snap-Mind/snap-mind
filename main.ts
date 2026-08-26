@@ -299,6 +299,9 @@ registerIpcHandlers({
   showMainWindow,
   getAppRootDir: () => (isDev() ? path.join(__dirname, '..') : path.dirname(process.execPath)),
   quitApp,
+  prepareForUpdateInstall: () => {
+    isQuitting = true;
+  },
 });
 
 app.on('window-all-closed', function () {

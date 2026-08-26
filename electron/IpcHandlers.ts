@@ -23,6 +23,7 @@ export interface IpcHandlerContext {
   showMainWindow: () => void;
   getAppRootDir: () => string;
   quitApp: () => void;
+  prepareForUpdateInstall: () => void;
 }
 
 export function registerIpcHandlers(ctx: IpcHandlerContext): void {
@@ -39,6 +40,7 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
     showMainWindow,
     getAppRootDir,
     quitApp,
+    prepareForUpdateInstall,
   } = ctx;
 
   const broadcastProvidersChanged = async () => {
@@ -269,6 +271,7 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
   });
 
   ipcMain.handle('update:install', () => {
+    prepareForUpdateInstall();
     const autoUpdateService = getAutoUpdateService();
     if (autoUpdateService) return autoUpdateService.installNow();
     return false;
