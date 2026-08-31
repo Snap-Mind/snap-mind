@@ -130,9 +130,7 @@ function AgentEditor({ agent }: AgentEditorProps) {
       <div className="sticky top-0 z-30 -mx-3 bg-background px-3 pt-0">
         <AgentEditorHeader
           title={formValues.name}
-          saveLabel={t('common.save')}
           onSave={submitForm}
-          deleteLabel={t('settings.agents.deleteAgent')}
           onDelete={onDeleteOpen}
         />
         <Divider className="my-4" />

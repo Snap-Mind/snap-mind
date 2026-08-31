@@ -104,7 +104,7 @@ function DefaultAgentEditor({ agent }: DefaultAgentEditorProps) {
   return (
     <div className="flex flex-col pb-6">
       <div className="sticky top-0 z-30 -mx-3 bg-background px-3 pt-0">
-        <AgentEditorHeader title={agent.name} saveLabel={t('common.save')} onSave={submitForm} />
+        <AgentEditorHeader title={agent.name} onSave={submitForm} />
         <Divider className="my-4" />
       </div>
       <form className="relative z-0 flex flex-col gap-5" noValidate onSubmit={handleSubmit}>
