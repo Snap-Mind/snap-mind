@@ -56,23 +56,25 @@ function SettingsModel() {
   };
 
   const renderIcon = (provider: ProviderNavItem) => {
+    let iconClassName = "ml-2 flex items-center justify-center leading-none";
+
     switch (provider.kind) {
       case 'openai':
-        return <Icon icon="openai" className="inline-block ml-2" size={18} />;
+        return <Icon icon="openai" className={iconClassName} size={18} />;
       case 'azure-openai':
-        return <Icon icon="azure-openai" className="inline-block ml-2" size={18} />;
+        return <Icon icon="azure-openai" className={iconClassName} size={18} />;
       case 'anthropic':
-        return <Icon icon="anthropic" className="inline-block ml-2" size={18} />;
+        return <Icon icon="anthropic" className={iconClassName} size={18} />;
       case 'google':
-        return <Icon icon="google" className="inline-block ml-2" size={18} />;
+        return <Icon icon="google" className={iconClassName} size={18} />;
       case 'deepseek':
-        return <Icon icon="deepseek" className="inline-block ml-2" size={18} />;
+        return <Icon icon="deepseek" className={iconClassName} size={18} />;
       case 'qwen':
-        return <Icon icon="qwen" className="inline-block ml-2" size={18} />;
+        return <Icon icon="qwen" className={iconClassName} size={18} />;
       case 'ollama':
-        return <Icon icon="ollama" className="inline-block ml-2" size={18} />;
+        return <Icon icon="ollama" className={iconClassName} size={18} />;
       default:
-        return <Icon icon="bot" className="inline-block ml-2" size={18} />;
+        return <Icon icon="bot" className={iconClassName} size={18} />;
     }
   };
 

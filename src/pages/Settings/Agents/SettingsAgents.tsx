@@ -49,7 +49,7 @@ function SettingsAgents() {
               className={String(agent.id) === activeId ? 'bg-default' : ''}
               key={agent.id}
               href={`/settings/agents/${agent.id}`}
-              startContent={<Icon icon="bot" className="inline-block ml-2" size={18} />}
+              startContent={<Icon icon="bot" className="ml-2 flex items-center justify-center leading-none" size={18} />}
               textValue={agent.name}
             >
               {agent.name}
