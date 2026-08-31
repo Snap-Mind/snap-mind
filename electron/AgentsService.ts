@@ -37,6 +37,18 @@ export type UpdateAgentPatch = Partial<CreateAgentInput>;
 const PARAM_KEYS = ['temperature', 'maxTokens', 'topP', 'reasoning', 'webSearch'] as const;
 type AgentParams = Pick<AgentDTO, (typeof PARAM_KEYS)[number]>;
 
+export const DEFAULT_AGENT_PARAMS: Required<AgentParams> = {
+  temperature: 0.7,
+  maxTokens: 2048,
+  topP: 0.95,
+  reasoning: false,
+  webSearch: false,
+};
+
+export function defaultAgentConfigJson(): string {
+  return JSON.stringify(DEFAULT_AGENT_PARAMS);
+}
+
 function unpackConfig(configJson: string | null): AgentParams {
   if (!configJson) return {};
   try {
@@ -109,7 +121,7 @@ export class AgentsService {
         instructions: input.instructions ?? '',
         providerId: input.providerId ?? null,
         modelId: input.modelId ?? null,
-        configJson: packConfig(input, null),
+        configJson: packConfig(input, defaultAgentConfigJson()),
         isBuiltin: 0,
         sortOrder: (maxRow?.max ?? 0) + 10,
         createdAt: now,

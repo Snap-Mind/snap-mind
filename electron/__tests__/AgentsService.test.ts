@@ -59,12 +59,24 @@ describe('AgentsService.create', () => {
     expect(list.map((a) => a.name)).toEqual(['Default', 'Translate']);
   });
 
-  it('defaults instructions to an empty string and stores no config when no params are given', async () => {
+  it('defaults instructions to an empty string and stores default config when no params are given', async () => {
     const svc = newService();
     const created = await svc.create({ name: 'Bare' });
     expect(created.instructions).toBe('');
-    expect(created.temperature).toBeUndefined();
-    expect(created.reasoning).toBeUndefined();
+    expect(created.temperature).toBe(0.7);
+    expect(created.maxTokens).toBe(2048);
+    expect(created.topP).toBe(0.95);
+    expect(created.reasoning).toBe(false);
+    expect(created.webSearch).toBe(false);
+    expect(svc.__rawAgentRow(created.id).configJson).toBe(
+      JSON.stringify({
+        temperature: 0.7,
+        maxTokens: 2048,
+        topP: 0.95,
+        reasoning: false,
+        webSearch: false,
+      })
+    );
   });
 });
 

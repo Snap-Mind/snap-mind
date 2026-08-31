@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { eq, sql } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
+import { defaultAgentConfigJson } from '../AgentsService.js';
 import * as schema from './schema.js';
 import { agents, hotkeys, providers, providerModels } from './schema.js';
 
@@ -122,7 +123,7 @@ export async function runAgentImportIfNeeded(
             instructions: prompt,
             providerId: binding.providerId,
             modelId: binding.modelId,
-            configJson: null,
+            configJson: defaultAgentConfigJson(),
             isBuiltin: 0,
             sortOrder: (maxRow?.max ?? 0) + 10,
             createdAt: now,
