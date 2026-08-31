@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  Button,
+  Divider,
   Input,
   Select,
   SelectItem,
@@ -12,8 +12,8 @@ import {
 } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
-import Icon from '@/components/Icon';
 import AppModal from '@/components/AppModal';
+import AgentEditorHeader from './AgentEditorHeader';
 import BooleanInput from '@/components/BooleanInput';
 import { useAgentsStore } from '@/stores/useAgentsStore';
 import { useProvidersStore } from '@/stores/useProvidersStore';
@@ -126,35 +126,18 @@ function AgentEditor({ agent }: AgentEditorProps) {
   };
 
   return (
-    <div className="flex flex-col gap-5 p-1 pb-6">
-      <form className="flex flex-col gap-5" noValidate onSubmit={handleSubmit}>
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="min-w-0 text-2xl font-bold">{formValues.name}</h1>
-          <div className="flex shrink-0 items-center gap-1">
-            <Button
-              type="button"
-              isIconOnly
-              size="sm"
-              variant="light"
-              color="primary"
-              onPress={submitForm}
-              aria-label={t('common.save')}
-            >
-              <Icon icon="save" size={16} />
-            </Button>
-            <Button
-              type="button"
-              isIconOnly
-              size="sm"
-              variant="light"
-              color="danger"
-              onPress={onDeleteOpen}
-              aria-label={t('settings.agents.deleteAgent')}
-            >
-              <Icon icon="trash-2" size={16} />
-            </Button>
-          </div>
-        </div>
+    <div className="flex flex-col pb-6">
+      <div className="sticky top-0 z-30 -mx-3 bg-background px-3 pt-0">
+        <AgentEditorHeader
+          title={formValues.name}
+          saveLabel={t('common.save')}
+          onSave={submitForm}
+          deleteLabel={t('settings.agents.deleteAgent')}
+          onDelete={onDeleteOpen}
+        />
+        <Divider className="my-4" />
+      </div>
+      <form className="relative z-0 flex flex-col gap-5" noValidate onSubmit={handleSubmit}>
         <Input
           name="name"
           label={t('settings.agents.name')}

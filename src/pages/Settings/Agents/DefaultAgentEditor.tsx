@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Button, Input, Select, SelectItem, Slider, Textarea, addToast } from '@heroui/react';
+import { Divider, Input, Select, SelectItem, Slider, Textarea, addToast } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
-import Icon from '@/components/Icon';
+import AgentEditorHeader from './AgentEditorHeader';
 import BooleanInput from '@/components/BooleanInput';
 import { useAgentsStore } from '@/stores/useAgentsStore';
 import { useProvidersStore } from '@/stores/useProvidersStore';
@@ -102,22 +102,12 @@ function DefaultAgentEditor({ agent }: DefaultAgentEditorProps) {
   };
 
   return (
-    <div className="flex flex-col gap-5 p-1 pb-6">
-      <form className="flex flex-col gap-5" noValidate onSubmit={handleSubmit}>
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="min-w-0 text-2xl font-bold">{agent.name}</h1>
-          <Button
-            type="button"
-            isIconOnly
-            size="sm"
-            variant="light"
-            color="primary"
-            onPress={submitForm}
-            aria-label={t('common.save')}
-          >
-            <Icon icon="save" size={16} />
-          </Button>
-        </div>
+    <div className="flex flex-col pb-6">
+      <div className="sticky top-0 z-30 -mx-3 bg-background px-3 pt-0">
+        <AgentEditorHeader title={agent.name} saveLabel={t('common.save')} onSave={submitForm} />
+        <Divider className="my-4" />
+      </div>
+      <form className="relative z-0 flex flex-col gap-5" noValidate onSubmit={handleSubmit}>
         <Input
           label={t('settings.agents.name')}
           value={agent.name}

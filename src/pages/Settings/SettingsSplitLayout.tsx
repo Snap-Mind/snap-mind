@@ -33,7 +33,7 @@ function SettingsSplitLayout({ title, headerAction, list, details }: SettingsSpl
         </div>
       </div>
       <Divider orientation="vertical" />
-      <div className="setting-details min-h-0 overflow-y-auto bg-background px-3 py-3">{details}</div>
+      <div className="setting-details min-h-0 overflow-y-auto bg-background px-3 pb-3">{details}</div>
     </div>
   );
 }
