@@ -77,7 +77,10 @@
       "provider": "提供商",
       "model": "模型",
       "noModelsForProvider": "此提供商尚無模型。請在設定 > 模型中添加。",
-      "builtinNameLocked": "內置智能體無法重命名。"
+      "builtinNameLocked": "內置智能體無法重命名。",
+      "builtinReadOnly": "內置智能體的名稱、描述和指令不可修改。",
+      "saved": "智能體已保存",
+      "saveFailed": "保存智能體失敗"
     },
     "chat": {
       "maxTokens": "Max Tokens",

@@ -6,12 +6,14 @@ import Icon from '@/components/Icon';
 import SettingsSplitLayout from '../SettingsSplitLayout';
 import { useAgentsStore } from '@/stores/useAgentsStore';
 import AgentEditor from './AgentEditor';
+import DefaultAgentEditor from './DefaultAgentEditor';
 
 function AgentEditorRoute() {
   const { id } = useParams();
   const agents = useAgentsStore((s) => s.agents);
   const agent = agents.find((a) => a.id === Number(id));
   if (!agent) return null;
+  if (agent.isBuiltin) return <DefaultAgentEditor agent={agent} />;
   return <AgentEditor agent={agent} />;
 }
 

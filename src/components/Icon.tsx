@@ -34,8 +34,10 @@ import {
   LuLightbulb,
   LuLightbulbOff,
   LuGlobe,
+  LuLoader,
   LuTag,
   LuUser,
+  LuSave,
 } from 'react-icons/lu';
 import { MdOutlineCleaningServices } from 'react-icons/md';
 
@@ -91,6 +93,8 @@ type IconType =
   | 'lightbulb'
   | 'lightbulb-off'
   | 'globe'
+  | 'loader'
+  | 'save'
   | 'tag'
   | 'user';
 
@@ -201,6 +205,10 @@ function Icon({
         return <LuLightbulbOff className={svgClassName} color={color} size={size} />;
       case 'globe':
         return <LuGlobe className={svgClassName} color={color} size={size} />;
+      case 'loader':
+        return <LuLoader className={svgClassName} color={color} size={size} />;
+      case 'save':
+        return <LuSave className={svgClassName} color={color} size={size} />;
       case 'tag':
         return <LuTag className={svgClassName} color={color} size={size} />;
       case 'user':

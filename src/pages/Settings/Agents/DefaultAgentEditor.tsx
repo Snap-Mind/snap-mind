@@ -1,25 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import {
-  Button,
-  Input,
-  Select,
-  SelectItem,
-  Slider,
-  Textarea,
-  addToast,
-  useDisclosure,
-} from '@heroui/react';
+import { Input, Select, SelectItem, Slider, Textarea } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
-import Icon from '@/components/Icon';
-import AppModal from '@/components/AppModal';
 import BooleanInput from '@/components/BooleanInput';
 import { useAgentsStore } from '@/stores/useAgentsStore';
 import { useProvidersStore } from '@/stores/useProvidersStore';
 import type { AgentDTO } from '@/types/agent-dto';
 
-interface AgentEditorProps {
+interface DefaultAgentEditorProps {
   agent: AgentDTO;
 }
 
@@ -28,115 +16,49 @@ function selectionToId(keys: 'all' | Set<React.Key>): number | null {
   return Number(Array.from(keys)[0]);
 }
 
-function AgentEditor({ agent }: AgentEditorProps) {
+function DefaultAgentEditor({ agent }: DefaultAgentEditorProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const providers = useProvidersStore((s) => s.providers);
   const updateAgent = useAgentsStore((s) => s.updateAgent);
-  const deleteAgent = useAgentsStore((s) => s.deleteAgent);
-  const {
-    isOpen: isDeleteOpen,
-    onOpen: onDeleteOpen,
-    onClose: onDeleteClose,
-    onOpenChange: onDeleteOpenChange,
-  } = useDisclosure();
-
-  const [name, setName] = useState(agent.name);
-  const [description, setDescription] = useState(agent.description ?? '');
-  const [instructions, setInstructions] = useState(agent.instructions);
   const [providerId, setProviderId] = useState<number | null>(agent.providerId);
   const [modelId, setModelId] = useState<number | null>(agent.modelId);
 
   useEffect(() => {
-    setName(agent.name);
-    setDescription(agent.description ?? '');
-    setInstructions(agent.instructions);
     setProviderId(agent.providerId);
     setModelId(agent.modelId);
-  }, [agent.id]);
+  }, [agent.id, agent.providerId, agent.modelId]);
 
   const models = providers.find((p) => p.id === providerId)?.models ?? [];
-  const canSave = name.trim().length > 0;
-
-  const handleSave = async () => {
-    if (!canSave) return;
-    try {
-      await updateAgent(agent.id, {
-        name: name.trim(),
-        description: description.trim() || null,
-        instructions,
-        providerId,
-        modelId,
-      });
-      addToast({
-        title: t('settings.agents.saved'),
-        color: 'success',
-        timeout: 1000,
-      });
-    } catch {
-      addToast({
-        title: t('settings.agents.saveFailed'),
-        color: 'danger',
-        timeout: 3000,
-      });
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    await deleteAgent(agent.id);
-    onDeleteClose();
-    const remaining = useAgentsStore.getState().agents;
-    navigate(remaining[0] ? `/settings/agents/${remaining[0].id}` : '/settings/agents');
-  };
 
   return (
     <div className="flex flex-col gap-5 p-1 pb-6">
-      <div className="flex items-start justify-between gap-3">
-        <h1 className="min-w-0 text-2xl font-bold">{name}</h1>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            isIconOnly
-            size="sm"
-            variant="light"
-            color="primary"
-            isDisabled={!canSave}
-            onPress={handleSave}
-            aria-label={t('common.save')}
-          >
-            <Icon icon="save" size={16} />
-          </Button>
-          <Button
-            isIconOnly
-            size="sm"
-            variant="light"
-            color="danger"
-            onPress={onDeleteOpen}
-            aria-label={t('settings.agents.deleteAgent')}
-          >
-            <Icon icon="trash-2" size={16} />
-          </Button>
-        </div>
-      </div>
-      <Input label={t('settings.agents.name')} value={name} onValueChange={setName} />
+      <h1 className="min-w-0 text-2xl font-bold">{agent.name}</h1>
+      <Input
+        label={t('settings.agents.name')}
+        value={agent.name}
+        isDisabled
+        description={t('settings.agents.builtinNameLocked')}
+      />
       <Input
         label={t('settings.agents.description')}
-        value={description}
-        onValueChange={setDescription}
+        value={agent.description ?? ''}
+        isDisabled
       />
       <Textarea
         label={t('settings.agents.instructions')}
-        placeholder={t('settings.agents.instructionsPlaceholder')}
         minRows={4}
-        value={instructions}
-        onValueChange={setInstructions}
+        value={agent.instructions}
+        isDisabled
       />
       <Select
         label={t('settings.agents.provider')}
         isRequired
         selectedKeys={providerId != null ? [String(providerId)] : []}
         onSelectionChange={(keys) => {
-          setProviderId(selectionToId(keys));
+          const nextProviderId = selectionToId(keys);
+          setProviderId(nextProviderId);
           setModelId(null);
+          void updateAgent(agent.id, { providerId: nextProviderId, modelId: null });
         }}
       >
         {providers.map((provider) => (
@@ -153,7 +75,11 @@ function AgentEditor({ agent }: AgentEditorProps) {
             : undefined
         }
         selectedKeys={modelId != null ? [String(modelId)] : []}
-        onSelectionChange={(keys) => setModelId(selectionToId(keys))}
+        onSelectionChange={(keys) => {
+          const nextModelId = selectionToId(keys);
+          setModelId(nextModelId);
+          void updateAgent(agent.id, { modelId: nextModelId });
+        }}
       >
         {models.map((model) => (
           <SelectItem key={String(model.id)}>{model.modelId}</SelectItem>
@@ -190,36 +116,21 @@ function AgentEditor({ agent }: AgentEditorProps) {
         onChangeEnd={(value) => void updateAgent(agent.id, { topP: value as number })}
       />
       <BooleanInput
-        id="agent-reasoning"
+        id="default-agent-reasoning"
         label={t('settings.chat.reasoning')}
         description={t('settings.chat.reasoningDescription')}
         isSelected={agent.reasoning ?? false}
         onValueChange={(checked) => void updateAgent(agent.id, { reasoning: checked })}
       />
       <BooleanInput
-        id="agent-web-search"
+        id="default-agent-web-search"
         label={t('settings.chat.webSearch')}
         description={t('settings.chat.webSearchDescription')}
         isSelected={agent.webSearch ?? false}
         onValueChange={(checked) => void updateAgent(agent.id, { webSearch: checked })}
       />
-
-      <AppModal
-        isOpen={isDeleteOpen}
-        onOpenChange={onDeleteOpenChange}
-        title={t('settings.agents.deleteAgent')}
-        confirmLabel={t('common.delete')}
-        confirmColor="danger"
-        onConfirm={handleDeleteConfirm}
-      >
-        <div
-          dangerouslySetInnerHTML={{
-            __html: t('settings.agents.deleteAgentConfirm', { agentName: agent.name }),
-          }}
-        />
-      </AppModal>
     </div>
   );
 }
 
-export default AgentEditor;
+export default DefaultAgentEditor;
