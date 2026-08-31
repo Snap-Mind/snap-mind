@@ -13,8 +13,8 @@ function AgentEditorRoute() {
   const agents = useAgentsStore((s) => s.agents);
   const agent = agents.find((a) => a.id === Number(id));
   if (!agent) return null;
-  if (agent.isBuiltin) return <DefaultAgentEditor agent={agent} />;
-  return <AgentEditor agent={agent} />;
+  if (agent.isBuiltin) return <DefaultAgentEditor key={agent.id} agent={agent} />;
+  return <AgentEditor key={agent.id} agent={agent} />;
 }
 
 function SettingsAgents() {

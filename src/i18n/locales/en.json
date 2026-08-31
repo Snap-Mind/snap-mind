@@ -80,7 +80,10 @@
       "builtinNameLocked": "The built-in agent cannot be renamed.",
       "builtinReadOnly": "Name, description, and instructions are fixed for the built-in agent.",
       "saved": "Agent saved",
-      "saveFailed": "Failed to save agent"
+      "saveFailed": "Failed to save agent",
+      "nameRequired": "Name is required.",
+      "providerRequired": "Provider is required.",
+      "modelRequired": "Model is required."
     },
     "chat": {
       "maxTokens": "Max Tokens",

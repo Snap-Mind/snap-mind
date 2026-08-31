@@ -80,7 +80,10 @@
       "builtinNameLocked": "内置智能体无法重命名。",
       "builtinReadOnly": "内置智能体的名称、描述和指令不可修改。",
       "saved": "智能体已保存",
-      "saveFailed": "保存智能体失败"
+      "saveFailed": "保存智能体失败",
+      "nameRequired": "名称为必填项。",
+      "providerRequired": "提供商为必填项。",
+      "modelRequired": "模型为必填项。"
     },
     "chat": {
       "maxTokens": "Max Tokens",
