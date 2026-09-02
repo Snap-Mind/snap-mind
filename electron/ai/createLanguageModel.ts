@@ -3,7 +3,7 @@ import { createAzure } from '@ai-sdk/azure';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import { createOllama } from 'ollama-ai-provider';
+import { createOllama } from 'ollama-ai-provider-v2';
 import type { LanguageModel } from 'ai';
 import {
   deriveGoogleApiBase,
@@ -60,7 +60,8 @@ export function createLanguageModel(config: LanguageModelConfig, modelId: string
     case 'ollama':
       return createOllama({
         baseURL: deriveOllamaApiBase(host),
-      })(modelId) as unknown as LanguageModel;
+        compatibility: 'strict',
+      })(modelId);
     default:
       throw new Error(`Unknown provider kind: ${kind}`);
   }

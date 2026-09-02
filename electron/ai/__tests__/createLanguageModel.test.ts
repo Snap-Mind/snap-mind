@@ -21,7 +21,7 @@ vi.mock('@ai-sdk/azure', () => ({ createAzure: azureFactory }));
 vi.mock('@ai-sdk/anthropic', () => ({ createAnthropic: anthropicFactory }));
 vi.mock('@ai-sdk/google', () => ({ createGoogleGenerativeAI: googleFactory }));
 vi.mock('@ai-sdk/openai-compatible', () => ({ createOpenAICompatible: openaiCompatibleFactory }));
-vi.mock('ollama-ai-provider', () => ({ createOllama: ollamaFactory }));
+vi.mock('ollama-ai-provider-v2', () => ({ createOllama: ollamaFactory }));
 
 import { createLanguageModel } from '../createLanguageModel.js';
 
@@ -45,6 +45,7 @@ describe('createLanguageModel', () => {
     createLanguageModel({ kind: 'ollama', apiKey: null, host: 'http://localhost:11434' }, 'llama3');
     expect(ollamaFactory).toHaveBeenCalledWith({
       baseURL: 'http://localhost:11434/api',
+      compatibility: 'strict',
     });
   });
 
