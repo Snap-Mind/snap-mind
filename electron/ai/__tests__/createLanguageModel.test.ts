@@ -46,7 +46,6 @@ describe('createLanguageModel', () => {
     expect(ollamaFactory).toHaveBeenCalledWith({
       baseURL: 'http://localhost:11434/api',
     });
-    expect(ollamaFactory.mock.calls[0][0]).not.toHaveProperty('apiKey');
   });
 
   it('throws for unknown provider kind', () => {

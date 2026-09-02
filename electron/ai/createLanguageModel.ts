@@ -60,7 +60,7 @@ export function createLanguageModel(config: LanguageModelConfig, modelId: string
     case 'ollama':
       return createOllama({
         baseURL: deriveOllamaApiBase(host),
-      })(modelId);
+      })(modelId) as unknown as LanguageModel;
     default:
       throw new Error(`Unknown provider kind: ${kind}`);
   }

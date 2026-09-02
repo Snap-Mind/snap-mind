@@ -7,8 +7,10 @@ import type AutoUpdateService from '../services/AutoUpdateService.js';
 import type { AgentsService } from '../services/AgentsService.js';
 import type { HotkeysService } from '../services/HotkeysService.js';
 import type { ProvidersService } from '../services/ProvidersService.js';
+import type { AIService } from '../ai/AIService.js';
 import logService from '../LogService.js';
 import SystemPermissionService from '../services/SystemPermissionService.js';
+import { registerAiIpc } from './registerAiIpc.js';
 
 export interface IpcHandlerContext {
   getMainWindow: () => BrowserWindow | null;
@@ -18,6 +20,7 @@ export interface IpcHandlerContext {
   getAgentsService: () => AgentsService;
   getHotkeysService: () => HotkeysService;
   getProvidersService: () => ProvidersService;
+  getAIService: () => AIService;
   getAutoUpdateService: () => AutoUpdateService | null;
   registerHotkeys: () => void;
   showMainWindow: () => void;
@@ -35,6 +38,7 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
     getAgentsService,
     getHotkeysService,
     getProvidersService,
+    getAIService,
     getAutoUpdateService,
     registerHotkeys,
     showMainWindow,
@@ -287,4 +291,5 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
 
   themeService.registerIpcHandlers();
   openAtLoginService.registerIpcHandlers();
+  registerAiIpc(getAIService);
 }

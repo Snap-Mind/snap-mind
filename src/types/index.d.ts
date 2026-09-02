@@ -9,6 +9,15 @@ import type {
   UpsertModelInput,
   ModelDTO,
 } from './provider-dto';
+import type {
+  AiDoneEvent,
+  AiErrorEvent,
+  AiReasoningEvent,
+  AiSendRequest,
+  AiSendResult,
+  AiSourceEvent,
+  AiTokenEvent,
+} from './ai-ipc';
 
 export interface LoggerService {
   debug: (message: string, ...args: any[]) => void;
@@ -121,6 +130,19 @@ interface ElectronAPI {
     upsert: (providerId: number, model: UpsertModelInput) => Promise<ModelDTO>;
     delete: (providerId: number, modelId: number) => Promise<void>;
   };
+
+  aiSend: (req: AiSendRequest) => Promise<AiSendResult>;
+  aiAbort: (streamId: string) => Promise<{ ok: true }>;
+  onAiToken: (callback: (payload: AiTokenEvent) => void) => void;
+  offAiToken: () => void;
+  onAiReasoning: (callback: (payload: AiReasoningEvent) => void) => void;
+  offAiReasoning: () => void;
+  onAiSource: (callback: (payload: AiSourceEvent) => void) => void;
+  offAiSource: () => void;
+  onAiDone: (callback: (payload: AiDoneEvent) => void) => void;
+  offAiDone: () => void;
+  onAiError: (callback: (payload: AiErrorEvent) => void) => void;
+  offAiError: () => void;
 }
 
 export type SettingsChangeHandler = (

@@ -32,6 +32,9 @@ import type { HotkeyDTO } from './electron/services/HotkeysService.js';
 import * as dbSchema from './electron/db/schema.js';
 import { resolveUserDataPath } from './electron/userDataPath.js';
 import { registerIpcHandlers } from './electron/ipc/registerIpc.js';
+import { AIService } from './electron/ai/AIService.js';
+import { createLanguageModel } from './electron/ai/createLanguageModel.js';
+import { streamText } from 'ai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,7 +78,26 @@ let drizzleDb: ReturnType<typeof drizzle<typeof dbSchema>> | null = null;
 let providersService: ProvidersService | null = null;
 let agentsService: AgentsService | null = null;
 let hotkeysService: HotkeysService | null = null;
+let aiService: AIService | null = null;
 let isQuitting = false;
+
+function getAIService(): AIService {
+  if (!aiService) {
+    aiService = new AIService(agentsService!, providersService!, {
+      streamText: (opts) =>
+        streamText({
+          model: opts.model,
+          messages: opts.messages as never,
+          abortSignal: opts.abortSignal,
+          temperature: opts.temperature,
+          maxOutputTokens: opts.maxOutputTokens,
+          topP: opts.topP,
+        }),
+      createLanguageModel,
+    });
+  }
+  return aiService;
+}
 
 function quitApp() {
   isQuitting = true;
@@ -294,6 +316,7 @@ registerIpcHandlers({
   getProvidersService: () => providersService!,
   getAgentsService: () => agentsService!,
   getHotkeysService: () => hotkeysService!,
+  getAIService,
   getAutoUpdateService: () => autoUpdateService,
   registerHotkeys,
   showMainWindow,
