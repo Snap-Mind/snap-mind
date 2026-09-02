@@ -56,7 +56,7 @@ function SettingsModel() {
   };
 
   const renderIcon = (provider: ProviderNavItem) => {
-    let iconClassName = 'ml-2 flex items-center justify-center leading-none';
+    const iconClassName = 'ml-2 flex items-center justify-center leading-none';
 
     switch (provider.kind) {
       case 'openai':
