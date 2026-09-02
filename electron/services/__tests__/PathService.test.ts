@@ -6,9 +6,9 @@ const { fixPathSpy, fixPathWindowsSpy } = vi.hoisted(() => ({
 }));
 
 vi.mock('fix-path', () => ({ default: fixPathSpy }));
-vi.mock('../utils/fixPathWindows', () => ({ default: fixPathWindowsSpy }));
+vi.mock('../../utils/fixPathWindows', () => ({ default: fixPathWindowsSpy }));
 vi.mock('electron', () => ({ app: { isPackaged: true } }));
-vi.mock('../LogService', () => ({ default: { scope: () => ({ info: vi.fn() }) } }));
+vi.mock('../../LogService', () => ({ default: { scope: () => ({ info: vi.fn() }) } }));
 
 describe('PathService', () => {
   let originalPlatform: PropertyDescriptor | undefined;

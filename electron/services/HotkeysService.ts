@@ -1,8 +1,8 @@
 import { asc, eq } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import * as schema from './db/schema.js';
-import { hotkeys } from './db/schema.js';
-import type { HotkeyMode, HotkeyRow } from './db/schema.js';
+import * as schema from '../db/schema.js';
+import { hotkeys } from '../db/schema.js';
+import type { HotkeyMode, HotkeyRow } from '../db/schema.js';
 
 export interface HotkeyDTO {
   id: number;

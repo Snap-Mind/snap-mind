@@ -1,14 +1,14 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 
-import type SettingsService from './SettingsService.js';
-import type ThemeService from './ThemeService.js';
-import type OpenAtLoginService from './OpenAtLoginService.js';
-import type AutoUpdateService from './AutoUpdateService.js';
-import type { AgentsService } from './AgentsService.js';
-import type { HotkeysService } from './HotkeysService.js';
-import type { ProvidersService } from './ProvidersService.js';
-import logService from './LogService.js';
-import SystemPermissionService from './SystemPermissionService.js';
+import type SettingsService from '../services/SettingsService.js';
+import type ThemeService from '../services/ThemeService.js';
+import type OpenAtLoginService from '../services/OpenAtLoginService.js';
+import type AutoUpdateService from '../services/AutoUpdateService.js';
+import type { AgentsService } from '../services/AgentsService.js';
+import type { HotkeysService } from '../services/HotkeysService.js';
+import type { ProvidersService } from '../services/ProvidersService.js';
+import logService from '../LogService.js';
+import SystemPermissionService from '../services/SystemPermissionService.js';
 
 export interface IpcHandlerContext {
   getMainWindow: () => BrowserWindow | null;

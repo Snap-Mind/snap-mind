@@ -1,8 +1,8 @@
 import { asc, eq, sql } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
-import * as schema from './db/schema.js';
-import { agents } from './db/schema.js';
-import type { AgentRow } from './db/schema.js';
+import * as schema from '../db/schema.js';
+import { agents } from '../db/schema.js';
+import type { AgentRow } from '../db/schema.js';
 
 export interface AgentDTO {
   id: number;

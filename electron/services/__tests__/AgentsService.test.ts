@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { makeTestDb } from '../db/__tests__/testDb.js';
+import { makeTestDb } from '../../db/__tests__/testDb.js';
 import { AgentsService } from '../AgentsService.js';
-import * as schema from '../db/schema.js';
-import { providerModels } from '../db/schema.js';
+import * as schema from '../../db/schema.js';
+import { providerModels } from '../../db/schema.js';
 
 function newServiceWithDb() {
   const { db } = makeTestDb();

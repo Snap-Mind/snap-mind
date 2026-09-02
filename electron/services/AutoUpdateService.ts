@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
-import logService from './LogService';
+import logService from '../LogService';
 // electron-updater is CommonJS; import compatibility handled below
 import electronUpdater, { type AppUpdater } from 'electron-updater';
 
