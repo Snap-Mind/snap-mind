@@ -128,11 +128,7 @@ function AgentEditor({ agent }: AgentEditorProps) {
   return (
     <div className="flex flex-col pb-6">
       <div className="sticky top-0 z-30 -mx-3 bg-background px-3 pt-0">
-        <AgentEditorHeader
-          title={formValues.name}
-          onSave={submitForm}
-          onDelete={onDeleteOpen}
-        />
+        <AgentEditorHeader title={formValues.name} onSave={submitForm} onDelete={onDeleteOpen} />
         <Divider className="my-4" />
       </div>
       <form className="relative z-0 flex flex-col gap-5" noValidate onSubmit={handleSubmit}>

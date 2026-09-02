@@ -56,7 +56,7 @@ function SettingsModel() {
   };
 
   const renderIcon = (provider: ProviderNavItem) => {
-    let iconClassName = "ml-2 flex items-center justify-center leading-none";
+    let iconClassName = 'ml-2 flex items-center justify-center leading-none';
 
     switch (provider.kind) {
       case 'openai':
@@ -106,9 +106,15 @@ function SettingsModel() {
             path="azure-openai"
             element={<ProviderAzureOpenAI provider={findByKind('azure-openai')!} />}
           />
-          <Route path="anthropic" element={<ProviderAnthropic provider={findByKind('anthropic')!} />} />
+          <Route
+            path="anthropic"
+            element={<ProviderAnthropic provider={findByKind('anthropic')!} />}
+          />
           <Route path="google" element={<ProviderGoogle provider={findByKind('google')!} />} />
-          <Route path="deepseek" element={<ProviderDeepSeek provider={findByKind('deepseek')!} />} />
+          <Route
+            path="deepseek"
+            element={<ProviderDeepSeek provider={findByKind('deepseek')!} />}
+          />
           <Route path="qwen" element={<ProviderQwen provider={findByKind('qwen')!} />} />
           <Route path="ollama" element={<ProviderOllama provider={findByKind('ollama')!} />} />
         </Routes>

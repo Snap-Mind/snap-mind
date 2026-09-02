@@ -20,11 +20,7 @@ function SettingsSplitLayout({ title, headerAction, list, details }: SettingsSpl
         <div className="container grid h-full min-h-0 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] px-3 py-3">
           <div className="header shrink-0">
             <div className="flex items-start justify-between gap-2">
-              {typeof title === 'string' ? (
-                <h1 className="font-bold text-2xl">{title}</h1>
-              ) : (
-                title
-              )}
+              {typeof title === 'string' ? <h1 className="font-bold text-2xl">{title}</h1> : title}
               {headerAction}
             </div>
             <Divider className="my-4" />
@@ -33,7 +29,9 @@ function SettingsSplitLayout({ title, headerAction, list, details }: SettingsSpl
         </div>
       </div>
       <Divider orientation="vertical" />
-      <div className="setting-details min-h-0 overflow-y-auto bg-background px-3 pb-3">{details}</div>
+      <div className="setting-details min-h-0 overflow-y-auto bg-background px-3 pb-3">
+        {details}
+      </div>
     </div>
   );
 }

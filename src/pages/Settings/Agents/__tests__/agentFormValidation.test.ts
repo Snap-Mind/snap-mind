@@ -51,9 +51,7 @@ describe('validateAgentForm', () => {
   });
 
   it('requires provider and model', () => {
-    expect(
-      validateAgentForm({ ...baseValues, providerId: null, modelId: null }, t)
-    ).toEqual({
+    expect(validateAgentForm({ ...baseValues, providerId: null, modelId: null }, t)).toEqual({
       providerId: 'settings.agents.providerRequired',
       modelId: 'settings.agents.modelRequired',
     });
@@ -91,8 +89,6 @@ describe('agentFormIsDirty', () => {
 
 describe('defaultAgentFormIsDirty', () => {
   it('returns true when provider changed', () => {
-    expect(
-      defaultAgentFormIsDirty({ ...baseValues, providerId: 99 }, baseAgent)
-    ).toBe(true);
+    expect(defaultAgentFormIsDirty({ ...baseValues, providerId: 99 }, baseAgent)).toBe(true);
   });
 });
