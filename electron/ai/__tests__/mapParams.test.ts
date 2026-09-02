@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_MAX_TOKENS, DEFAULT_TEMPERATURE, DEFAULT_TOP_P, mapParams } from '../mapParams.js';
+import {
+  DEFAULT_MAX_TOKENS,
+  DEFAULT_TEMPERATURE,
+  DEFAULT_TOP_P,
+  mapParams,
+  mapReasoningLevel,
+} from '../mapParams.js';
 
 describe('mapParams', () => {
   it('uses defaults when params are missing', () => {
@@ -28,5 +34,15 @@ describe('mapParams', () => {
       reasoning: true,
       webSearch: true,
     });
+  });
+});
+
+describe('mapReasoningLevel', () => {
+  it('maps enabled to medium effort', () => {
+    expect(mapReasoningLevel(true)).toBe('medium');
+  });
+
+  it('maps disabled to none', () => {
+    expect(mapReasoningLevel(false)).toBe('none');
   });
 });

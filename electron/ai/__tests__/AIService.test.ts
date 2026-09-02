@@ -101,6 +101,34 @@ describe('AIService', () => {
     expect(result).toHaveProperty('streamId');
     await vi.waitFor(() => expect(onToken).toHaveBeenCalledWith('hello'));
     await vi.waitFor(() => expect(onDone).toHaveBeenCalledWith('stop'));
+    expect(streamText).toHaveBeenCalledWith(expect.objectContaining({ reasoning: 'none' }));
+  });
+
+  it('passes reasoning medium when agent has reasoning enabled', async () => {
+    async function* fullStream() {
+      yield { type: 'reasoning-delta', text: 'thinking' };
+    }
+    const agents = {
+      list: vi.fn(() => [{ ...boundAgent(), reasoning: true }]),
+    };
+    const providers = { list: vi.fn(() => [openaiProvider()]) };
+    const streamText = vi.fn(() => ({ fullStream: fullStream() }));
+    const svc = new AIService(agents as never, providers as never, {
+      streamText: streamText as never,
+      createLanguageModel: vi.fn(() => ({ model: 'mock' })) as never,
+    });
+    const onReasoning = vi.fn();
+
+    await svc.send(1, [{ role: 'user', content: 'hi' }], {
+      onToken: vi.fn(),
+      onReasoning,
+      onSource: vi.fn(),
+      onDone: vi.fn(),
+      onError: vi.fn(),
+    });
+
+    await vi.waitFor(() => expect(onReasoning).toHaveBeenCalledWith('thinking'));
+    expect(streamText).toHaveBeenCalledWith(expect.objectContaining({ reasoning: 'medium' }));
   });
 
   it('aborts an in-flight stream', async () => {

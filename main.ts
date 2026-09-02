@@ -92,6 +92,7 @@ function getAIService(): AIService {
           temperature: opts.temperature,
           maxOutputTokens: opts.maxOutputTokens,
           topP: opts.topP,
+          reasoning: opts.reasoning,
         }),
       createLanguageModel,
     });

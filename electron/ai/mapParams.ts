@@ -27,3 +27,8 @@ export function mapParams(p?: AgentRunParams): MappedStreamParams {
     webSearch: p?.webSearch ?? false,
   };
 }
+
+/** Maps agent reasoning toggle to AI SDK streamText `reasoning` effort. */
+export function mapReasoningLevel(enabled: boolean): 'medium' | 'none' {
+  return enabled ? 'medium' : 'none';
+}

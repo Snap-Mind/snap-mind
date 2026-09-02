@@ -5,7 +5,7 @@ import type { ProvidersService } from '../services/ProvidersService.js';
 import logService from '../LogService.js';
 import { createLanguageModel } from './createLanguageModel.js';
 import { mapMessages } from './mapMessages.js';
-import { mapParams } from './mapParams.js';
+import { mapParams, mapReasoningLevel } from './mapParams.js';
 import { redactValue, truncateDebugText } from './redact.js';
 import { resolveAgentForRun } from './resolveAgentForRun.js';
 
@@ -37,6 +37,7 @@ export type StreamTextFn = (_opts: {
   temperature: number;
   maxOutputTokens: number;
   topP: number;
+  reasoning: 'medium' | 'none';
 }) => { fullStream: AsyncIterable<unknown> };
 
 type InFlight = {
@@ -141,6 +142,7 @@ export class AIService {
         temperature: params.temperature,
         maxOutputTokens: params.maxOutputTokens,
         topP: params.topP,
+        reasoning: mapReasoningLevel(params.reasoning),
       })
     );
 
