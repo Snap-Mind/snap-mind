@@ -1,20 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/services/AIService', () => {
-  class AIService {
-    static instances: AIService[] = [];
-    lastCall: any = null;
-    constructor(public settings: any) {
-      AIService.instances.push(this);
-    }
-    async sendMessageToAI(messages: any[], onToken: (t: string) => void, opts: any) {
-      this.lastCall = { messages, opts };
-      onToken('Hello');
-      return { role: 'assistant', content: 'Hello' };
-    }
-  }
-  return { AIService };
-});
+type AiHandlers = {
+  onToken?: (payload: { streamId: string; text: string }) => void;
+  onDone?: (payload: { streamId: string; reason: 'stop' | 'aborted' }) => void;
+};
+
+let aiHandlers: AiHandlers = {};
+let aiSendMock = vi.fn();
 
 const seedSettings = {};
 
@@ -61,8 +53,41 @@ const seedProviders = [
   },
 ];
 
+function setupElectronApi() {
+  aiHandlers = {};
+  aiSendMock = vi.fn(async () => {
+    const streamId = 's1';
+    setTimeout(() => {
+      aiHandlers.onToken?.({ streamId, text: 'Hello' });
+      aiHandlers.onDone?.({ streamId, reason: 'stop' });
+    }, 0);
+    return { streamId };
+  });
+
+  (globalThis as any).window.electronAPI = {
+    updateSetting: vi.fn(async () => ({ success: true })),
+    aiSend: aiSendMock,
+    aiAbort: vi.fn(async () => ({ ok: true })),
+    onAiToken: (cb: AiHandlers['onToken']) => {
+      aiHandlers.onToken = cb;
+    },
+    offAiToken: vi.fn(),
+    onAiReasoning: vi.fn(),
+    offAiReasoning: vi.fn(),
+    onAiSource: vi.fn(),
+    offAiSource: vi.fn(),
+    onAiDone: (cb: AiHandlers['onDone']) => {
+      aiHandlers.onDone = cb;
+    },
+    offAiDone: vi.fn(),
+    onAiError: vi.fn(),
+    offAiError: vi.fn(),
+  };
+}
+
 async function freshStores() {
   vi.resetModules();
+  setupElectronApi();
   const settingsMod = await import('../useSettingsStore');
   settingsMod.useSettingsStore.setState(
     {
@@ -84,6 +109,7 @@ async function freshStores() {
   const agentsMod = await import('../useAgentsStore');
   agentsMod.useAgentsStore.setState({ agents: seedAgents as any, isHydrated: true });
   const chatMod = await import('../useChatStore');
+  chatMod.__resetChatStreamStateForTests();
   chatMod.useChatStore.setState(chatMod.useChatStore.getInitialState(), true);
   return {
     chat: chatMod.useChatStore,
@@ -96,9 +122,6 @@ describe('useChatStore', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     (globalThis as any).window = (globalThis as any).window ?? {};
-    (globalThis as any).window.electronAPI = {
-      updateSetting: vi.fn(async () => ({ success: true })),
-    };
   });
 
   it('resetWithSeed({}) clears state without kicking off AI', async () => {
@@ -112,9 +135,8 @@ describe('useChatStore', () => {
     expect(chat.getState().loading).toBe(false);
   });
 
-  it('resetWithSeed({text, agentId}) seeds the agent instructions and calls AIService', async () => {
+  it('resetWithSeed({text, agentId}) seeds the agent instructions and calls aiSend', async () => {
     const { chat } = await freshStores();
-    const { AIService: AIServiceClass } = await import('@/services/AIService');
     await chat.getState().resetWithSeed({ text: 'foo', agentId: 2 });
 
     const messages = chat.getState().messages;
@@ -122,20 +144,23 @@ describe('useChatStore', () => {
     expect(messages[1]).toEqual({ role: 'user', content: 'foo' });
     expect(chat.getState().activeAgentId).toBe(2);
 
-    const instance = AIServiceClass.instances.at(-1)!;
-    expect(instance.settings.model.modelId).toBe('gpt-4');
-    expect(instance.settings.params.temperature).toBe(0.2);
+    expect(aiSendMock).toHaveBeenCalledWith({
+      agentId: 2,
+      messages: [
+        { role: 'system', content: 'translate:' },
+        { role: 'user', content: 'foo' },
+      ],
+    });
   });
 
   it('resetWithSeed with no text sets the agent and clears the session without sending', async () => {
     const { chat } = await freshStores();
-    const { AIService } = await import('@/services/AIService');
-    const before = AIService.instances.length;
+    const before = aiSendMock.mock.calls.length;
     await chat.getState().resetWithSeed({ agentId: 1 });
 
     expect(chat.getState().messages).toEqual([]);
     expect(chat.getState().activeAgentId).toBe(1);
-    expect(AIService.instances.length).toBe(before);
+    expect(aiSendMock.mock.calls.length).toBe(before);
   });
 
   it('renders an error message when the hotkey has no agent', async () => {
@@ -195,14 +220,13 @@ describe('useChatStore', () => {
     expect(updateAgent).toHaveBeenCalledWith(2, { reasoning: true });
   });
 
-  it('abort() sets loading false and marks controller aborted', async () => {
+  it('abort() calls aiAbort and clears loading', async () => {
     const { chat } = await freshStores();
-    const ctrl = new AbortController();
-    chat.setState({ loading: true, abortController: ctrl } as any);
+    chat.setState({ loading: true, streamId: 's1' } as any);
 
     chat.getState().abort();
 
-    expect(ctrl.signal.aborted).toBe(true);
+    expect(window.electronAPI.aiAbort).toHaveBeenCalledWith('s1');
     expect(chat.getState().loading).toBe(false);
   });
 });

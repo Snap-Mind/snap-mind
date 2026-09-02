@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import type { StoreApi } from 'zustand';
 import type { Message, ChatSource, ContentPart } from '@/types/chat';
-import { AIService } from '@/services/AIService';
 import { useAgentsStore } from './useAgentsStore';
 import { useProvidersStore } from './useProvidersStore';
 import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '@/services/agentResolver';
@@ -13,8 +12,10 @@ export interface ImageAttachment {
   name: string;
 }
 
+type StreamEnd = { kind: 'stop' } | { kind: 'aborted' } | { kind: 'error'; message: string };
+
 interface ChatInternalState {
-  abortController: AbortController | null;
+  streamId: string | null;
 }
 
 export interface ChatStoreState extends ChatInternalState {
@@ -43,6 +44,11 @@ export interface ChatStoreState extends ChatInternalState {
 }
 
 type ChatSet = StoreApi<ChatStoreState>['setState'];
+
+let aiListenersBound = false;
+let currentStreamId: string | null = null;
+let reasoningOpen = false;
+const streamWaiters = new Map<string, (end: StreamEnd) => void>();
 
 function isImageFile(file: File): boolean {
   return file.type.startsWith('image/');
@@ -75,30 +81,6 @@ function pushErrorMessage(set: ChatSet, message: string) {
   }));
 }
 
-async function runAIRequest(
-  res: Extract<AgentResolution, { ok: true }>,
-  messages: Message[],
-  onToken: (t: string) => void,
-  onSources: (s: ChatSource[]) => void,
-  signal: AbortSignal
-): Promise<{ role: 'assistant'; content: string }> {
-  const service = new AIService({
-    provider: res.provider,
-    model: res.model,
-    params: {
-      temperature: res.agent.temperature,
-      maxTokens: res.agent.maxTokens,
-      topP: res.agent.topP,
-      reasoning: res.agent.reasoning,
-      webSearch: res.agent.webSearch,
-    },
-  });
-  return service.sendMessageToAI(messages, onToken, {
-    signal,
-    onWebSources: onSources,
-  }) as unknown as { role: 'assistant'; content: string };
-}
-
 function appendTokenToLastAssistant(set: ChatSet, token: string) {
   set((cur) => {
     const msgs = [...cur.messages];
@@ -121,49 +103,127 @@ function attachSourcesToLastAssistant(set: ChatSet, sources: ChatSource[]) {
   });
 }
 
+function finishStreamWaiter(streamId: string, end: StreamEnd) {
+  const resolve = streamWaiters.get(streamId);
+  if (resolve) {
+    streamWaiters.delete(streamId);
+    resolve(end);
+  }
+}
+
+function waitForStreamEnd(streamId: string): Promise<StreamEnd> {
+  return new Promise((resolve) => {
+    streamWaiters.set(streamId, resolve);
+  });
+}
+
+function ensureAiListeners(set: ChatSet) {
+  if (aiListenersBound) return;
+  const api = window.electronAPI;
+  if (!api?.onAiToken) return;
+  aiListenersBound = true;
+
+  api.onAiToken(({ streamId, text }) => {
+    if (streamId !== currentStreamId) return;
+    if (reasoningOpen) {
+      reasoningOpen = false;
+      appendTokenToLastAssistant(set, '</think>');
+    }
+    appendTokenToLastAssistant(set, text);
+  });
+
+  api.onAiReasoning(({ streamId, text }) => {
+    if (streamId !== currentStreamId) return;
+    if (!reasoningOpen) {
+      reasoningOpen = true;
+      appendTokenToLastAssistant(set, '<think>');
+    }
+    appendTokenToLastAssistant(set, text);
+  });
+
+  api.onAiSource(({ streamId, source }) => {
+    if (streamId !== currentStreamId) return;
+    attachSourcesToLastAssistant(set, [source]);
+  });
+
+  api.onAiDone(({ streamId, reason }) => {
+    if (streamId !== currentStreamId) return;
+    if (reasoningOpen) {
+      reasoningOpen = false;
+      appendTokenToLastAssistant(set, '</think>');
+    }
+    finishStreamWaiter(streamId, { kind: reason });
+  });
+
+  api.onAiError(({ streamId, message }) => {
+    if (streamId !== currentStreamId) return;
+    if (reasoningOpen) {
+      reasoningOpen = false;
+      appendTokenToLastAssistant(set, '</think>');
+    }
+    finishStreamWaiter(streamId, { kind: 'error', message });
+  });
+}
+
 async function executeStreamingRequest(
   res: Extract<AgentResolution, { ok: true }>,
   set: ChatSet,
   messages: Message[],
-  signal: AbortSignal,
   options: { onAbort?: 'append-system' | 'ignore' } = {}
 ): Promise<void> {
   const onAbort = options.onAbort ?? 'append-system';
+  ensureAiListeners(set);
+  reasoningOpen = false;
 
-  try {
-    await runAIRequest(
-      res,
-      messages,
-      (token) => appendTokenToLastAssistant(set, token),
-      (sources) => attachSourcesToLastAssistant(set, sources),
-      signal
-    );
-  } catch (err: any) {
-    if (err?.name === 'AbortError') {
-      if (onAbort === 'append-system') {
-        set((cur) => ({
-          messages: [
-            ...cur.messages,
-            { role: 'system', content: 'Response is aborted.' } as Message,
-          ],
-        }));
-      }
-      return;
-    }
+  const result = await window.electronAPI.aiSend({
+    agentId: res.agent.id,
+    messages: messages.filter((m) => m.role !== 'error'),
+  });
 
+  if ('error' in result) {
+    pushErrorMessage(set, result.error.message);
+    return;
+  }
+
+  const endPromise = waitForStreamEnd(result.streamId);
+  currentStreamId = result.streamId;
+  set({ streamId: result.streamId });
+
+  const end = await endPromise;
+  currentStreamId = null;
+  set({ streamId: null });
+
+  if (end.kind === 'error') {
     set((cur) => {
       const last = cur.messages.at(-1);
       const placeholder = last?.role === 'assistant' && last?.content === '';
       const base = placeholder ? cur.messages.slice(0, -1) : cur.messages;
-      const detail = err instanceof Error ? err.message : String(err ?? '');
       return {
         messages: [
           ...base,
-          { role: 'error', content: 'Failed to get response.', detail } as unknown as Message,
+          {
+            role: 'error',
+            content: 'Failed to get response.',
+            detail: end.message,
+          } as unknown as Message,
         ],
       };
     });
+    return;
   }
+
+  if (end.kind === 'aborted' && onAbort === 'append-system') {
+    set((cur) => ({
+      messages: [...cur.messages, { role: 'system', content: 'Response is aborted.' } as Message],
+    }));
+  }
+}
+
+export function __resetChatStreamStateForTests(): void {
+  aiListenersBound = false;
+  currentStreamId = null;
+  reasoningOpen = false;
+  streamWaiters.clear();
 }
 
 export const useChatStore = create<ChatStoreState>((set, get) => ({
@@ -175,7 +235,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
   reasoningEnabled: false,
   webSearchEnabled: false,
   activeAgentId: null,
-  abortController: null,
+  streamId: null,
 
   setInput: (v) => set({ input: v }),
 
@@ -219,12 +279,13 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     window.electronAPI?.chat?.onAbort?.(() => {
       useChatStore.getState().abort();
     });
+    ensureAiListeners(set);
   },
 
   abort: () => {
-    const c = get().abortController;
-    if (c) c.abort();
-    set({ loading: false, abortController: null });
+    const id = get().streamId;
+    if (id) void window.electronAPI?.aiAbort?.(id);
+    set({ loading: false, streamId: null });
   },
 
   send: async () => {
@@ -267,13 +328,11 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
       loading: true,
     });
 
-    const ctrl = new AbortController();
-    set({ abortController: ctrl });
-
     try {
-      await executeStreamingRequest(res, set, seeded, ctrl.signal, { onAbort: 'append-system' });
+      await executeStreamingRequest(res, set, seeded, { onAbort: 'append-system' });
     } finally {
-      set({ loading: false, abortController: null });
+      set({ loading: false, streamId: null });
+      currentStreamId = null;
     }
   },
 
@@ -302,17 +361,16 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     }
     seeded.push({ role: 'user', content: seed.text } as Message);
 
-    const ctrl = new AbortController();
     set({
       loading: true,
-      abortController: ctrl,
       messages: [...seeded, { role: 'assistant', content: '' } as Message],
     });
 
     try {
-      await executeStreamingRequest(res, set, seeded, ctrl.signal, { onAbort: 'ignore' });
+      await executeStreamingRequest(res, set, seeded, { onAbort: 'ignore' });
     } finally {
-      set({ loading: false, abortController: null });
+      set({ loading: false, streamId: null });
+      currentStreamId = null;
     }
   },
 }));
