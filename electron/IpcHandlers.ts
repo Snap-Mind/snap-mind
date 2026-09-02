@@ -4,6 +4,8 @@ import type SettingsService from './SettingsService.js';
 import type ThemeService from './ThemeService.js';
 import type OpenAtLoginService from './OpenAtLoginService.js';
 import type AutoUpdateService from './AutoUpdateService.js';
+import type { AgentsService } from './AgentsService.js';
+import type { HotkeysService } from './HotkeysService.js';
 import type { ProvidersService } from './ProvidersService.js';
 import logService from './LogService.js';
 import SystemPermissionService from './SystemPermissionService.js';
@@ -13,12 +15,15 @@ export interface IpcHandlerContext {
   settingsService: SettingsService;
   themeService: ThemeService;
   openAtLoginService: OpenAtLoginService;
+  getAgentsService: () => AgentsService;
+  getHotkeysService: () => HotkeysService;
   getProvidersService: () => ProvidersService;
   getAutoUpdateService: () => AutoUpdateService | null;
   registerHotkeys: () => void;
   showMainWindow: () => void;
   getAppRootDir: () => string;
   quitApp: () => void;
+  prepareForUpdateInstall: () => void;
 }
 
 export function registerIpcHandlers(ctx: IpcHandlerContext): void {
@@ -27,18 +32,35 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
     settingsService,
     themeService,
     openAtLoginService,
+    getAgentsService,
+    getHotkeysService,
     getProvidersService,
     getAutoUpdateService,
     registerHotkeys,
     showMainWindow,
     getAppRootDir,
     quitApp,
+    prepareForUpdateInstall,
   } = ctx;
 
   const broadcastProvidersChanged = async () => {
     const win = getMainWindow();
     if (win && !win.isDestroyed()) {
       win.webContents.send('providers:changed', await getProvidersService().list());
+    }
+  };
+
+  const broadcastAgentsChanged = async () => {
+    const win = getMainWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('agents:changed', await getAgentsService().list());
+    }
+  };
+
+  const broadcastHotkeysChanged = async () => {
+    const win = getMainWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('hotkeys:changed', await getHotkeysService().list());
     }
   };
 
@@ -53,28 +75,36 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
     quitApp();
   });
 
-  ipcMain.handle('hotkeys:get', () => settingsService.getHotkeys());
+  ipcMain.handle('hotkeys:list', async () => getHotkeysService().list());
 
-  ipcMain.handle('hotkeys:update', async (_event, newHotkeys) => {
-    if (!Array.isArray(newHotkeys) || newHotkeys.length === 0) {
-      logService.error('[ipc] Invalid hotkeys format received:', newHotkeys);
-      return { success: false, error: 'Invalid hotkeys format' };
-    }
-
-    const updated = await settingsService.updateHotkeys(newHotkeys);
+  ipcMain.handle('hotkeys:update', async (_event, id: number, patch) => {
+    if (!Number.isInteger(id) || id <= 0) throw new Error('Invalid hotkey id');
+    const dto = await getHotkeysService().update(id, patch);
     registerHotkeys();
-    return { success: true, hotkeys: updated };
+    await broadcastHotkeysChanged();
+    return dto;
   });
 
-  ipcMain.handle('hotkeys:update-path', async (_event, { path: hotkeyPath, value }) => {
-    try {
-      const updated = await settingsService.updateHotkey(hotkeyPath, value);
-      registerHotkeys();
-      return { success: true, hotkeys: updated };
-    } catch (error) {
-      logService.error('[ipc] Failed to update hotkey:', error);
-      return { success: false, error: (error as Error).message };
-    }
+  ipcMain.handle('agents:list', async () => getAgentsService().list());
+
+  ipcMain.handle('agents:create', async (_event, input) => {
+    const dto = await getAgentsService().create(input);
+    await broadcastAgentsChanged();
+    return dto;
+  });
+
+  ipcMain.handle('agents:update', async (_event, id: number, patch) => {
+    if (!Number.isInteger(id) || id <= 0) throw new Error('Invalid agent id');
+    const dto = await getAgentsService().update(id, patch);
+    await broadcastAgentsChanged();
+    return dto;
+  });
+
+  ipcMain.handle('agents:delete', async (_event, id: number) => {
+    if (!Number.isInteger(id) || id <= 0) throw new Error('Invalid agent id');
+    await getAgentsService().delete(id);
+    await broadcastAgentsChanged();
+    await broadcastHotkeysChanged();
   });
 
   ipcMain.handle('settings:get', () => settingsService.getSettings());
@@ -161,11 +191,11 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
     await broadcastProvidersChanged();
   });
 
-  ipcMain.handle('text-selection:trigger', (_event, text: string, prompt: string) => {
+  ipcMain.handle('text-selection:trigger', (_event, text: string, agentId: number | null) => {
     const win = getMainWindow();
     if (win && !win.isDestroyed()) {
       win.webContents.send('nav:go', '/chat');
-      win.webContents.send('chat:reset-with-seed', { text, prompt });
+      win.webContents.send('chat:reset-with-seed', { text, agentId });
       showMainWindow();
     }
     return { success: true };
@@ -241,6 +271,7 @@ export function registerIpcHandlers(ctx: IpcHandlerContext): void {
   });
 
   ipcMain.handle('update:install', () => {
+    prepareForUpdateInstall();
     const autoUpdateService = getAutoUpdateService();
     if (autoUpdateService) return autoUpdateService.installNow();
     return false;

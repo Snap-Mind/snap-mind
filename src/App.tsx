@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useHref } from 'react-router';
 import { useTheme } from '@heroui/use-theme';
-import { HeroUIProvider } from '@heroui/react';
+import { HeroUIProvider, ToastProvider } from '@heroui/react';
 
 import ChatPopup from './pages/ChatPopup/ChatPopup';
 import Settings from './pages/Settings/Settings';
@@ -34,6 +34,7 @@ function App() {
   return (
     <>
       <HeroUIProvider navigate={navigate} useHref={useHref}>
+        <ToastProvider placement="bottom-right" toastOffset={16} />
         <Routes>
           <Route path="/" element={<Navigate to="/chat" replace />} />
           <Route path="/chat" element={<ChatPopup />} />

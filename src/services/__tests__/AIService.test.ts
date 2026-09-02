@@ -14,38 +14,26 @@ vi.mock('../providers/ProviderFactory', () => ({
   },
 }));
 
-function makeSettings() {
+function makeContext() {
   return {
-    chat: {
-      defaultProviderId: 1,
-      defaultModelId: 10,
-      temperature: 0.7,
-      max_tokens: 2048,
-      top_p: 0.95,
-      streamingEnabled: true,
-      reasoningEnabled: false,
-      webSearchEnabled: false,
+    provider: {
+      id: 1,
+      kind: 'openai',
+      name: 'OpenAI',
+      apiKey: 'test-key',
+      host: 'https://api.openai.com/v1',
+      description: null,
+      models: [],
     },
-    providers: [
-      {
-        id: 1,
-        kind: 'openai',
-        name: 'OpenAI',
-        apiKey: 'test-key',
-        host: 'https://api.openai.com/v1',
-        description: null,
-        models: [
-          {
-            id: 10,
-            modelId: 'gpt-4',
-            name: 'GPT-4',
-            type: 'chat',
-            capabilities: ['chat'],
-            description: null,
-          },
-        ],
-      },
-    ],
+    model: {
+      id: 10,
+      modelId: 'gpt-4',
+      name: 'GPT-4',
+      type: 'chat',
+      capabilities: ['chat'],
+      description: null,
+    },
+    params: { temperature: 0.7, maxTokens: 2048, topP: 0.95 },
   };
 }
 
@@ -56,7 +44,7 @@ describe('AIService.sendMessageToAI', () => {
   });
 
   it('filters out role:"error" messages before sending to provider', async () => {
-    const service = new AIService(makeSettings());
+    const service = new AIService(makeContext());
     const messages: Message[] = [
       { role: 'user', content: 'hi' },
       { role: 'assistant', content: 'hello' },
@@ -74,7 +62,7 @@ describe('AIService.sendMessageToAI', () => {
   });
 
   it('preserves role:"system" messages when sending', async () => {
-    const service = new AIService(makeSettings());
+    const service = new AIService(makeContext());
     const messages: Message[] = [
       { role: 'user', content: 'do it' },
       { role: 'system', content: 'Response is aborted.' },
@@ -88,7 +76,7 @@ describe('AIService.sendMessageToAI', () => {
   });
 
   it('preserves user and assistant messages in order', async () => {
-    const service = new AIService(makeSettings());
+    const service = new AIService(makeContext());
     const messages: Message[] = [
       { role: 'user', content: 'a' },
       { role: 'assistant', content: 'b' },
@@ -99,5 +87,21 @@ describe('AIService.sendMessageToAI', () => {
 
     const sent = sendMessageSpy.mock.calls[0][0] as Message[];
     expect(sent).toEqual(messages);
+  });
+
+  it('always requests streaming', async () => {
+    const service = new AIService(makeContext());
+    await service.sendMessageToAI([{ role: 'user', content: 'hi' }], () => {});
+    expect(sendMessageSpy.mock.calls[0][1].stream).toBe(true);
+  });
+
+  it('falls back to the built-in defaults when params are absent', async () => {
+    const { params: _ignored, ...ctx } = makeContext();
+    const service = new AIService(ctx);
+    await service.sendMessageToAI([{ role: 'user', content: 'hi' }], () => {});
+    const opts = sendMessageSpy.mock.calls[0][1];
+    expect(opts.temperature).toBe(0.7);
+    expect(opts.max_tokens).toBe(2048);
+    expect(opts.top_p).toBe(0.95);
   });
 });

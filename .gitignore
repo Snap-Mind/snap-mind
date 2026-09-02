@@ -43,6 +43,7 @@ snapmind.db
 snapmind.db-shm
 snapmind.db-wal
 settings.json.pre-sqlite.bak
+hotkeys.json.pre-agents.bak
 
 # TypeScript build info
 *.tsbuildinfo

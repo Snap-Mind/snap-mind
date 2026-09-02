@@ -16,18 +16,29 @@ vi.mock('@/services/AIService', () => {
   return { AIService };
 });
 
-const seedSettings = {
-  chat: {
-    temperature: 0.7,
-    max_tokens: 2048,
-    top_p: 0.95,
-    streamingEnabled: true,
-    reasoningEnabled: false,
-    webSearchEnabled: false,
-    defaultModelId: 10,
-    defaultProviderId: 1,
+const seedSettings = {};
+
+const seedAgents = [
+  {
+    id: 1,
+    name: 'Default',
+    description: null,
+    instructions: '',
+    providerId: 1,
+    modelId: 10,
+    isBuiltin: true,
   },
-};
+  {
+    id: 2,
+    name: 'Translate',
+    description: null,
+    instructions: 'translate:',
+    providerId: 1,
+    modelId: 10,
+    temperature: 0.2,
+    isBuiltin: false,
+  },
+];
 
 const seedProviders = [
   {
@@ -70,9 +81,15 @@ async function freshStores() {
     },
     true
   );
+  const agentsMod = await import('../useAgentsStore');
+  agentsMod.useAgentsStore.setState({ agents: seedAgents as any, isHydrated: true });
   const chatMod = await import('../useChatStore');
   chatMod.useChatStore.setState(chatMod.useChatStore.getInitialState(), true);
-  return { chat: chatMod.useChatStore, settings: settingsMod.useSettingsStore };
+  return {
+    chat: chatMod.useChatStore,
+    settings: settingsMod.useSettingsStore,
+    agents: agentsMod,
+  };
 }
 
 describe('useChatStore', () => {
@@ -95,20 +112,68 @@ describe('useChatStore', () => {
     expect(chat.getState().loading).toBe(false);
   });
 
-  it('resetWithSeed({text, prompt}) seeds and calls AIService', async () => {
+  it('resetWithSeed({text, agentId}) seeds the agent instructions and calls AIService', async () => {
+    const { chat } = await freshStores();
+    const { AIService: AIServiceClass } = await import('@/services/AIService');
+    await chat.getState().resetWithSeed({ text: 'foo', agentId: 2 });
+
+    const messages = chat.getState().messages;
+    expect(messages[0]).toEqual({ role: 'system', content: 'translate:' });
+    expect(messages[1]).toEqual({ role: 'user', content: 'foo' });
+    expect(chat.getState().activeAgentId).toBe(2);
+
+    const instance = AIServiceClass.instances.at(-1)!;
+    expect(instance.settings.model.modelId).toBe('gpt-4');
+    expect(instance.settings.params.temperature).toBe(0.2);
+  });
+
+  it('resetWithSeed with no text sets the agent and clears the session without sending', async () => {
     const { chat } = await freshStores();
     const { AIService } = await import('@/services/AIService');
+    const before = AIService.instances.length;
+    await chat.getState().resetWithSeed({ agentId: 1 });
 
-    await chat.getState().resetWithSeed({ text: 'foo', prompt: 'translate:' });
+    expect(chat.getState().messages).toEqual([]);
+    expect(chat.getState().activeAgentId).toBe(1);
+    expect(AIService.instances.length).toBe(before);
+  });
 
-    const msgs = chat.getState().messages;
-    expect(msgs[0]).toMatchObject({ role: 'system', content: 'translate:' });
-    expect(msgs[1]).toMatchObject({ role: 'user', content: 'foo' });
-    expect((AIService as any).instances.length).toBeGreaterThan(0);
+  it('renders an error message when the hotkey has no agent', async () => {
+    const { chat } = await freshStores();
+    await chat.getState().resetWithSeed({ text: 'foo', agentId: null });
+
+    const last = chat.getState().messages.at(-1)!;
+    expect(last.role).toBe('error');
+    expect(last.content).toMatch(/Settings > Hotkeys/);
+  });
+
+  it('renders an error message when the active agent is unbound', async () => {
+    const { chat, agents } = await freshStores();
+    agents.useAgentsStore.setState({
+      agents: [{ ...seedAgents[1], providerId: null, modelId: null }] as any,
+      isHydrated: true,
+    });
+    await chat.getState().resetWithSeed({ text: 'foo', agentId: 2 });
+
+    const last = chat.getState().messages.at(-1)!;
+    expect(last.role).toBe('error');
+    expect(last.content).toMatch(/Translate/);
+  });
+
+  it('setWebSearch persists to the active agent', async () => {
+    const updateAgent = vi.fn(async () => ({}) as any);
+    const { chat, agents } = await freshStores();
+    agents.useAgentsStore.setState({ updateAgent } as any);
+
+    chat.getState().setActiveAgent(2);
+    chat.getState().setWebSearch(true);
+
+    expect(updateAgent).toHaveBeenCalledWith(2, { webSearch: true });
   });
 
   it('send() appends user + assistant messages and clears input', async () => {
     const { chat } = await freshStores();
+    chat.getState().setActiveAgent(1);
     chat.getState().setInput('hi');
     await chat.getState().send();
 
@@ -119,29 +184,15 @@ describe('useChatStore', () => {
     expect(chat.getState().loading).toBe(false);
   });
 
-  it('setReasoning mirrors to settings store via IPC', async () => {
-    const { chat, settings } = await freshStores();
-    const spy = window.electronAPI.updateSetting as any;
+  it('setReasoning persists to the active agent', async () => {
+    const updateAgent = vi.fn(async () => ({}) as any);
+    const { chat, agents } = await freshStores();
+    agents.useAgentsStore.setState({ updateAgent } as any);
 
+    chat.getState().setActiveAgent(2);
     chat.getState().setReasoning(true);
 
-    expect(spy).toHaveBeenCalledWith(['chat', 'reasoningEnabled'], true);
-    expect(chat.getState().reasoningEnabled).toBe(true);
-    expect(settings.getState().settings.chat.reasoningEnabled).toBe(true);
-  });
-
-  it('setModel writes both defaultProviderId and defaultModelId to settings', async () => {
-    const { chat, settings } = await freshStores();
-    const spy = window.electronAPI.updateSetting as any;
-
-    chat.getState().setModel(2, 20);
-
-    expect(spy).toHaveBeenCalledWith(['chat', 'defaultProviderId'], 2);
-    expect(spy).toHaveBeenCalledWith(['chat', 'defaultModelId'], 20);
-    expect(chat.getState().currentProviderId).toBe(2);
-    expect(chat.getState().currentModelId).toBe(20);
-    expect(settings.getState().settings.chat.defaultProviderId).toBe(2);
-    expect(settings.getState().settings.chat.defaultModelId).toBe(20);
+    expect(updateAgent).toHaveBeenCalledWith(2, { reasoning: true });
   });
 
   it('abort() sets loading false and marks controller aborted', async () => {

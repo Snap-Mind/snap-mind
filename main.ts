@@ -25,6 +25,10 @@ import { openDatabase } from './electron/db/client.js';
 import { resolveMigrationsFolder, runMigrations } from './electron/db/migrate.js';
 import { runImportIfNeeded } from './electron/db/import.js';
 import { ProvidersService } from './electron/ProvidersService.js';
+import { AgentsService } from './electron/AgentsService.js';
+import { HotkeysService } from './electron/HotkeysService.js';
+import { runAgentImportIfNeeded } from './electron/db/importAgents.js';
+import type { HotkeyDTO } from './electron/HotkeysService.js';
 import * as dbSchema from './electron/db/schema.js';
 import { resolveUserDataPath } from './electron/userDataPath.js';
 import { registerIpcHandlers } from './electron/IpcHandlers.js';
@@ -69,6 +73,8 @@ let mainWindow: import('electron').BrowserWindow | null = null;
 let sqliteDb: BetterSqlite3.Database | null = null;
 let drizzleDb: ReturnType<typeof drizzle<typeof dbSchema>> | null = null;
 let providersService: ProvidersService | null = null;
+let agentsService: AgentsService | null = null;
+let hotkeysService: HotkeysService | null = null;
 let isQuitting = false;
 
 function quitApp() {
@@ -85,6 +91,8 @@ function initDatabase() {
   runMigrations(sqliteDb, migrationsFolder);
   drizzleDb = drizzle(sqliteDb, { schema: dbSchema });
   providersService = new ProvidersService(drizzleDb);
+  agentsService = new AgentsService(drizzleDb);
+  hotkeysService = new HotkeysService(drizzleDb);
 }
 
 function isDev() {
@@ -94,10 +102,10 @@ function isDev() {
 function createMainWindow() {
   const titleBase = 'SnapMind';
   mainWindow = new BrowserWindow({
-    width: 500,
-    height: 700,
-    minWidth: 400,
-    minHeight: 500,
+    width: 960,
+    height: 600,
+    minWidth: 720,
+    minHeight: 480,
     frame: true,
     alwaysOnTop: false,
     skipTaskbar: false,
@@ -170,52 +178,46 @@ function hideMainWindow() {
 function registerHotkeys() {
   globalShortcut.unregisterAll();
 
-  settingsService.getHotkeys().forEach((hotkey: any, index: number) => {
-    if (!hotkey.enabled || !hotkey.key) return;
+  const rows = hotkeysService?.listSync() ?? [];
+  rows.forEach((hotkey, index) => {
+    if (!hotkey.enabled || !hotkey.accelerator) return;
     try {
-      globalShortcut.register(hotkey.key, () => {
-        logService.info(`Hotkey pressed: ${hotkey.key}`);
+      globalShortcut.register(hotkey.accelerator, () => {
+        logService.info(`Hotkey pressed: ${hotkey.accelerator}`);
         void triggerHotkey(hotkey);
       });
-      logService.info(`Registered hotkey ${index + 1}: ${hotkey.key}`);
+      logService.info(`Registered hotkey ${index + 1}: ${hotkey.accelerator}`);
     } catch (error) {
-      logService.error(`Failed to register hotkey ${hotkey.key}:`, error);
+      logService.error(`Failed to register hotkey ${hotkey.accelerator}:`, error);
     }
   });
 }
 
-async function triggerHotkey(hotkey: { id: number; key: string; prompt?: string }) {
+async function triggerHotkey(hotkey: HotkeyDTO) {
   // 1. Signal renderer to abort any in-flight AI request.
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('chat:abort');
   }
 
-  // 2. If the hotkey has a prompt, run the helper and get the OS selection.
-  let seed: { text?: string; prompt?: string } = {};
-  if (hotkey.prompt) {
+  // 2. Selection hotkeys read the OS selection; chat hotkeys just open the window.
+  let text: string | undefined;
+  if (hotkey.mode === 'selection') {
     try {
-      seed = await runSelectionHelper(hotkey.prompt);
+      ({ text } = await runSelectionHelper());
     } catch (err) {
       logService.error('Selection helper failed:', err);
-      seed = {}; // Fresh empty session on failure; matches today's behaviour.
     }
   }
 
-  // 3. Navigate to chat (even if user is on settings).
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('nav:go', '/chat');
+    mainWindow.webContents.send('chat:reset-with-seed', { text, agentId: hotkey.agentId });
   }
 
-  // 4. Emit reset-with-seed to the renderer.
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('chat:reset-with-seed', seed);
-  }
-
-  // 5. Show and focus the window.
   showMainWindow();
 }
 
-export function runSelectionHelper(prompt: string): Promise<{ text?: string; prompt?: string }> {
+export function runSelectionHelper(): Promise<{ text?: string }> {
   const helperPath =
     process.platform === 'win32'
       ? path.join(resourcesPath, 'helper', 'SelectedTextWin.exe')
@@ -230,10 +232,10 @@ export function runSelectionHelper(prompt: string): Promise<{ text?: string; pro
       try {
         const result = JSON.parse(String(stdout).trim());
         if (result?.success && result?.selectedText) {
-          resolve({ text: result.selectedText, prompt });
+          resolve({ text: result.selectedText });
         } else {
           logService.warn('No selected text found:', result?.error || 'Unknown');
-          resolve({ prompt }); // Prompt without text → renderer treats as empty seed.
+          resolve({});
         }
       } catch (parseErr) {
         reject(parseErr);
@@ -290,11 +292,16 @@ registerIpcHandlers({
   themeService,
   openAtLoginService,
   getProvidersService: () => providersService!,
+  getAgentsService: () => agentsService!,
+  getHotkeysService: () => hotkeysService!,
   getAutoUpdateService: () => autoUpdateService,
   registerHotkeys,
   showMainWindow,
   getAppRootDir: () => (isDev() ? path.join(__dirname, '..') : path.dirname(process.execPath)),
   quitApp,
+  prepareForUpdateInstall: () => {
+    isQuitting = true;
+  },
 });
 
 app.on('window-all-closed', function () {
@@ -309,16 +316,17 @@ app.whenReady().then(async () => {
 
   try {
     initDatabase();
-    const settingsPath = path.join(resolveUserDataPath(), 'settings.json');
-    const importResult = await runImportIfNeeded({
+    const userDataDir = resolveUserDataPath();
+    const settingsPath = path.join(userDataDir, 'settings.json');
+    const importResult = await runImportIfNeeded({ settingsPath, db: drizzleDb! });
+    const agentImportResult = await runAgentImportIfNeeded({
+      hotkeysPath: path.join(userDataDir, 'hotkeys.json'),
       settingsPath,
       db: drizzleDb!,
     });
-    if (importResult === 'imported') {
+    if (importResult === 'imported' || agentImportResult === 'imported') {
       settingsService.initializeConfigs();
     }
-    settingsService.setProvidersService(providersService!);
-    await settingsService.resolveAndPersistDefaults();
   } catch (e) {
     logService.error('[main] database init failed', e);
     const { dialog } = await import('electron');

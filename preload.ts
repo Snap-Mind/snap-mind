@@ -1,10 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  // Hotkey management
-  getHotkeys: () => ipcRenderer.invoke('hotkeys:get'),
-  updateHotkeys: (newHotkeys) => ipcRenderer.invoke('hotkeys:update', newHotkeys),
-  updateHotkey: (path, value) => ipcRenderer.invoke('hotkeys:update-path', { path, value }),
   // Settings management
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (newSettings) => ipcRenderer.invoke('settings:update', newSettings),
@@ -21,8 +17,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openLogFile: () => ipcRenderer.invoke('logs:open-file'),
   log: (level, message, ...args) => ipcRenderer.invoke('logs:log', level, message, ...args),
   // Manual text selection trigger (for testing)
-  triggerTextSelection: (text, prompt) =>
-    ipcRenderer.invoke('text-selection:trigger', text, prompt),
+  triggerTextSelection: (text, agentId) =>
+    ipcRenderer.invoke('text-selection:trigger', text, agentId),
   // System permission
   checkPermission: () => ipcRenderer.invoke('permission:check'),
   // Open macOS System Settings > Accessibility
@@ -49,7 +45,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setOpenAtLogin: (enabled) => ipcRenderer.invoke('app:set-open-at-login', enabled),
 
   chat: {
-    onResetWithSeed: (callback: (_seed: { text?: string; prompt?: string }) => void) => {
+    onResetWithSeed: (callback: (_seed: { text?: string; agentId?: number | null }) => void) => {
       ipcRenderer.removeAllListeners('chat:reset-with-seed');
       ipcRenderer.on('chat:reset-with-seed', (_e, payload) => callback(payload));
     },
@@ -69,6 +65,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on('nav:go', (_e, path) => callback(path));
     },
     offGo: () => ipcRenderer.removeAllListeners('nav:go'),
+  },
+  agents: {
+    list: () => ipcRenderer.invoke('agents:list'),
+    create: (input: unknown) => ipcRenderer.invoke('agents:create', input),
+    update: (id: number, patch: unknown) => ipcRenderer.invoke('agents:update', id, patch),
+    delete: (id: number) => ipcRenderer.invoke('agents:delete', id),
+    onChanged: (callback: (_list: unknown) => void) => {
+      ipcRenderer.removeAllListeners('agents:changed');
+      ipcRenderer.on('agents:changed', (_e, list) => callback(list));
+    },
+    offChanged: () => ipcRenderer.removeAllListeners('agents:changed'),
+  },
+  hotkeys: {
+    list: () => ipcRenderer.invoke('hotkeys:list'),
+    update: (id: number, patch: unknown) => ipcRenderer.invoke('hotkeys:update', id, patch),
+    onChanged: (callback: (_list: unknown) => void) => {
+      ipcRenderer.removeAllListeners('hotkeys:changed');
+      ipcRenderer.on('hotkeys:changed', (_e, list) => callback(list));
+    },
+    offChanged: () => ipcRenderer.removeAllListeners('hotkeys:changed'),
   },
   providers: {
     list: () => ipcRenderer.invoke('providers:list'),

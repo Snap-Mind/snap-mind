@@ -74,8 +74,22 @@ vi.mock('electron-updater', () => ({
 import { runSelectionHelper } from '../../main';
 
 describe('runSelectionHelper', () => {
-  it('resolves { text, prompt } when helper reports success', async () => {
-    const seed = await runSelectionHelper('translate:');
-    expect(seed).toEqual({ text: 'HELLO', prompt: 'translate:' });
+  it('resolves { text } when helper reports success', async () => {
+    const seed = await runSelectionHelper();
+    expect(seed).toEqual({ text: 'HELLO' });
+  });
+
+  it('resolves {} when helper reports no selection', async () => {
+    execFileMock.mockImplementationOnce(
+      (
+        _bin: string,
+        _args: string[],
+        cb: (_err: any, _stdout: string, _stderr: string) => void
+      ) => {
+        cb(null, JSON.stringify({ success: false, error: 'no selection' }), '');
+      }
+    );
+    const seed = await runSelectionHelper();
+    expect(seed).toEqual({});
   });
 });
