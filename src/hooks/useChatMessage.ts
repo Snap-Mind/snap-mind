@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { ContentPart } from '@/types/chat';
-import { getTextContent } from '@/services/providers/core/messageUtils';
+import { getTextContent } from '@/utils/messageContent';
 
 export interface ParsedChatMessage {
   thinking: string;

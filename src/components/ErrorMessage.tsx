@@ -2,7 +2,7 @@ import { Accordion, AccordionItem } from '@heroui/react';
 
 import Icon from './Icon';
 import { Message } from '@/types/chat';
-import { getTextContent } from '@/services/providers/core/messageUtils';
+import { getTextContent } from '@/utils/messageContent';
 
 interface ErrorMessageProps {
   message: Message;

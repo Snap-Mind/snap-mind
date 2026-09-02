@@ -1,6 +1,11 @@
 import { ipcMain } from 'electron';
 import type { AIService } from '../ai/AIService.js';
-import type { AiSendRequest } from '../../src/types/ai-ipc.js';
+import type { Message } from '../../src/types/chat.js';
+
+type AiSendRequest = {
+  agentId: number;
+  messages: Message[];
+};
 
 export function registerAiIpc(getAIService: () => AIService): void {
   ipcMain.handle('ai:send', async (event, req: AiSendRequest) => {
