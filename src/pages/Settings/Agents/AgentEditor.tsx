@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Divider,
@@ -66,12 +66,6 @@ function AgentEditor({ agent }: AgentEditorProps) {
 
   const [formValues, setFormValues] = useState<AgentFormValues>(() => agentToFormValues(agent));
   const [errors, setErrors] = useState<AgentFormErrors>({});
-
-  useEffect(() => {
-    setFormValues(agentToFormValues(agent));
-    setErrors({});
-    onDeleteClose();
-  }, [agent.id, onDeleteClose]);
 
   const models = providers.find((p) => p.id === formValues.providerId)?.models ?? [];
   const modelIds = models.map((model) => model.id);

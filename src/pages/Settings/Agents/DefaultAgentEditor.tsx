@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useState, type FormEvent } from 'react';
 import { Divider, Input, Select, SelectItem, Slider, Textarea, addToast } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
@@ -47,11 +47,6 @@ function DefaultAgentEditor({ agent }: DefaultAgentEditorProps) {
     agentToDefaultFormValues(agent)
   );
   const [errors, setErrors] = useState<AgentFormErrors>({});
-
-  useEffect(() => {
-    setFormValues(agentToDefaultFormValues(agent));
-    setErrors({});
-  }, [agent.id]);
 
   const models = providers.find((p) => p.id === formValues.providerId)?.models ?? [];
   const modelIds = models.map((model) => model.id);
