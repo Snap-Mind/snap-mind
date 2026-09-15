@@ -41,6 +41,11 @@ function openaiProvider(): ProviderDTO {
   };
 }
 
+function firstCallOptions(streamText: ReturnType<typeof vi.fn>): Record<string, unknown> {
+  const calls = streamText.mock.calls as unknown as unknown[][];
+  return calls[0][0] as Record<string, unknown>;
+}
+
 function makeService(streamText: ReturnType<typeof vi.fn>) {
   const agents = { list: vi.fn(() => [boundAgent()]) };
   const providers = { list: vi.fn(() => [openaiProvider()]) };
@@ -102,6 +107,60 @@ describe('AIService', () => {
     await vi.waitFor(() => expect(onToken).toHaveBeenCalledWith('hello'));
     await vi.waitFor(() => expect(onDone).toHaveBeenCalledWith('stop'));
     expect(streamText).toHaveBeenCalledWith(expect.objectContaining({ reasoning: 'none' }));
+  });
+
+  it('sends agent instructions via the instructions option, not as a system message', async () => {
+    async function* fullStream() {
+      yield { type: 'text-delta', text: 'hi' };
+    }
+    const streamText = vi.fn(() => ({ fullStream: fullStream() }));
+    const { svc } = makeService(streamText);
+
+    await svc.send(
+      1,
+      [
+        { role: 'system', content: 'be helpful' },
+        { role: 'user', content: 'translate this' },
+      ],
+      {
+        onToken: vi.fn(),
+        onReasoning: vi.fn(),
+        onSource: vi.fn(),
+        onDone: vi.fn(),
+        onError: vi.fn(),
+      }
+    );
+
+    const opts = firstCallOptions(streamText) as {
+      instructions?: string;
+      messages: Array<{ role: string }>;
+    };
+    expect(opts.instructions).toBe('be helpful');
+    expect(opts.messages).toEqual([{ role: 'user', content: 'translate this' }]);
+  });
+
+  it('omits instructions when the agent has none', async () => {
+    async function* fullStream() {
+      yield { type: 'text-delta', text: 'hi' };
+    }
+    const agents = { list: vi.fn(() => [{ ...boundAgent(), instructions: '   ' }]) };
+    const providers = { list: vi.fn(() => [openaiProvider()]) };
+    const streamText = vi.fn(() => ({ fullStream: fullStream() }));
+    const svc = new AIService(agents as never, providers as never, {
+      streamText: streamText as never,
+      createLanguageModel: vi.fn(() => ({ model: 'mock' })) as never,
+    });
+
+    await svc.send(1, [{ role: 'user', content: 'hi' }], {
+      onToken: vi.fn(),
+      onReasoning: vi.fn(),
+      onSource: vi.fn(),
+      onDone: vi.fn(),
+      onError: vi.fn(),
+    });
+
+    const opts = firstCallOptions(streamText) as { instructions?: string };
+    expect(opts.instructions).toBeUndefined();
   });
 
   it('passes reasoning medium when agent has reasoning enabled', async () => {

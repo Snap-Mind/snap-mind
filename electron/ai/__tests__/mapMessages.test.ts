@@ -3,11 +3,12 @@ import { mapMessages } from '../mapMessages.js';
 import type { Message } from '../../../src/types/chat.js';
 
 describe('mapMessages', () => {
-  it('prepends system instructions when non-empty', () => {
-    const history: Message[] = [{ role: 'user', content: 'hi' }];
-    const out = mapMessages(history, 'You are helpful.');
-    expect(out[0]).toEqual({ role: 'system', content: 'You are helpful.' });
-    expect(out[1]).toEqual({ role: 'user', content: 'hi' });
+  it('drops system roles because instructions are passed separately', () => {
+    const history: Message[] = [
+      { role: 'system', content: 'You are helpful.' },
+      { role: 'user', content: 'hi' },
+    ];
+    expect(mapMessages(history)).toEqual([{ role: 'user', content: 'hi' }]);
   });
 
   it('drops error roles', () => {
@@ -15,7 +16,20 @@ describe('mapMessages', () => {
       { role: 'error', content: 'fail' },
       { role: 'user', content: 'hi' },
     ];
-    expect(mapMessages(history, '')).toEqual([{ role: 'user', content: 'hi' }]);
+    expect(mapMessages(history)).toEqual([{ role: 'user', content: 'hi' }]);
+  });
+
+  it('keeps user and assistant turns in order', () => {
+    const history: Message[] = [
+      { role: 'user', content: 'hi' },
+      { role: 'assistant', content: 'hello' },
+      { role: 'user', content: 'bye' },
+    ];
+    expect(mapMessages(history)).toEqual([
+      { role: 'user', content: 'hi' },
+      { role: 'assistant', content: 'hello' },
+      { role: 'user', content: 'bye' },
+    ]);
   });
 
   it('maps image parts for multimodal user messages', () => {
@@ -28,7 +42,7 @@ describe('mapMessages', () => {
         ],
       },
     ];
-    expect(mapMessages(history, '')).toEqual([
+    expect(mapMessages(history)).toEqual([
       {
         role: 'user',
         content: [

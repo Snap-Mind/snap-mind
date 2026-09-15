@@ -15,13 +15,16 @@ function mapContent(content: string | ContentPart[]): string | ModelMessage['con
   });
 }
 
-export function mapMessages(history: Message[], instructions: string): ModelMessage[] {
+/**
+ * Maps chat history to AI SDK messages.
+ *
+ * `system` roles are dropped on purpose. AI SDK 7 rejects system messages in
+ * `messages`; agent instructions go through `streamText({ instructions })`.
+ */
+export function mapMessages(history: Message[]): ModelMessage[] {
   const out: ModelMessage[] = [];
-  if (instructions.trim()) {
-    out.push({ role: 'system', content: instructions });
-  }
   for (const message of history) {
-    if (message.role === 'error') continue;
+    if (message.role === 'error' || message.role === 'system') continue;
     out.push({
       role: message.role,
       content: mapContent(message.content),

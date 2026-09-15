@@ -33,6 +33,7 @@ export type AiStreamHandlers = {
 export type StreamTextFn = (_opts: {
   model: LanguageModel;
   messages: unknown;
+  instructions?: string;
   abortSignal: AbortSignal;
   temperature: number;
   maxOutputTokens: number;
@@ -122,10 +123,8 @@ export class AIService {
       return { error: { code: 'send_failed', message } };
     }
 
-    const mappedMessages = mapMessages(
-      messages.filter((m) => m.role !== 'error'),
-      agent.instructions
-    );
+    const mappedMessages = mapMessages(messages);
+    const instructions = agent.instructions?.trim() ? agent.instructions : undefined;
     const params = mapParams({
       temperature: agent.temperature,
       maxTokens: agent.maxTokens,
@@ -138,6 +137,7 @@ export class AIService {
       this.deps.streamText({
         model: languageModel,
         messages: mappedMessages,
+        instructions,
         abortSignal: controller.signal,
         temperature: params.temperature,
         maxOutputTokens: params.maxOutputTokens,

@@ -88,6 +88,7 @@ function getAIService(): AIService {
         streamText({
           model: opts.model,
           messages: opts.messages as never,
+          instructions: opts.instructions,
           abortSignal: opts.abortSignal,
           temperature: opts.temperature,
           maxOutputTokens: opts.maxOutputTokens,
