@@ -8,6 +8,11 @@ interface ErrorMessageProps {
   message: Message;
 }
 
+// 1lh is the inherited line-height, so the icon stays centered on the first
+// line of the headline at whatever font size the surrounding text uses.
+const ICON_BOX = 'flex h-[1lh] shrink-0 items-center';
+const HEADLINE_TEXT = 'text-sm font-medium text-danger';
+
 export default function ErrorMessage({ message }: ErrorMessageProps) {
   const headline = getTextContent(message.content);
   const detail = message.detail;
@@ -20,9 +25,14 @@ export default function ErrorMessage({ message }: ErrorMessageProps) {
             <AccordionItem
               key="error"
               aria-label={headline}
-              title={<span className="text-sm font-medium text-danger">{headline}</span>}
-              indicator={<Icon icon="circle-x" className="text-danger" size={16} />}
+              title={<span>{headline}</span>}
+              indicator={
+                <span className={ICON_BOX}>
+                  <Icon icon="circle-x" className="text-danger" size={16} />
+                </span>
+              }
               classNames={{
+                trigger: `items-start ${HEADLINE_TEXT}`,
                 content: 'pt-0 pb-2',
               }}
             >
@@ -32,9 +42,11 @@ export default function ErrorMessage({ message }: ErrorMessageProps) {
             </AccordionItem>
           </Accordion>
         ) : (
-          <div className="flex flex-row items-center gap-2 py-2">
-            <Icon icon="circle-x" className="text-danger" size={16} />
-            <span className="text-sm font-medium text-danger">{headline}</span>
+          <div className={`flex flex-row items-start gap-2 py-2 ${HEADLINE_TEXT}`}>
+            <span className={ICON_BOX}>
+              <Icon icon="circle-x" className="text-danger" size={16} />
+            </span>
+            <span>{headline}</span>
           </div>
         )}
       </div>

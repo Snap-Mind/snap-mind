@@ -4,6 +4,7 @@ import type { AgentsService } from '../services/AgentsService.js';
 import type { ProvidersService } from '../services/ProvidersService.js';
 import logService from '../LogService.js';
 import { createLanguageModel } from './createLanguageModel.js';
+import { describeAiError } from './describeAiError.js';
 import { mapMessages } from './mapMessages.js';
 import { mapParams, mapReasoningLevel } from './mapParams.js';
 import { redactValue, truncateDebugText } from './redact.js';
@@ -45,6 +46,16 @@ type InFlight = {
   streamId: string;
   controller: AbortController;
 };
+
+/**
+ * `streamText` does not throw when the provider request fails. It pushes an
+ * `error` part into the stream and then closes it normally.
+ */
+function readErrorPart(part: unknown): { error: unknown } | null {
+  if (!part || typeof part !== 'object') return null;
+  const chunk = part as Record<string, unknown>;
+  return chunk.type === 'error' ? { error: chunk.error } : null;
+}
 
 export class AIService {
   private inFlight: InFlight | null = null;
@@ -170,6 +181,13 @@ export class AIService {
     try {
       const { fullStream } = start();
       for await (const part of fullStream) {
+        const failure = readErrorPart(part);
+        if (failure) {
+          const message = describeAiError(failure.error);
+          this.streamLog.error('provider stream error', { streamId, message }, failure.error);
+          handlers.onError(message);
+          return;
+        }
         this.handleStreamPart(streamId, part, handlers);
       }
       if (!controller.signal.aborted) {
@@ -180,8 +198,8 @@ export class AIService {
         handlers.onDone('aborted');
         return;
       }
-      const message = err instanceof Error ? err.message : String(err);
-      this.streamLog.error('stream failed', { streamId, message });
+      const message = describeAiError(err);
+      this.streamLog.error('stream failed', { streamId, message }, err);
       handlers.onError(message);
     } finally {
       if (this.inFlight?.streamId === streamId) {

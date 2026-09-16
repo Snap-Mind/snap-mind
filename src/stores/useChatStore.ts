@@ -194,6 +194,9 @@ async function executeStreamingRequest(
   set({ streamId: null });
 
   if (end.kind === 'error') {
+    // The provider wording is the headline; extra lines go into the collapsible detail.
+    const [headline, ...rest] = end.message.split('\n');
+    const detail = rest.join('\n').trim();
     set((cur) => {
       const last = cur.messages.at(-1);
       const placeholder = last?.role === 'assistant' && last?.content === '';
@@ -203,8 +206,8 @@ async function executeStreamingRequest(
           ...base,
           {
             role: 'error',
-            content: 'Failed to get response.',
-            detail: end.message,
+            content: headline.trim() || 'Failed to get response.',
+            detail: detail || undefined,
           } as unknown as Message,
         ],
       };

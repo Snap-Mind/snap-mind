@@ -239,4 +239,28 @@ describe('AIService', () => {
 
     await vi.waitFor(() => expect(onError).toHaveBeenCalledWith('boom'));
   });
+
+  it('reports an error stream part instead of completing with stop', async () => {
+    async function* fullStream() {
+      yield {
+        type: 'error',
+        error: Object.assign(new Error('Gone'), { name: 'AI_APICallError', statusCode: 410 }),
+      };
+    }
+    const streamText = vi.fn(() => ({ fullStream: fullStream() }));
+    const { svc } = makeService(streamText);
+    const onError = vi.fn();
+    const onDone = vi.fn();
+
+    await svc.send(1, [{ role: 'user', content: 'hi' }], {
+      onToken: vi.fn(),
+      onReasoning: vi.fn(),
+      onSource: vi.fn(),
+      onDone,
+      onError,
+    });
+
+    await vi.waitFor(() => expect(onError).toHaveBeenCalledWith('HTTP 410: Gone'));
+    expect(onDone).not.toHaveBeenCalled();
+  });
 });

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 type AiHandlers = {
   onToken?: (payload: { streamId: string; text: string }) => void;
   onDone?: (payload: { streamId: string; reason: 'stop' | 'aborted' }) => void;
+  onError?: (payload: { streamId: string; message: string }) => void;
 };
 
 let aiHandlers: AiHandlers = {};
@@ -80,7 +81,9 @@ function setupElectronApi() {
       aiHandlers.onDone = cb;
     },
     offAiDone: vi.fn(),
-    onAiError: vi.fn(),
+    onAiError: (cb: AiHandlers['onError']) => {
+      aiHandlers.onError = cb;
+    },
     offAiError: vi.fn(),
   };
 }
@@ -207,6 +210,31 @@ describe('useChatStore', () => {
     expect(msgs.at(-1)).toMatchObject({ role: 'assistant', content: 'Hello' });
     expect(chat.getState().input).toBe('');
     expect(chat.getState().loading).toBe(false);
+  });
+
+  it('send() shows the provider error text and drops the empty assistant bubble', async () => {
+    const { chat } = await freshStores();
+    aiSendMock.mockImplementation(async () => {
+      setTimeout(() => {
+        aiHandlers.onError?.({
+          streamId: 's1',
+          message: 'HTTP 410: Gone\n{"error":"model not found"}',
+        });
+      }, 0);
+      return { streamId: 's1' };
+    });
+
+    chat.getState().setActiveAgent(1);
+    chat.getState().setInput('hi');
+    await chat.getState().send();
+
+    const msgs = chat.getState().messages;
+    expect(msgs.at(-1)).toMatchObject({
+      role: 'error',
+      content: 'HTTP 410: Gone',
+      detail: '{"error":"model not found"}',
+    });
+    expect(msgs.some((m) => m.role === 'assistant')).toBe(false);
   });
 
   it('setReasoning persists to the active agent', async () => {
