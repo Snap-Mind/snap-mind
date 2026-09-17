@@ -9,7 +9,7 @@ SnapMind is a cross-platform (macOS/Windows) Electron desktop app that lets user
 ## Commands
 
 ```bash
-npm install
+npm install                 # runs `db:rebuild` postinstall (better-sqlite3 is a native module)
 npm run build:helper        # mac: compiles helper/SelectedText.swift → helper/selectedtext
 npm run build:win-helper    # Windows equivalent (dotnet build in helper/SelectedTextWin)
 npm run dev:electron        # concurrently: vite main build (watch) + tsc preload (watch) + vite renderer + electron .
@@ -21,56 +21,77 @@ npm run format              # prettier --write
 npm test                    # vitest run (one-shot). Use `npm run test:watch` for watch mode, `test:coverage` for coverage.
 npx vitest run path/to/file.test.ts          # run a single test file
 npx vitest run -t "test name substring"      # run by test name
+npm run db:generate         # drizzle-kit generate — writes a new migration into electron/db/migrations from schema.ts
+npm run db:rebuild          # rebuild better-sqlite3 against the current Electron ABI (run after Electron upgrades)
 ```
 
-Helper binaries must be built before `dev:electron` can exercise the hotkey path end-to-end. Vitest uses `jsdom` and the `@/` alias maps to `src/` (see `vitest.config.ts`).
+Helper binaries must be built before `dev:electron` can exercise the hotkey path end-to-end. Vitest uses `jsdom` and the `@/` alias maps to `src/` (see `vitest.config.ts`). Tests live under `**/__tests__/` in both `electron/` and `src/`.
 
 ## Three TypeScript build targets
 
 The project has three distinct TS configs because main, preload, and renderer have different module systems and globals. When changing tsconfigs or imports, pick the right one:
 
-- `tsconfig.main.json` → bundled by `vite.config.main.ts` into `dist-electron/main.js`. Source: `main.ts` + `electron/*.ts`.
+- `tsconfig.main.json` → bundled by `vite.config.main.ts` into `dist-electron/main.js`. Source: `main.ts` + `electron/**/*.ts`.
 - `tsconfig.preload.json` → compiled by `tsc` into `dist-electron/preload.js`. Source: `preload.ts` only — this is the IPC contract.
 - `tsconfig.json` → renderer (`src/`), bundled by Vite (`vite.config.ts`) into `dist/`.
 
-The project is native ESM (`"type": "module"`). Keep file extensions on relative imports in main/preload code.
+The project is native ESM (`"type": "module"`). Keep `.js` extensions on relative imports in main-process code — the TS files reference `./foo.js` even though the source is `./foo.ts`, because that's what the emitted ESM needs at runtime.
 
 ## Architecture: hotkey → AI → UI
 
 The control flow that touches the most code:
 
-1. `main.ts:registerHotkeys()` registers global shortcuts from `hotkeys.json`.
-2. On trigger, `main.ts:executeHotkey()` spawns the platform helper binary (`helper/selectedtext` on mac, `SelectedTextWin.exe` on Windows), parses its JSON stdout for the user's current selection.
-3. `electron/TextSelectionService.ts` opens the chat popup window and forwards the text + the hotkey's prompt to the renderer via IPC.
-4. Renderer (`src/pages/ChatPopup/`) receives `chat-popup:init-message`, calls a provider through `src/services/AIService.ts` → `ProviderFactory`, streams the response back into the UI.
+1. `main.ts:registerHotkeys()` pulls rows from `HotkeysService` (SQLite-backed) and registers each `accelerator` with Electron's `globalShortcut`.
+2. On trigger, `main.ts:triggerHotkey()`:
+   - sends `chat:abort` to cancel any in-flight stream in the renderer,
+   - if `hotkey.mode === 'selection'`, spawns the platform helper (`helper/selectedtext` on mac, `helper/SelectedTextWin.exe` on Windows) via `runSelectionHelper()` and parses its JSON stdout for the user's current selection,
+   - sends `nav:go '/chat'` and `chat:reset-with-seed { text, agentId }` to the main window, then shows it.
+3. Renderer (`src/pages/ChatPopup/`) receives the seed, calls `window.electronAPI.aiSend({ agentId, messages })` (→ `ai:send` in `electron/ipc/registerAiIpc.ts`), and receives tokens back via `ai:token` / `ai:reasoning` / `ai:source` / `ai:done` / `ai:error` events.
 
-When changing this path, `preload.ts` is the source of truth for the renderer↔main contract (`hotkeys:*`, `settings:*`, `chat-popup:*`, `update:*`, `permission:*`, `theme:*`, etc.). Update `preload.ts` and grep `window.electronAPI.<method>` in `src/` for callers.
+`preload.ts` is the source of truth for the renderer↔main contract. When touching this path, update `preload.ts` and grep `window.electronAPI.<method>` in `src/` for callers. IPC channel handlers are registered in `electron/ipc/registerIpc.ts` and `electron/ipc/registerAiIpc.ts`.
 
-## Architecture: provider plugin system
+Note: there is no separate popup window anymore — the hotkey navigates the single main window to `/chat`. `TextSelectionService` no longer exists.
 
-All LLM providers go through `src/services/providers/`. The pattern is **compose, don't subclass**:
+## Architecture: AI provider layer (Vercel AI SDK v7)
 
-- `core/` — protocol primitives (`sseStreamParser`, `ndjsonStreamParser`, `urlResolvers`).
-- `adapters/<name>RequestBuilder.ts` — builds the HTTP request (URL, headers, body) for one provider.
-- `parsers/<name>ResponseParser.ts` — parses streaming chunks + model list responses.
-- `ProviderFactory.ts` — `adapterMap` merges a `RequestBuilder` + `ResponseParser` into a `ProviderAdapter`; `UnifiedProvider` wraps it as a `Provider`.
+Providers are wired through `electron/ai/`, not the old `src/services/providers/` tree (which is gone).
 
-To add a provider: add a builder + parser, then a single entry in `adapterMap`. OpenAI-compatible providers (DeepSeek, Qwen) reuse `createOpenAIRequestBuilder` / `createOpenAIResponseParser` factories with custom URL derivation and model filters — see how DeepSeek/Qwen are wired in `ProviderFactory.ts`.
+- `AIService.send(agentId, messages, handlers)` — resolves the agent + provider + model, calls the injected `streamText` (from the `ai` package), iterates `fullStream`, and dispatches `text-delta` / `reasoning-delta` / `source` / `error` parts to the handlers. `streamText` does **not throw** on provider failure; it emits an `error` part into the stream — see `readErrorPart` in `AIService.ts`. Handled via `describeAiError` for a user-facing message.
+- `createLanguageModel.ts` — the single `switch (kind)` that maps a stored provider row (`openai`, `azure-openai`, `anthropic`, `google`, `deepseek`, `qwen`, `ollama`) to the corresponding `@ai-sdk/*` (or `ollama-ai-provider-v2`) factory. DeepSeek and Qwen go through `createOpenAICompatible` with custom `baseURL` derivation in `urlResolvers.ts`.
+- `resolveAgentForRun.ts` — turns an `agentId` into the concrete `{ agent, provider, model }` and returns typed error codes (`no-agent`, `unbound`, `missing-model`, `no-api-key`).
+- `mapMessages.ts` / `mapParams.ts` — translate the app's `Message` type and agent config into the AI SDK's shapes.
 
-## Settings and secrets
+**To add a provider**: add a new `case` in `createLanguageModel.ts` and, if the base URL is non-standard, a resolver in `urlResolvers.ts`. Providers are user-created rows in SQLite (see `providers` table), so no code changes are needed to add another instance of an existing kind.
 
-- `electron/SettingsService.ts` is file-backed in Electron's `userData` directory. On first launch it copies `settings.default.json` and `hotkeys.default.json` into userData. When you add a settings field, update `settings.default.json` so existing installs get the new default on next load.
-- `SettingsService.updateObjectByPath` is **immutable** — it returns a new object. Renderer should use `electronAPI.updateSetting(path, value)` (→ `settings:update-path`) rather than fetching, mutating, and writing back the whole blob.
-- API keys are encrypted at rest via `electron/SafeStorageService.ts` and processed by `SettingsService.processApiKeys`. If you add a new secret field, extend that handler so it gets encrypted on save and decrypted on read.
+`streamText` is injected into `AIService` from `main.ts:getAIService()` (rather than imported directly) so tests can supply a fake — see `electron/ai/__tests__/`.
+
+## Architecture: persistence (SQLite + drizzle)
+
+Most state moved from JSON files to SQLite. The DB file is `snapmind.db` in Electron's `userData` directory.
+
+- `electron/db/schema.ts` — drizzle schema. Tables: `providers`, `provider_models`, `agents`, `hotkeys`.
+- `electron/db/client.ts` opens the connection; `electron/db/migrate.ts` runs migrations from `electron/db/migrations/` at startup (`main.ts:initDatabase`). Generate new migrations with `npm run db:generate` after editing `schema.ts`.
+- `electron/db/import.ts` + `electron/db/importAgents.ts` — one-shot importers that migrate existing users' `settings.json` / `hotkeys.json` into SQLite on first launch after the SQLite migration. The `*.pre-sqlite.bak` / `*.pre-agents.bak` files in the repo root are backups of prior JSON shapes for reference.
+- `ProvidersService`, `AgentsService`, `HotkeysService` (in `electron/services/`) wrap drizzle queries and are the only things IPC handlers call.
+
+`electron/services/SettingsService.ts` still exists but now only handles **app-level** settings that stay in `settings.json` (appearance, general, autoUpdate, etc.) — providers and hotkeys have been extracted. `stripProviders()` in that file exists to prevent the legacy `providers` key from being rewritten.
+
+## Secrets
+
+- API keys on `providers.apiKey` are encrypted at rest via `electron/services/SafeStorageService.ts` (Electron `safeStorage`). Encryption/decryption happens inside `ProvidersService`; renderer never sees ciphertext.
+- The legacy `general.azureApiKey` field on `settings.json` is still handled by `SettingsService.encryptedFields`. If you add a new secret field on settings, extend that list so it gets encrypted on save and decrypted on read.
+- `settings.default.json` seeds the initial `settings.json` on first launch. When adding a settings field, update `settings.default.json` so existing installs get the new default.
+- `SettingsService.updateObjectByPath` is **immutable** — it returns a new object. Renderer should call `electronAPI.updateSetting(path, value)` (→ `settings:update-path`) rather than fetching, mutating, and writing back the whole blob.
 
 ## Conventions worth knowing
 
 - **Icons must go through `src/components/Icon.tsx`.** Never import from `react-icons/*` directly in feature/page components. To add an icon: add the import, extend the `IconType` union (alphabetical), add the `case` in `renderIcon`. AI provider logos use `@lobehub/icons-static-svg`. See `.cursor/skills/icon-usage/SKILL.md`.
-- Centralized logging through `electron/LogService.ts` (wraps `electron-log`). Use scoped loggers in main: `logService.scope('myFeature').info(...)`. In renderer, use `src/services/LoggerService.ts`.
-- Conventional Branch naming is enforced (see README badge): `feature/...`, `fix/...`, `chore/...`, etc.
-- Auto-update: `electron/AutoUpdateService.ts` uses `electron-updater`. In dev (`!app.isPackaged`) it reads `dev-app-update.yml`.
+- **Renderer state** — Zustand stores in `src/stores/` (`useAgentsStore`, `useChatStore`, `useHotkeysStore`, `useProvidersStore`, `useSettingsStore`). Each store subscribes to the corresponding `electronAPI.<domain>.onChanged` event and re-fetches on main-side changes.
+- **Logging** — centralized through `electron/LogService.ts` (wraps `electron-log`). Use scoped loggers in main: `logService.scope('myFeature').info(...)`. In renderer, use `src/services/LoggerService.ts`, which forwards to `logs:log` in main.
+- **Branch naming** — Conventional Branch is enforced (see README badge): `feature/...`, `fix/...`, `chore/...`, etc.
+- **Auto-update** — `electron/services/AutoUpdateService.ts` uses `electron-updater`. In dev (`!app.isPackaged`) it reads `dev-app-update.yml`.
 
 ## Platform notes
 
-- **macOS**: app needs Accessibility permission (to read the selection) and Keychain access (for `safeStorage`-encrypted API keys). `electron/SystemPermissionService.ts` exposes the check + `system:open-accessibility` IPC.
+- **macOS**: app needs Accessibility permission (to read the selection) and Keychain access (for `safeStorage`-encrypted API keys). `electron/services/SystemPermissionService.ts` exposes the check + `system:open-accessibility` IPC and polls for changes (`startAccessibilityPolling`) so the renderer gets notified when the user toggles the setting.
 - **Windows**: the app must be run as Administrator for global hotkeys + the helper to work reliably (`is-elevated` is used to detect this).
