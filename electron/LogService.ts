@@ -7,6 +7,10 @@ import os from 'os';
 import fs from 'fs';
 import process from 'process';
 
+export function fileLogLevel(isPackaged: boolean): 'debug' | 'info' {
+  return isPackaged ? 'info' : 'debug';
+}
+
 /**
  * LogService provides a centralized interface for logging in both main and renderer processes.
  * It uses electron-log under the hood, which automatically writes to the appropriate log files
@@ -31,7 +35,7 @@ class LogService {
     this.log.transports.file.maxSize = 10 * 1024 * 1024;
 
     // Set log level (debug, info, warn, error)
-    this.log.transports.file.level = 'info';
+    this.log.transports.file.level = fileLogLevel(app.isPackaged);
 
     // Format log messages with timestamp, level, and scope
     this.log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {scope} {text}';

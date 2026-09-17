@@ -103,4 +103,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
     delete: (providerId: number, modelId: number) =>
       ipcRenderer.invoke('models:delete', providerId, modelId),
   },
+  aiSend: (req) => ipcRenderer.invoke('ai:send', req),
+  aiAbort: (streamId) => ipcRenderer.invoke('ai:abort', streamId),
+  onAiToken: (callback) => {
+    ipcRenderer.on('ai:token', (_event, payload) => callback(payload));
+  },
+  offAiToken: () => ipcRenderer.removeAllListeners('ai:token'),
+  onAiReasoning: (callback) => {
+    ipcRenderer.on('ai:reasoning', (_event, payload) => callback(payload));
+  },
+  offAiReasoning: () => ipcRenderer.removeAllListeners('ai:reasoning'),
+  onAiSource: (callback) => {
+    ipcRenderer.on('ai:source', (_event, payload) => callback(payload));
+  },
+  offAiSource: () => ipcRenderer.removeAllListeners('ai:source'),
+  onAiDone: (callback) => {
+    ipcRenderer.on('ai:done', (_event, payload) => callback(payload));
+  },
+  offAiDone: () => ipcRenderer.removeAllListeners('ai:done'),
+  onAiError: (callback) => {
+    ipcRenderer.on('ai:error', (_event, payload) => callback(payload));
+  },
+  offAiError: () => ipcRenderer.removeAllListeners('ai:error'),
 });

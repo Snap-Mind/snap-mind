@@ -1,7 +1,6 @@
 import { useCallback, useState, useRef, useEffect } from 'react';
 import {
   Button,
-  ButtonGroup,
   Input,
   Modal,
   ModalContent,
@@ -20,11 +19,9 @@ import { ModelCreateForm } from './ModelCreateForm';
 import { Capability, ModelSetting } from '@/types/setting';
 import { ModelEditForm } from './ModelEditForm';
 import { useTranslation } from 'react-i18next';
-import ProviderFactory from '@/services/providers/ProviderFactory';
 import { useLogService } from '@/hooks/useLogService';
 import type { ModelCapability, ModelDTO, ProviderDTO } from '@/types/provider-dto';
 import { useProvidersStore } from '@/stores/useProvidersStore';
-import { providerDtoToBaseConfig } from '@/utils/providerMapper';
 
 interface Column {
   name: string;
@@ -33,7 +30,6 @@ interface Column {
 
 interface ModelTableProps {
   provider: ProviderDTO;
-  showSyncedButton?: boolean;
 }
 
 const initialFormData: ModelSetting = {
@@ -54,12 +50,12 @@ function modelDtoToForm(model: ModelDTO): ModelSetting {
   };
 }
 
-function ModelTable({ provider, showSyncedButton = false }: ModelTableProps) {
+function ModelTable({ provider }: ModelTableProps) {
   const { t } = useTranslation();
   const logger = useLogService();
   const upsertModel = useProvidersStore((s) => s.upsertModel);
   const deleteModel = useProvidersStore((s) => s.deleteModel);
-  const [discovering, setDiscovering] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
   const { theme } = useTheme();
   const columns: Column[] = [
     { name: t('settings.providers.name'), uid: 'name' },
@@ -184,31 +180,8 @@ function ModelTable({ provider, showSyncedButton = false }: ModelTableProps) {
     onClose();
   };
 
-  const handleDiscover = async () => {
-    setDiscovering(true);
-    try {
-      const adapter = ProviderFactory.createProvider(providerDtoToBaseConfig(provider));
-      const syncedModels = await adapter.listModels();
-      if (Array.isArray(syncedModels) && syncedModels.length > 0) {
-        for (const model of syncedModels) {
-          await upsertModel(provider.id, {
-            modelId: model.id,
-            name: model.name,
-            type: model.type,
-            capabilities: model.capabilities as ModelCapability[],
-            description: model.description,
-          });
-        }
-      }
-    } catch (e) {
-      logger.error(`[${provider.kind}] auto discover failed:`, e);
-    } finally {
-      setDiscovering(false);
-    }
-  };
-
   const handleCleanModels = async () => {
-    setDiscovering(true);
+    setCleaning(true);
     try {
       for (const model of localModels) {
         await deleteModel(provider.id, model.id);
@@ -216,7 +189,7 @@ function ModelTable({ provider, showSyncedButton = false }: ModelTableProps) {
     } catch (e) {
       logger.error(`[${provider.kind}] clean models failed:`, e);
     } finally {
-      setDiscovering(false);
+      setCleaning(false);
     }
   };
 
@@ -279,31 +252,17 @@ function ModelTable({ provider, showSyncedButton = false }: ModelTableProps) {
           >
             {t('settings.providers.newModel')}
           </Button>
-          <ButtonGroup>
-            {showSyncedButton && (
-              <Tooltip content={t('settings.providers.syncModels')} delay={500}>
-                <Button
-                  isIconOnly
-                  isLoading={discovering}
-                  isDisabled={discovering}
-                  onPress={handleDiscover}
-                >
-                  <Icon icon="cloud" />
-                </Button>
-              </Tooltip>
-            )}
-            <Tooltip content={t('settings.providers.cleanModels')} delay={500}>
-              <Button
-                isIconOnly
-                variant="ghost"
-                isLoading={discovering}
-                isDisabled={discovering}
-                onPress={handleCleanModels}
-              >
-                <Icon icon="cleaning-services" />
-              </Button>
-            </Tooltip>
-          </ButtonGroup>
+          <Tooltip content={t('settings.providers.cleanModels')} delay={500}>
+            <Button
+              isIconOnly
+              variant="ghost"
+              isLoading={cleaning}
+              isDisabled={cleaning}
+              onPress={handleCleanModels}
+            >
+              <Icon icon="cleaning-services" />
+            </Button>
+          </Tooltip>
         </div>
       </div>
       <Modal isOpen={isAddModelOpen} onOpenChange={onAddModelOpenChange}>

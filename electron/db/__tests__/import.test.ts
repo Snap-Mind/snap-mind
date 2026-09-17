@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { makeTestDb } from './testDb.js';
-import { ProvidersService } from '../../ProvidersService.js';
+import { ProvidersService } from '../../services/ProvidersService.js';
 import { runImportIfNeeded } from '../import.js';
 
 let tmpDir: string;

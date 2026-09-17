@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { eq, sql } from 'drizzle-orm';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
-import { defaultAgentConfigJson } from '../AgentsService.js';
+import { defaultAgentConfigJson } from '../services/AgentsService.js';
 import * as schema from './schema.js';
 import { agents, hotkeys, providers, providerModels } from './schema.js';
 

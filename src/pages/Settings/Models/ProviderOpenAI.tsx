@@ -50,7 +50,7 @@ function ProviderOpenAI({ provider }: ProviderOpenAIProps) {
 
       <div className="max-w-full flex flex-col gap-4">
         <div className="font-weight-bold">{t('settings.providers.models')}</div>
-        <ModelTable provider={provider} showSyncedButton={true} />
+        <ModelTable provider={provider} />
       </div>
     </div>
   );

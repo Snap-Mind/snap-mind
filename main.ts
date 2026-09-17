@@ -12,26 +12,29 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import process from 'process';
 import { execFile } from 'child_process';
-import SettingsService from './electron/SettingsService';
-import SystemPermissionService from './electron/SystemPermissionService';
+import SettingsService from './electron/services/SettingsService';
+import SystemPermissionService from './electron/services/SystemPermissionService';
 import logService from './electron/LogService';
-import AutoUpdateService from './electron/AutoUpdateService';
-import OpenAtLoginService from './electron/OpenAtLoginService';
-import ThemeService from './electron/ThemeService';
-import pathService from './electron/PathService';
+import AutoUpdateService from './electron/services/AutoUpdateService';
+import OpenAtLoginService from './electron/services/OpenAtLoginService';
+import ThemeService from './electron/services/ThemeService';
+import pathService from './electron/services/PathService';
 import BetterSqlite3 from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { openDatabase } from './electron/db/client.js';
 import { resolveMigrationsFolder, runMigrations } from './electron/db/migrate.js';
 import { runImportIfNeeded } from './electron/db/import.js';
-import { ProvidersService } from './electron/ProvidersService.js';
-import { AgentsService } from './electron/AgentsService.js';
-import { HotkeysService } from './electron/HotkeysService.js';
+import { ProvidersService } from './electron/services/ProvidersService.js';
+import { AgentsService } from './electron/services/AgentsService.js';
+import { HotkeysService } from './electron/services/HotkeysService.js';
 import { runAgentImportIfNeeded } from './electron/db/importAgents.js';
-import type { HotkeyDTO } from './electron/HotkeysService.js';
+import type { HotkeyDTO } from './electron/services/HotkeysService.js';
 import * as dbSchema from './electron/db/schema.js';
 import { resolveUserDataPath } from './electron/userDataPath.js';
-import { registerIpcHandlers } from './electron/IpcHandlers.js';
+import { registerIpcHandlers } from './electron/ipc/registerIpc.js';
+import { AIService } from './electron/ai/AIService.js';
+import { createLanguageModel } from './electron/ai/createLanguageModel.js';
+import { streamText } from 'ai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,7 +78,28 @@ let drizzleDb: ReturnType<typeof drizzle<typeof dbSchema>> | null = null;
 let providersService: ProvidersService | null = null;
 let agentsService: AgentsService | null = null;
 let hotkeysService: HotkeysService | null = null;
+let aiService: AIService | null = null;
 let isQuitting = false;
+
+function getAIService(): AIService {
+  if (!aiService) {
+    aiService = new AIService(agentsService!, providersService!, {
+      streamText: (opts) =>
+        streamText({
+          model: opts.model,
+          messages: opts.messages as never,
+          instructions: opts.instructions,
+          abortSignal: opts.abortSignal,
+          temperature: opts.temperature,
+          maxOutputTokens: opts.maxOutputTokens,
+          topP: opts.topP,
+          reasoning: opts.reasoning,
+        }),
+      createLanguageModel,
+    });
+  }
+  return aiService;
+}
 
 function quitApp() {
   isQuitting = true;
@@ -294,6 +318,7 @@ registerIpcHandlers({
   getProvidersService: () => providersService!,
   getAgentsService: () => agentsService!,
   getHotkeysService: () => hotkeysService!,
+  getAIService,
   getAutoUpdateService: () => autoUpdateService,
   registerHotkeys,
   showMainWindow,
