@@ -71,7 +71,7 @@ vi.mock('electron-updater', () => ({
 }));
 
 // Import the helper AFTER mocks so the module picks up mocked dependencies.
-import { runSelectionHelper } from '../../main';
+import { runSelectionHelper } from '../index';
 
 describe('runSelectionHelper', () => {
   it('resolves { text } when helper reports success', async () => {

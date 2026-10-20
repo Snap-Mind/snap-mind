@@ -8,7 +8,7 @@ import * as schema from './schema.js';
 export function resolveMigrationsFolder(isPackaged: boolean, resourcesPath: string): string {
   return isPackaged
     ? path.join(resourcesPath, 'db-migrations')
-    : path.join(process.cwd(), 'electron', 'db', 'migrations');
+    : path.join(process.cwd(), 'src/main/db/migrations');
 }
 
 export function runMigrations(sqlite: BetterSqlite3.Database, migrationsFolder: string): void {

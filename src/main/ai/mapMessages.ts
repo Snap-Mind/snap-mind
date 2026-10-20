@@ -1,5 +1,5 @@
 import type { ModelMessage } from 'ai';
-import type { ContentPart, Message } from '../../src/shared/chat.js';
+import type { ContentPart, Message } from '../../shared/chat.js';
 
 function mapContent(content: string | ContentPart[]): string | ModelMessage['content'] {
   if (typeof content === 'string') return content;

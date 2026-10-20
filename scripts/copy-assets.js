@@ -9,7 +9,7 @@ const targetDir = path.join(__dirname, '../dist-electron/electron/assets');
 
 fs.mkdirSync(targetDir, { recursive: true });
 
-const sourceDir = path.join(__dirname, '../electron/assets');
+const sourceDir = path.join(__dirname, '../src/main/assets');
 
 function copyRecursive(src, dest) {
   const stat = fs.statSync(src);

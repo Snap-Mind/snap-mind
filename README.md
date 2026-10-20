@@ -1,7 +1,7 @@
 # SnapMind
 
 <p align='center'>
-<img src='./electron/assets/snap-mind-app-icon-macOS.png' width="150" height="150" alt="snapmind icon"/>
+<img src='./src/main/assets/snap-mind-app-icon-macOS.png' width="150" height="150" alt="snapmind icon"/>
 </p>
 <h1 align='center'>AI at the Speed of Thought</h1>
 <p align="center">

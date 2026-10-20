@@ -14,12 +14,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "sourceMap": true
   },
-  "include": ["electron", "main.ts", "preload.ts"],
+  "include": ["src/main", "src/shared"],
   "exclude": ["node_modules"]
 }

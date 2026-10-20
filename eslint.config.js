@@ -86,7 +86,7 @@ export default defineConfig([
 
   // Electron main & preload (Node context)
   {
-    files: ['electron/**/*.{ts,tsx,js}', 'main.ts', 'preload.ts'],
+    files: ['src/main/**/*.{ts,tsx,js}', 'src/preload/**/*.{ts,tsx,js}'],
     plugins: { '@typescript-eslint': tseslint.plugin },
     languageOptions: {
       globals: { ...globals.node },

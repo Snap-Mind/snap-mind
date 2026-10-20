@@ -4,7 +4,7 @@ import logService from '../LogService';
 // electron-updater is CommonJS; import compatibility handled below
 import electronUpdater, { type AppUpdater } from 'electron-updater';
 
-import { UpdateEvent } from '../../src/shared/autoUpdate.js';
+import { UpdateEvent } from '../../shared/autoUpdate.js';
 
 export interface AutoUpdateOptions {
   allowPrerelease: boolean;

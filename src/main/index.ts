@@ -12,28 +12,28 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import process from 'process';
 import { execFile } from 'child_process';
-import SettingsService from './electron/services/SettingsService';
-import SystemPermissionService from './electron/services/SystemPermissionService';
-import logService from './electron/LogService';
-import AutoUpdateService from './electron/services/AutoUpdateService';
-import OpenAtLoginService from './electron/services/OpenAtLoginService';
-import ThemeService from './electron/services/ThemeService';
-import pathService from './electron/services/PathService';
+import SettingsService from './services/SettingsService';
+import SystemPermissionService from './services/SystemPermissionService';
+import logService from './LogService';
+import AutoUpdateService from './services/AutoUpdateService';
+import OpenAtLoginService from './services/OpenAtLoginService';
+import ThemeService from './services/ThemeService';
+import pathService from './services/PathService';
 import BetterSqlite3 from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { openDatabase } from './electron/db/client.js';
-import { resolveMigrationsFolder, runMigrations } from './electron/db/migrate.js';
-import { runImportIfNeeded } from './electron/db/import.js';
-import { ProvidersService } from './electron/services/ProvidersService.js';
-import { AgentsService } from './electron/services/AgentsService.js';
-import { HotkeysService } from './electron/services/HotkeysService.js';
-import { runAgentImportIfNeeded } from './electron/db/importAgents.js';
-import type { HotkeyDTO } from './electron/services/HotkeysService.js';
-import * as dbSchema from './electron/db/schema.js';
-import { resolveUserDataPath } from './electron/userDataPath.js';
-import { registerIpcHandlers } from './electron/ipc/registerIpc.js';
-import { AIService } from './electron/ai/AIService.js';
-import { createLanguageModel } from './electron/ai/createLanguageModel.js';
+import { openDatabase } from './db/client.js';
+import { resolveMigrationsFolder, runMigrations } from './db/migrate.js';
+import { runImportIfNeeded } from './db/import.js';
+import { ProvidersService } from './services/ProvidersService.js';
+import { AgentsService } from './services/AgentsService.js';
+import { HotkeysService } from './services/HotkeysService.js';
+import { runAgentImportIfNeeded } from './db/importAgents.js';
+import type { HotkeyDTO } from './services/HotkeysService.js';
+import * as dbSchema from './db/schema.js';
+import { resolveUserDataPath } from './userDataPath.js';
+import { registerIpcHandlers } from './ipc/registerIpc.js';
+import { AIService } from './ai/AIService.js';
+import { createLanguageModel } from './ai/createLanguageModel.js';
 import { streamText } from 'ai';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -245,7 +245,7 @@ export function runSelectionHelper(): Promise<{ text?: string }> {
   const helperPath =
     process.platform === 'win32'
       ? path.join(resourcesPath, 'helper', 'SelectedTextWin.exe')
-      : path.join(resourcesPath, 'helper', 'selectedtext');
+      : path.join(resourcesPath, 'helper/selectedtext');
   const clipboardEnabled = String(!!settingsService.getSettings()?.general?.clipboardEnabled);
 
   return new Promise((resolve, reject) => {
@@ -397,7 +397,7 @@ app.whenReady().then(async () => {
   if (process.platform === 'darwin') {
     // Use template icon for macOS, Electron will pick @2x for retina automatically
     const trayIconPath = isDev()
-      ? path.join(__dirname, '..', 'electron/assets/mind_tray_macos_Template.png')
+      ? path.join(__dirname, '..', 'src/main/assets/mind_tray_macos_Template.png')
       : path.join(__dirname, 'electron/assets/mind_tray_macos_Template.png');
     trayIcon = nativeImage.createFromPath(trayIconPath);
     trayIcon.setTemplateImage(true);
@@ -408,7 +408,7 @@ app.whenReady().then(async () => {
       const useWhiteIcon = nativeTheme.shouldUseDarkColors;
       const iconName = useWhiteIcon ? 'mind_tray_windows_white.ico' : 'mind_tray_windows.ico';
       return isDev()
-        ? path.join(__dirname, '..', 'electron', 'assets', iconName)
+        ? path.join(__dirname, '..', 'src/main/assets', iconName)
         : path.join(__dirname, 'electron', 'assets', iconName);
     };
 
@@ -431,7 +431,7 @@ app.whenReady().then(async () => {
     });
   } else {
     const trayIconPath = isDev()
-      ? path.join(__dirname, '..', 'electron/assets/mind_tray_macos_Template.png')
+      ? path.join(__dirname, '..', 'src/main/assets/mind_tray_macos_Template.png')
       : path.join(__dirname, 'electron/assets/mind_tray_macos_Template.png');
     trayIcon = nativeImage.createFromPath(trayIconPath);
     tray = new Tray(trayIcon);

@@ -34,7 +34,7 @@
       "to": "settings.default.json"
     },
     {
-      "from": "electron/db/migrations",
+      "from": "src/main/db/migrations",
       "to": "db-migrations"
     }
   ],
@@ -50,7 +50,7 @@
       }
     ],
     "signAndEditExecutable": true,
-    "icon": "electron/assets/snap-mind-app-icon-Win.ico"
+    "icon": "src/main/assets/snap-mind-app-icon-Win.ico"
   },
   "portable": {
     "artifactName": "${productName}-${version}-${arch}-portable.${ext}"

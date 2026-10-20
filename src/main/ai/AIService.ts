@@ -1,5 +1,5 @@
 import type { LanguageModel } from 'ai';
-import type { Message } from '../../src/shared/chat.js';
+import type { Message } from '../../shared/chat.js';
 import type { AgentsService } from '../services/AgentsService.js';
 import type { ProvidersService } from '../services/ProvidersService.js';
 import logService from '../LogService.js';
