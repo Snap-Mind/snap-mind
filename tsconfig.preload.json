@@ -15,7 +15,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-    "sourceMap": true
+    "sourceMap": true,
+    "tsBuildInfoFile": "dist-electron/preload.tsbuildinfo"
   },
   "include": ["src/preload/preload.ts"],
   "exclude": ["node_modules"]
