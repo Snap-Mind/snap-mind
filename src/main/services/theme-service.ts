@@ -1,5 +1,5 @@
 import { BrowserWindow, ipcMain, nativeTheme } from 'electron';
-import logService from '../LogService';
+import logService from '../log-service';
 
 type AppearanceMode = 'light' | 'dark' | 'auto';
 type RendererTheme = 'light' | 'dark';

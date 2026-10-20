@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { makeTestDb } from './testDb.js';
-import { ProvidersService } from '../../services/ProvidersService.js';
+import { makeTestDb } from './test-db.js';
+import { ProvidersService } from '../../services/providers-service.js';
 import { runImportIfNeeded } from '../import.js';
 
 let tmpDir: string;

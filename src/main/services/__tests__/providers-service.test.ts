@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { makeTestDb } from '../../db/__tests__/testDb.js';
-import { ProvidersService } from '../ProvidersService.js';
-import { SafeStorageService } from '../SafeStorageService.js';
+import { makeTestDb } from '../../db/__tests__/test-db.js';
+import { ProvidersService } from '../providers-service.js';
+import { SafeStorageService } from '../safe-storage-service.js';
 
 function newService() {
   const { db } = makeTestDb();

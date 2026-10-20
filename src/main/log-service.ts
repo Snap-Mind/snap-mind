@@ -1,4 +1,4 @@
-// LogService.js
+// log-service.js
 // Centralized logging service using electron-log
 import mainLog from 'electron-log/main.js';
 import path from 'path';

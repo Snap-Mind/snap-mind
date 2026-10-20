@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { AIService } from '../AIService.js';
+import { AIService } from '../ai-service.js';
 import type { AgentDTO } from '../../../shared/agent-dto.js';
 import type { ProviderDTO } from '../../../shared/provider-dto.js';
 

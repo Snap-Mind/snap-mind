@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeAiError } from '../describeAiError.js';
+import { describeAiError } from '../describe-ai-error.js';
 
 function apiCallError(fields: {
   message: string;

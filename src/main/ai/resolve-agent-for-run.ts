@@ -1,6 +1,6 @@
 import type { AgentDTO } from '../../shared/agent-dto.js';
 import type { ModelDTO, ProviderDTO } from '../../shared/provider-dto.js';
-import type { AiSendErrorCode } from './AIService.js';
+import type { AiSendErrorCode } from './ai-service.js';
 
 const KEYLESS_PROVIDER_KINDS = new Set(['ollama']);
 

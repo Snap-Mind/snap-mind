@@ -3,7 +3,7 @@ import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 import * as schema from '../db/schema.js';
 import { providers, providerModels } from '../db/schema.js';
 import type { ModelCapability, ProviderModelRow, ProviderRow } from '../db/schema.js';
-import { SafeStorageService } from './SafeStorageService.js';
+import { SafeStorageService } from './safe-storage-service.js';
 
 export interface ModelDTO {
   id: number;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deriveV1ApiBase, deriveQwenApiBase } from '../urlResolvers.js';
+import { deriveV1ApiBase, deriveQwenApiBase } from '../url-resolvers.js';
 
 describe('deriveV1ApiBase', () => {
   it('appends /v1 when missing', () => {

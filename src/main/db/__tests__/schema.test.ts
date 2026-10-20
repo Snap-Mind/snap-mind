@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { makeTestDb } from './testDb.js';
+import { makeTestDb } from './test-db.js';
 import * as schema from '../schema.js';
 import { providers, providerModels } from '../schema.js';
 

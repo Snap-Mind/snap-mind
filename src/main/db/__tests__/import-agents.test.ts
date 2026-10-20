@@ -3,9 +3,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { makeTestDb } from './testDb.js';
+import { makeTestDb } from './test-db.js';
 import * as schema from '../schema.js';
-import { runAgentImportIfNeeded } from '../importAgents.js';
+import { runAgentImportIfNeeded } from '../import-agents.js';
 
 let dir: string;
 

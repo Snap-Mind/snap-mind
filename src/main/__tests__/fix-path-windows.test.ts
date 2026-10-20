@@ -35,12 +35,12 @@ describe('fixPathWindows', () => {
   }
 
   async function importFixPathWindows() {
-    const mod = await import('../utils/fixPathWindows');
+    const mod = await import('../utils/fix-path-windows');
     return mod.default;
   }
 
   async function importReadRegistryPath() {
-    const mod = await import('../utils/fixPathWindows');
+    const mod = await import('../utils/fix-path-windows');
     return mod.readRegistryPath;
   }
 

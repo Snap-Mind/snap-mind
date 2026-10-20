@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mapMessages } from '../mapMessages.js';
+import { mapMessages } from '../map-messages.js';
 import type { Message } from '../../../shared/chat.js';
 
 describe('mapMessages', () => {

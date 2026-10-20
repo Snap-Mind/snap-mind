@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import fixPath from 'fix-path';
-import fixPathWindows from '../utils/fixPathWindows';
-import logService from '../LogService';
+import fixPathWindows from '../utils/fix-path-windows';
+import logService from '../log-service';
 
 class PathService {
   private logger = logService.scope('PathService');

@@ -1,6 +1,6 @@
 import { safeStorage } from 'electron';
 import { Buffer } from 'buffer';
-import logService from '../LogService.js';
+import logService from '../log-service.js';
 
 export class SafeStorageService {
   /**

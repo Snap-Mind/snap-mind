@@ -10,7 +10,7 @@ import {
   deriveOllamaApiBase,
   deriveQwenApiBase,
   deriveV1ApiBase,
-} from './urlResolvers.js';
+} from './url-resolvers.js';
 
 export type LanguageModelConfig = {
   kind: string;

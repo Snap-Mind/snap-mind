@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { makeTestDb } from '../../db/__tests__/testDb.js';
-import { HotkeysService } from '../HotkeysService.js';
+import { makeTestDb } from '../../db/__tests__/test-db.js';
+import { HotkeysService } from '../hotkeys-service.js';
 
 function newService() {
   const { db } = makeTestDb();

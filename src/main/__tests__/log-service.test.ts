@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fileLogLevel } from '../LogService.js';
+import { fileLogLevel } from '../log-service.js';
 
 describe('fileLogLevel', () => {
   it('uses debug when unpackaged so AI logs reach disk', () => {

@@ -5,7 +5,7 @@ import {
   DEFAULT_TOP_P,
   mapParams,
   mapReasoningLevel,
-} from '../mapParams.js';
+} from '../map-params.js';
 
 describe('mapParams', () => {
   it('uses defaults when params are missing', () => {

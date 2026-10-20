@@ -1,6 +1,6 @@
 import { app, ipcMain } from 'electron';
 
-import logService from '../LogService';
+import logService from '../log-service';
 
 const WINDOWS_LOGIN_ARGS = ['--launch-at-login'];
 

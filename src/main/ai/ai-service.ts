@@ -1,14 +1,14 @@
 import type { LanguageModel } from 'ai';
 import type { Message } from '../../shared/chat.js';
-import type { AgentsService } from '../services/AgentsService.js';
-import type { ProvidersService } from '../services/ProvidersService.js';
-import logService from '../LogService.js';
-import { createLanguageModel } from './createLanguageModel.js';
-import { describeAiError } from './describeAiError.js';
-import { mapMessages } from './mapMessages.js';
-import { mapParams, mapReasoningLevel } from './mapParams.js';
+import type { AgentsService } from '../services/agents-service.js';
+import type { ProvidersService } from '../services/providers-service.js';
+import logService from '../log-service.js';
+import { createLanguageModel } from './create-language-model.js';
+import { describeAiError } from './describe-ai-error.js';
+import { mapMessages } from './map-messages.js';
+import { mapParams, mapReasoningLevel } from './map-params.js';
 import { redactValue, truncateDebugText } from './redact.js';
-import { resolveAgentForRun } from './resolveAgentForRun.js';
+import { resolveAgentForRun } from './resolve-agent-for-run.js';
 
 export type AiSendErrorCode =
   | 'no-agent'

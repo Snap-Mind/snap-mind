@@ -23,7 +23,7 @@ vi.mock('@ai-sdk/google', () => ({ createGoogleGenerativeAI: googleFactory }));
 vi.mock('@ai-sdk/openai-compatible', () => ({ createOpenAICompatible: openaiCompatibleFactory }));
 vi.mock('ollama-ai-provider-v2', () => ({ createOllama: ollamaFactory }));
 
-import { createLanguageModel } from '../createLanguageModel.js';
+import { createLanguageModel } from '../create-language-model.js';
 
 describe('createLanguageModel', () => {
   beforeEach(() => {

@@ -3,10 +3,10 @@ import path from 'path';
 import process from 'process';
 import { app } from 'electron';
 
-import { SafeStorageService } from './SafeStorageService.js';
-import logService from '../LogService.js';
-import { mergeDeep } from '../utils/mergeDeep.js';
-import { resolveUserDataPath } from '../userDataPath.js';
+import { SafeStorageService } from './safe-storage-service.js';
+import logService from '../log-service.js';
+import { mergeDeep } from '../utils/merge-deep.js';
+import { resolveUserDataPath } from '../user-data-path.js';
 
 const __rootdir = process.cwd();
 

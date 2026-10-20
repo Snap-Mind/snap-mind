@@ -1,16 +1,16 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 
-import type SettingsService from '../services/SettingsService.js';
-import type ThemeService from '../services/ThemeService.js';
-import type OpenAtLoginService from '../services/OpenAtLoginService.js';
-import type AutoUpdateService from '../services/AutoUpdateService.js';
-import type { AgentsService } from '../services/AgentsService.js';
-import type { HotkeysService } from '../services/HotkeysService.js';
-import type { ProvidersService } from '../services/ProvidersService.js';
-import type { AIService } from '../ai/AIService.js';
-import logService from '../LogService.js';
-import SystemPermissionService from '../services/SystemPermissionService.js';
-import { registerAiIpc } from './registerAiIpc.js';
+import type SettingsService from '../services/settings-service.js';
+import type ThemeService from '../services/theme-service.js';
+import type OpenAtLoginService from '../services/open-at-login-service.js';
+import type AutoUpdateService from '../services/auto-update-service.js';
+import type { AgentsService } from '../services/agents-service.js';
+import type { HotkeysService } from '../services/hotkeys-service.js';
+import type { ProvidersService } from '../services/providers-service.js';
+import type { AIService } from '../ai/ai-service.js';
+import logService from '../log-service.js';
+import SystemPermissionService from '../services/system-permission-service.js';
+import { registerAiIpc } from './register-ai-ipc.js';
 
 export interface IpcHandlerContext {
   getMainWindow: () => BrowserWindow | null;
