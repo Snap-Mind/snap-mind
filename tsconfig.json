@@ -14,9 +14,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/renderer/*"]
+      "@/*": ["./src/renderer/*"]
     },
     "types": ["@testing-library/jest-dom"]
   },
