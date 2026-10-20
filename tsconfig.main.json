@@ -20,12 +20,6 @@
     },
     "sourceMap": true
   },
-  "include": [
-    "electron",
-    "main.ts",
-    "preload.ts",
-    "src/types/agent-dto.ts",
-    "src/types/provider-dto.ts"
-  ],
+  "include": ["electron", "main.ts", "preload.ts"],
   "exclude": ["node_modules"]
 }
