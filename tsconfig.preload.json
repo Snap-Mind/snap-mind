@@ -10,16 +10,13 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "strict": false,
+    "rootDir": "src/preload",
     "outDir": "dist-electron",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "sourceMap": true
   },
-  "include": ["preload.ts"],
+  "include": ["src/preload/preload.ts"],
   "exclude": ["node_modules"]
 }
