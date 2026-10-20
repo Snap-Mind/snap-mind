@@ -1,0 +1,35 @@
+---
+description: SnapMind source folders and packaged path contract
+alwaysApply: true
+---
+
+# Source layout
+
+Put new TypeScript in one of these folders:
+
+- `src/main/` — Electron main process. Entry: `src/main/index.ts`.
+- `src/preload/` — preload only. Source file: `src/preload/preload.ts`.
+- `src/renderer/` — React app. `@/` maps to this folder.
+- `src/shared/` — pure types and pure functions. No `electron`, Node built-ins, React, or DOM.
+
+The renderer reaches the system only through `window.electronAPI`.
+
+Keep the `.js` suffix on main-process relative imports.
+
+Put unit tests in `__tests__/` next to the source.
+
+# Packaged paths
+
+These installed paths stay stable:
+
+- `Contents/Resources/helper/selectedtext`
+- `Contents/Resources/settings.default.json`
+- `Contents/Resources/db-migrations`
+- `app.asar/dist-electron/main.js`
+- `app.asar/dist-electron/preload.js`
+- `app.asar/dist/index.html`
+- `app.asar/dist-electron/electron/assets/`
+
+Dev readers use `src/main/assets` and `src/main/db/migrations`. A change to an electron-builder `from` path updates the matching dev reader and the package check in the same change.
+
+`helper/`, `settings.default.json`, and `config/entitlements/` stay at the repo root.
