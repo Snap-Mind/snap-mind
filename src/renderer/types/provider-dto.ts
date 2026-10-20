@@ -5,4 +5,4 @@ export type {
   CreateProviderInput,
   UpdateProviderPatch,
   UpsertModelInput,
-} from '../shared/provider-dto.js';
+} from '../../shared/provider-dto.js';

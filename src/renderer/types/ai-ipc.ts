@@ -7,4 +7,4 @@ export type {
   AiSourceEvent,
   AiDoneEvent,
   AiErrorEvent,
-} from '../shared/ai-ipc.js';
+} from '../../shared/ai-ipc.js';

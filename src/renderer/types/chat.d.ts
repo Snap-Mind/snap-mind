@@ -4,4 +4,4 @@ export type {
   ImageContentPart,
   ContentPart,
   Message,
-} from '../shared/chat.js';
+} from '../../shared/chat.js';
