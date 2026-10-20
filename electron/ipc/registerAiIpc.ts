@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import type { AIService } from '../ai/AIService.js';
-import type { Message } from '../../src/types/chat.js';
+import type { Message } from '../../src/shared/chat.js';
 
 type AiSendRequest = {
   agentId: number;

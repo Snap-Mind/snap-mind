@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { AIService } from '../AIService.js';
-import type { AgentDTO } from '../../../src/types/agent-dto.js';
-import type { ProviderDTO } from '../../../src/types/provider-dto.js';
+import type { AgentDTO } from '../../../src/shared/agent-dto.js';
+import type { ProviderDTO } from '../../../src/shared/provider-dto.js';
 
 function boundAgent(): AgentDTO {
   return {
