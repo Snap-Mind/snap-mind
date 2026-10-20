@@ -5,7 +5,7 @@ import { HeroUIProvider, ToastProvider } from '@heroui/react';
 
 import ChatPopup from './pages/ChatPopup/ChatPopup';
 import Settings from './pages/Settings/Settings';
-import { ThemeService } from './services/ThemeService';
+import { ThemeService } from './services/theme-service';
 
 function App() {
   const navigate = useNavigate();

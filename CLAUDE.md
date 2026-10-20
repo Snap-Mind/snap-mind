@@ -92,7 +92,7 @@ Unpackaged runs read migrations from `src/main/db/migrations`. Packaged runs rea
 
 - **Icons must go through `src/renderer/components/Icon.tsx`.** Never import from `react-icons/*` directly in feature/page components. To add an icon: add the import, extend the `IconType` union (alphabetical), add the `case` in `renderIcon`. AI provider logos use `@lobehub/icons-static-svg`. See `.cursor/skills/icon-usage/SKILL.md`.
 - **Renderer state** — Zustand stores in `src/renderer/stores/` (`useAgentsStore`, `useChatStore`, `useHotkeysStore`, `useProvidersStore`, `useSettingsStore`). Each store subscribes to the corresponding `electronAPI.<domain>.onChanged` event and re-fetches on main-side changes.
-- **Logging** — centralized through `src/main/log-service.ts` (wraps `electron-log`). Use scoped loggers in main: `logService.scope('myFeature').info(...)`. In renderer, use `src/renderer/services/LoggerService.ts`, which forwards to `logs:log` in main.
+- **Logging** — centralized through `src/main/log-service.ts` (wraps `electron-log`). Use scoped loggers in main: `logService.scope('myFeature').info(...)`. In renderer, use `src/renderer/services/logger-service.ts`, which forwards to `logs:log` in main.
 - **Branch naming** — Conventional Branch is enforced (see README badge): `feature/...`, `fix/...`, `chore/...`, etc.
 - **Auto-update** — `src/main/services/auto-update-service.ts` uses `electron-updater`. In dev (`!app.isPackaged`) it reads `dev-app-update.yml`.
 

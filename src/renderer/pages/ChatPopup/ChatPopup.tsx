@@ -5,7 +5,7 @@ import { Button, Divider, Textarea } from '@heroui/react';
 import { useProvidersStore } from '@/stores/useProvidersStore';
 import { useChatStore } from '@/stores/useChatStore';
 import { useAgentsStore } from '@/stores/useAgentsStore';
-import { resolveAgent } from '@/services/agentResolver';
+import { resolveAgent } from '@/services/agent-resolver';
 
 import ChatMessage from '../ChatMessage/ChatMessage';
 

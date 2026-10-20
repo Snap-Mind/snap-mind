@@ -3,7 +3,7 @@ import { Button } from '@heroui/react';
 import { useTranslation } from 'react-i18next';
 
 import Icon from '@/components/Icon';
-import loggerService from '@/services/LoggerService';
+import loggerService from '@/services/logger-service';
 
 interface CopyMessageButtonProps {
   text: string;

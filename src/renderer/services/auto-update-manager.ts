@@ -1,5 +1,5 @@
 import { UpdateEvent, UpdateStatus } from '@/types/autoUpdate';
-import { LoggerService } from './LoggerService';
+import { LoggerService } from './logger-service';
 
 export class AutoUpdateManager {
   private status: UpdateStatus = { type: 'idle' };

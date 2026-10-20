@@ -7,7 +7,7 @@ import { useProvidersStore } from './stores/useProvidersStore';
 import { useAgentsStore } from './stores/useAgentsStore';
 import { useHotkeysStore } from './stores/useHotkeysStore';
 import { useChatStore } from './stores/useChatStore';
-import { autoUpdateManager } from './services/AutoUpdateManager';
+import { autoUpdateManager } from './services/auto-update-manager';
 
 import './i18n/i18n';
 import './index.css';

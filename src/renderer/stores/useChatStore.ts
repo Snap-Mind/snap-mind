@@ -3,8 +3,8 @@ import type { StoreApi } from 'zustand';
 import type { Message, ChatSource, ContentPart } from '@/types/chat';
 import { useAgentsStore } from './useAgentsStore';
 import { useProvidersStore } from './useProvidersStore';
-import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '@/services/agentResolver';
-import type { AgentResolution } from '@/services/agentResolver';
+import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '@/services/agent-resolver';
+import type { AgentResolution } from '@/services/agent-resolver';
 
 export interface ImageAttachment {
   data: string;

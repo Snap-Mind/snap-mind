@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '../agentResolver';
+import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '../agent-resolver';
 import type { AgentDTO } from '@/types/agent-dto';
 import type { ProviderDTO } from '@/types/provider-dto';
 

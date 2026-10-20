@@ -16,7 +16,7 @@ The renderer reaches the system only through `window.electronAPI`.
 
 Keep the `.js` suffix on main-process relative imports.
 
-Name main-process module files in kebab-case, such as `log-service.ts` and `register-ai-ipc.ts`. Keep class names in PascalCase.
+Name main-process module files and renderer service files in kebab-case, such as `log-service.ts` and `logger-service.ts`. Keep class names in PascalCase.
 
 Put unit tests in `__tests__/` next to the source.
 

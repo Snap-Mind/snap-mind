@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { autoUpdateManager } from '@/services/AutoUpdateManager';
+import { autoUpdateManager } from '@/services/auto-update-manager';
 import { UpdateStatus } from '@/types/autoUpdate';
 
 export const useAutoUpdate = () => {

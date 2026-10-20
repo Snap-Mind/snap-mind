@@ -7,7 +7,7 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-vi.mock('@/services/LoggerService', () => ({
+vi.mock('@/services/logger-service', () => ({
   default: {
     warn: vi.fn(),
     error: vi.fn(),
@@ -15,7 +15,7 @@ vi.mock('@/services/LoggerService', () => ({
 }));
 
 import CopyMessageButton from '../CopyMessageButton';
-import loggerService from '@/services/LoggerService';
+import loggerService from '@/services/logger-service';
 
 describe('CopyMessageButton', () => {
   beforeEach(() => {
