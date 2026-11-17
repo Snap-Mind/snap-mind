@@ -3,10 +3,10 @@ import type { Message } from '../../shared/chat.js';
 import type { AgentsService } from '../services/agents-service.js';
 import type { ProvidersService } from '../services/providers-service.js';
 import logService from '../log-service.js';
-import { createLanguageModel } from './create-language-model.js';
+import { createLanguageModel } from './providers/create-language-model.js';
 import { describeAiError } from './describe-ai-error.js';
-import { mapMessages } from './map-messages.js';
-import { mapParams, mapReasoningLevel } from './map-params.js';
+import { mapMessages } from './runtime/map-messages.js';
+import { mapParams, mapReasoningLevel } from './mapping/map-params.js';
 import { redactValue, truncateDebugText } from './redact.js';
 import { resolveAgentForRun } from './resolve-agent-for-run.js';
 

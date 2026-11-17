@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mapMessages } from '../map-messages.js';
-import type { Message } from '../../../shared/chat.js';
+import type { Message } from '../../../../shared/chat.js';
 
 describe('mapMessages', () => {
   it('drops system roles because instructions are passed separately', () => {

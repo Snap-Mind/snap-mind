@@ -33,7 +33,7 @@ import * as dbSchema from './db/schema.js';
 import { resolveUserDataPath } from './user-data-path.js';
 import { registerIpcHandlers } from './ipc/register-ipc.js';
 import { AIService } from './ai/ai-service.js';
-import { createLanguageModel } from './ai/create-language-model.js';
+import { createLanguageModel } from './ai/providers/create-language-model.js';
 import { streamText } from 'ai';
 
 const __filename = fileURLToPath(import.meta.url);
