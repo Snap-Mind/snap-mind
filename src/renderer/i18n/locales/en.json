@@ -144,7 +144,14 @@
     "thought": "Thought",
     "sources": "Sources",
     "errorHeadline": "Failed to get response.",
-    "errorHint": "Check your API key, model, and network connection, then try again."
+    "errorHint": "Check your API key, model, and network connection, then try again.",
+    "loop": "Agent loop",
+    "toolAllow": "Allow",
+    "toolDeny": "Deny",
+    "toolNeedsApproval": "{{tool}} needs your approval",
+    "subRunRunning": "Running {{name}}…",
+    "subRunFailed": "{{name}} failed",
+    "subRunAborted": "{{name}} was stopped"
   },
   "common": {
     "brand": "SnapMind",

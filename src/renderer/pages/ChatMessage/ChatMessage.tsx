@@ -10,6 +10,7 @@ import ErrorMessage from '@/components/ErrorMessage';
 import MessageWebSources from '@/components/MessageWebSources';
 import MessageActions from '@/components/MessageActions';
 import CopyMessageButton from '@/components/CopyMessageButton';
+import ToolParts from '@/components/chat/ToolParts';
 import { useChatMessage } from '@/hooks/useChatMessage';
 
 interface ChatMessageProps {
@@ -79,6 +80,9 @@ export default function ChatMessage({ message, isStreaming = false }: ChatMessag
             <MessageWebSources sources={message.sources} />
           )}
         </div>
+        {!isUser && message.parts && message.parts.length > 0 && (
+          <ToolParts parts={message.parts} />
+        )}
         {showActions && (
           <MessageActions>
             <CopyMessageButton text={main} />

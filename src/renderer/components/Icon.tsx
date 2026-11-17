@@ -38,6 +38,7 @@ import {
   LuTag,
   LuUser,
   LuSave,
+  LuWorkflow,
 } from 'react-icons/lu';
 import { MdOutlineCleaningServices } from 'react-icons/md';
 
@@ -96,7 +97,8 @@ type IconType =
   | 'loader'
   | 'save'
   | 'tag'
-  | 'user';
+  | 'user'
+  | 'workflow';
 
 interface IconProps {
   className?: string;
@@ -213,6 +215,8 @@ function Icon({
         return <LuTag className={svgClassName} color={color} size={size} />;
       case 'user':
         return <LuUser className={svgClassName} color={color} size={size} />;
+      case 'workflow':
+        return <LuWorkflow className={svgClassName} color={color} size={size} />;
       default:
         return null;
     }

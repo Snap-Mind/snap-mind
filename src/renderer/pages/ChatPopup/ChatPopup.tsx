@@ -14,6 +14,7 @@ import Icon from '../../components/Icon';
 import LogoSvg from '@/components/LogoSvg';
 import ReasoningToggle from '@/components/ReasoningToggle';
 import WebSearchToggle from '@/components/WebSearchToggle';
+import LoopToggle from '@/components/chat/LoopToggle';
 
 export default function ChatPopup() {
   const { t } = useTranslation();
@@ -32,6 +33,8 @@ export default function ChatPopup() {
   const setAutoScroll = useChatStore((s) => s.setAutoScroll);
   const setReasoning = useChatStore((s) => s.setReasoning);
   const setWebSearch = useChatStore((s) => s.setWebSearch);
+  const loopEnabled = useChatStore((s) => s.loopEnabled);
+  const setLoopEnabled = useChatStore((s) => s.setLoopEnabled);
   const addImages = useChatStore((s) => s.addImages);
   const removeImage = useChatStore((s) => s.removeImage);
   const send = useChatStore((s) => s.send);
@@ -277,6 +280,11 @@ export default function ChatPopup() {
               aria-label={t('settings.chat.reasoning')}
               isSelected={reasoningEnabled}
               onValueChange={setReasoning}
+            />
+            <LoopToggle
+              aria-label={t('chat.loop')}
+              isSelected={loopEnabled}
+              onValueChange={setLoopEnabled}
             />
             <Button
               className="flex-1 max-w-xs justify-start truncate"

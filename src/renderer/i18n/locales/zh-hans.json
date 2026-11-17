@@ -144,7 +144,14 @@
     "thought": "思考过程",
     "sources": "来源",
     "errorHeadline": "获取响应失败。",
-    "errorHint": "请检查 API 密钥、模型和网络连接后重试。"
+    "errorHint": "请检查 API 密钥、模型和网络连接后重试。",
+    "loop": "智能体循环",
+    "toolAllow": "允许",
+    "toolDeny": "拒绝",
+    "toolNeedsApproval": "{{tool}} 需要你的批准",
+    "subRunRunning": "正在运行 {{name}}…",
+    "subRunFailed": "{{name}} 运行失败",
+    "subRunAborted": "{{name}} 已停止"
   },
   "common": {
     "brand": "SnapMind",
