@@ -32,9 +32,9 @@ import type { HotkeyDTO } from './services/hotkeys-service.js';
 import * as dbSchema from './db/schema.js';
 import { resolveUserDataPath } from './user-data-path.js';
 import { registerIpcHandlers } from './ipc/register-ipc.js';
-import { AIService } from './ai/ai-service.js';
-import { createLanguageModel } from './ai/providers/create-language-model.js';
-import { streamText } from 'ai';
+import { AIService } from './ai/run/ai-service.js';
+import { createAiSdkRuntime } from './ai/runtime/ai-sdk-runtime.js';
+import { ToolRegistry } from './ai/tools/registry.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,18 +84,8 @@ let isQuitting = false;
 function getAIService(): AIService {
   if (!aiService) {
     aiService = new AIService(agentsService!, providersService!, {
-      streamText: (opts) =>
-        streamText({
-          model: opts.model,
-          messages: opts.messages as never,
-          instructions: opts.instructions,
-          abortSignal: opts.abortSignal,
-          temperature: opts.temperature,
-          maxOutputTokens: opts.maxOutputTokens,
-          topP: opts.topP,
-          reasoning: opts.reasoning,
-        }),
-      createLanguageModel,
+      runtime: createAiSdkRuntime(),
+      registry: new ToolRegistry(),
     });
   }
   return aiService;

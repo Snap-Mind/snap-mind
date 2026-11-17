@@ -80,6 +80,17 @@ export default defineConfig([
       '@typescript-eslint/no-misused-promises': 'off',
       'react/jsx-uses-react': 'off',
       'react/jsx-uses-vars': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['/ai', '@ai-sdk/*', 'ollama-ai-provider-v2'],
+              message: 'Import the AI SDK only inside src/main/ai/runtime or providers.',
+            },
+          ],
+        },
+      ],
     },
     settings: { react: { version: 'detect' } },
   },
@@ -105,6 +116,31 @@ export default defineConfig([
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['/ai', '@ai-sdk/*', 'ollama-ai-provider-v2'],
+              message: 'Import the AI SDK only inside src/main/ai/runtime or providers.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // AI SDK import wall — only these files may import from 'ai', '@ai-sdk/*', 'ollama-ai-provider-v2'
+  {
+    files: [
+      'src/main/ai/runtime/ai-sdk-runtime.ts',
+      'src/main/ai/runtime/map-messages.ts',
+      'src/main/ai/providers/create-language-model.ts',
+      'src/main/ai/runtime/__tests__/**',
+      'src/main/ai/providers/__tests__/**',
+    ],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 

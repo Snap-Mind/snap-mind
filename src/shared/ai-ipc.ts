@@ -11,6 +11,7 @@ export type AiSendErrorCode =
 export type AiSendRequest = {
   agentId: number;
   messages: Message[];
+  loopEnabled?: boolean;
 };
 
 export type AiSendResult =

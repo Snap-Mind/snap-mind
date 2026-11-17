@@ -1,12 +1,23 @@
-import { tool, jsonSchema, isStepCount } from 'ai';
+import { tool, jsonSchema, isStepCount, streamText } from 'ai';
 import type { ModelRuntime } from './model-runtime.js';
 import type { RunEvent, StreamRequest } from './types.js';
 import { mapMessages } from './map-messages.js';
 import { mapReasoningLevel } from '../mapping/map-params.js';
 import { describeAiError } from '../describe-ai-error.js';
-import type { createLanguageModel } from '../providers/create-language-model.js';
+import { createLanguageModel } from '../providers/create-language-model.js';
 
 export type StreamTextLike = (_opts: Record<string, unknown>) => { stream: AsyncIterable<unknown> };
+
+/**
+ * Factory for the production AiSdkRuntime, importing the real `streamText` from `ai`.
+ * Called from index.ts so that index.ts itself does not import from 'ai' directly.
+ */
+export function createAiSdkRuntime(): AiSdkRuntime {
+  return new AiSdkRuntime({
+    streamText: (opts) => streamText(opts as never) as unknown as ReturnType<StreamTextLike>,
+    createLanguageModel,
+  });
+}
 
 export class AiSdkRuntime implements ModelRuntime {
   private readonly streamText: StreamTextLike;

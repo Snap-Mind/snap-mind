@@ -7,7 +7,7 @@ import type AutoUpdateService from '../services/auto-update-service.js';
 import type { AgentsService } from '../services/agents-service.js';
 import type { HotkeysService } from '../services/hotkeys-service.js';
 import type { ProvidersService } from '../services/providers-service.js';
-import type { AIService } from '../ai/ai-service.js';
+import type { AIService } from '../ai/run/ai-service.js';
 import logService from '../log-service.js';
 import SystemPermissionService from '../services/system-permission-service.js';
 import { registerAiIpc } from './register-ai-ipc.js';
