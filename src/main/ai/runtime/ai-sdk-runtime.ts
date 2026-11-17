@@ -77,6 +77,8 @@ export class AiSdkRuntime implements ModelRuntime {
       }
       baseOpts['tools'] = sdkTools;
       baseOpts['stopWhen'] = isStepCount(req.maxSteps);
+      // Spec decision: one worker at a time. The SDK default is unlimited concurrency.
+      baseOpts['toolCallConcurrency'] = 1;
 
       if (req.onApprove) {
         const onApprove = req.onApprove;

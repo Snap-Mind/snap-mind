@@ -95,6 +95,19 @@ describe('AiSdkRuntime', () => {
     expect(opts).not.toHaveProperty('tools');
     expect(opts).not.toHaveProperty('stopWhen');
     expect(opts).not.toHaveProperty('toolApproval');
+    expect(opts).not.toHaveProperty('toolCallConcurrency');
+  });
+
+  it('non-empty tools runs tool calls one at a time (toolCallConcurrency 1)', async () => {
+    const streamText = makeFakeStreamText([]);
+    const runtime = new AiSdkRuntime({
+      streamText,
+      createLanguageModel: makeCreateLanguageModel() as never,
+    });
+    await collectEvents(runtime, makeRequest({ tools: [makeTool('t1')] }));
+
+    const opts = firstCallOpts(streamText);
+    expect(opts.toolCallConcurrency).toBe(1);
   });
 
   it('non-empty tools passes tools record, stopWhen and toolApproval', async () => {
