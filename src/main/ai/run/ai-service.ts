@@ -24,6 +24,8 @@ export class AIService {
   private readonly broker: ApprovalBroker;
   private readonly tree: SessionTree;
   private readonly sendLog = logService.scope('ai.send');
+  private readonly streamLog = logService.scope('ai.stream');
+  private readonly abortLog = logService.scope('ai.abort');
 
   constructor(
     agentsService: AgentsService,
@@ -70,6 +72,28 @@ export class AIService {
     const signal = this.runs.open(runId, null);
     this.tree.createRoot(runId, req.agentId, req.messages);
 
+    this.sendLog.debug(
+      'starting run',
+      redactValue({
+        runId,
+        agentId: req.agentId,
+        kind: target.provider.kind,
+        modelId: target.model.modelId,
+        loopEnabled: req.loopEnabled ?? false,
+      })
+    );
+
+    // Wrap onEvent to log error events before forwarding
+    const wrappedOnEvent = (ref: RunRef, event: RunEvent): void => {
+      if (event.type === 'error') {
+        this.streamLog.error(
+          'run error',
+          redactValue({ runId: ref.runId, parentRunId: ref.parentRunId, message: event.message })
+        );
+      }
+      onEvent(ref, event);
+    };
+
     // listWorkers: non-builtin agents with a resolvable target
     const listWorkers = async (): Promise<ResolvedTarget[]> => {
       const freshAgents = await this.agentsService.list();
@@ -102,7 +126,7 @@ export class AIService {
       registry: this.registry,
       broker: this.broker,
       tree: this.tree,
-      onEvent,
+      onEvent: wrappedOnEvent,
       makeInvokeAgentTool,
     });
 
@@ -124,6 +148,7 @@ export class AIService {
   }
 
   abort(runId: string): void {
+    this.abortLog.debug('abort', { runId });
     this.runs.abort(runId);
   }
 

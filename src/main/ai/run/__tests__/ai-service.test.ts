@@ -4,7 +4,6 @@ import type { RunEvent, StreamRequest, RunRef } from '../../runtime/types.js';
 import { ToolRegistry } from '../../tools/registry.js';
 import type { AgentDTO } from '../../../../shared/agent-dto.js';
 import type { ProviderDTO } from '../../../../shared/provider-dto.js';
-// AIService is imported from the new location (doesn't exist yet — tests will fail)
 import { AIService } from '../ai-service.js';
 
 // ---------------------------------------------------------------------------
@@ -97,12 +96,9 @@ describe('AIService (AgentRun-backed)', () => {
     const agent = makeAgent();
     const provider = makeProvider();
 
-    let eventFired = false;
     const runtime: ModelRuntime = {
       stream(): AsyncIterable<RunEvent> {
         return (async function* () {
-          // Yield event immediately
-          eventFired = true;
           yield { type: 'done', reason: 'stop' } as RunEvent;
         })();
       },
@@ -111,27 +107,28 @@ describe('AIService (AgentRun-backed)', () => {
     const svc = makeService([agent], [provider], runtime);
     const onEvent = vi.fn();
 
-    // onEvent must NOT be called synchronously before send resolves
-    const resultPromise = svc.send(
+    const result = await svc.send(
       { agentId: 1, messages: [{ role: 'user', content: 'hi' }] },
       onEvent
     );
 
-    // Before await, onEvent not called yet
-    expect(onEvent).not.toHaveBeenCalled();
-
-    const result = await resultPromise;
-
-    // send has resolved — but AgentRun is on setImmediate, so still not fired
-    expect(onEvent).not.toHaveBeenCalled();
     expect(result).toHaveProperty('streamId');
     expect(typeof (result as { streamId: string }).streamId).toBe('string');
 
-    // Flush setImmediate
-    await new Promise<void>((r) => setImmediate(r));
+    // Drain all pending microtasks. AgentRun is deferred via setImmediate (not a microtask),
+    // so onEvent must NOT have fired yet — even after exhausting the entire microtask queue.
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+    expect(onEvent).not.toHaveBeenCalled();
 
-    // Now events should fire (we set eventFired in runtime)
-    await vi.waitFor(() => expect(eventFired).toBe(true));
+    // Now flush the setImmediate queue, then drain follow-on microtasks from AgentRun's for-await.
+    await new Promise<void>((r) => setImmediate(r));
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+
+    // AgentRun should have streamed and fired the done event.
+    expect(onEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ runId: expect.any(String) }),
+      expect.objectContaining({ type: 'done' })
+    );
   });
 
   it('send aborts every open run', async () => {
@@ -529,5 +526,31 @@ describe('AIService (AgentRun-backed)', () => {
     await rootDone;
 
     expect(outputs).toEqual(['A', 'B', 'A']);
+  });
+
+  it('error event from runtime is forwarded to onEvent (logging must not swallow it)', async () => {
+    const agent = makeAgent();
+    const provider = makeProvider();
+
+    const runtime: ModelRuntime = {
+      stream(): AsyncIterable<RunEvent> {
+        return (async function* () {
+          yield { type: 'error', message: 'boom' } as RunEvent;
+        })();
+      },
+    };
+
+    const svc = makeService([agent], [provider], runtime);
+    const onEvent = vi.fn();
+
+    await svc.send({ agentId: 1, messages: [{ role: 'user', content: 'hi' }] }, onEvent);
+
+    await new Promise<void>((r) => setImmediate(r));
+    for (let i = 0; i < 20; i++) await Promise.resolve();
+
+    expect(onEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ runId: expect.any(String) }),
+      expect.objectContaining({ type: 'error', message: 'boom' })
+    );
   });
 });
