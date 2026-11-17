@@ -5,7 +5,7 @@ import { useAgentsStore } from './useAgentsStore';
 import { useProvidersStore } from './useProvidersStore';
 import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '@/services/agent-resolver';
 import type { AgentResolution } from '@/services/agent-resolver';
-import { applyAiEvent } from './apply-ai-event';
+import { applyAiEvent, settleRunningParts } from './apply-ai-event';
 import type { AiStreamEvent } from './apply-ai-event';
 
 export interface ImageAttachment {
@@ -51,6 +51,9 @@ type ChatSet = StoreApi<ChatStoreState>['setState'];
 
 let aiListenersBound = false;
 let currentRunId: string | null = null;
+// Bumped by every new request (and by resetWithSeed); a continuation whose sequence number is
+// no longer current belongs to a superseded run and must not touch the store.
+let requestSeq = 0;
 let reasoningOpen = false;
 const streamWaiters = new Map<string, (end: StreamEnd) => void>();
 
@@ -167,11 +170,11 @@ function ensureAiListeners(set: ChatSet) {
       }
       return;
     }
-    if (e.runId !== currentRunId) return;
-    if (reasoningOpen) {
+    if (e.runId === currentRunId && reasoningOpen) {
       reasoningOpen = false;
       appendTokenToLastAssistant(set, '</think>');
     }
+    // Resolve even superseded runs so their continuations unwind (they bail out as stale).
     finishStreamWaiter(e.runId, { kind: e.reason });
   });
 
@@ -183,8 +186,7 @@ function ensureAiListeners(set: ChatSet) {
       }
       return;
     }
-    if (e.runId !== currentRunId) return;
-    if (reasoningOpen) {
+    if (e.runId === currentRunId && reasoningOpen) {
       reasoningOpen = false;
       appendTokenToLastAssistant(set, '</think>');
     }
@@ -210,6 +212,13 @@ function ensureAiListeners(set: ChatSet) {
   });
 }
 
+/** Supersede any in-flight request: its late events and its continuation are ignored. */
+function invalidateCurrentRequest(): void {
+  requestSeq++;
+  currentRunId = null;
+  reasoningOpen = false;
+}
+
 async function executeStreamingRequest(
   res: Extract<AgentResolution, { ok: true }>,
   set: ChatSet,
@@ -218,59 +227,80 @@ async function executeStreamingRequest(
 ): Promise<void> {
   const { onAbort = 'append-system', loopEnabled = false } = options;
   ensureAiListeners(set);
-  reasoningOpen = false;
+  invalidateCurrentRequest();
+  const seq = requestSeq;
+  const isCurrent = () => seq === requestSeq;
 
-  const result = await window.electronAPI.aiSend({
-    agentId: res.agent.id,
-    messages: messages.filter((m) => m.role !== 'error'),
-    loopEnabled,
-  });
-
-  if ('error' in result) {
-    pushErrorMessage(set, result.error.message);
-    return;
-  }
-
-  const endPromise = waitForStreamEnd(result.runId);
-  currentRunId = result.runId;
-  set({ runId: result.runId });
-
-  const end = await endPromise;
-  currentRunId = null;
-  set({ runId: null });
-
-  if (end.kind === 'error') {
-    // The provider wording is the headline; extra lines go into the collapsible detail.
-    const [headline, ...rest] = end.message.split('\n');
-    const detail = rest.join('\n').trim();
-    set((cur) => {
-      const last = cur.messages.at(-1);
-      const placeholder = last?.role === 'assistant' && last?.content === '';
-      const base = placeholder ? cur.messages.slice(0, -1) : cur.messages;
-      return {
-        messages: [
-          ...base,
-          {
-            role: 'error',
-            content: headline.trim() || 'Failed to get response.',
-            detail: detail || undefined,
-          } as unknown as Message,
-        ],
-      };
+  try {
+    const result = await window.electronAPI.aiSend({
+      agentId: res.agent.id,
+      messages: messages.filter((m) => m.role !== 'error'),
+      loopEnabled,
     });
-    return;
-  }
 
-  if (end.kind === 'aborted' && onAbort === 'append-system') {
-    set((cur) => ({
-      messages: [...cur.messages, { role: 'system', content: 'Response is aborted.' } as Message],
-    }));
+    if (!isCurrent()) {
+      // A newer request (or a reset) took over while this one was starting; nobody listens.
+      if (!('error' in result)) void window.electronAPI.aiAbort?.(result.runId);
+      return;
+    }
+
+    if ('error' in result) {
+      pushErrorMessage(set, result.error.message);
+      return;
+    }
+
+    const endPromise = waitForStreamEnd(result.runId);
+    currentRunId = result.runId;
+    set({ runId: result.runId });
+
+    const end = await endPromise;
+    if (!isCurrent()) return;
+    currentRunId = null;
+    // Nothing on this turn can progress any more: a worker whose done was lost or arrives after
+    // the root's, or an approval left pending, must not spin forever.
+    set((cur) => ({ runId: null, messages: settleRunningParts(cur.messages) }));
+
+    if (end.kind === 'error') {
+      // The provider wording is the headline; extra lines go into the collapsible detail.
+      const [headline, ...rest] = end.message.split('\n');
+      const detail = rest.join('\n').trim();
+      set((cur) => {
+        const last = cur.messages.at(-1);
+        // Only drop a truly empty placeholder; a turn that delegated keeps its tool parts.
+        const placeholder =
+          last?.role === 'assistant' && last?.content === '' && !last.parts?.length;
+        const base = placeholder ? cur.messages.slice(0, -1) : cur.messages;
+        return {
+          messages: [
+            ...base,
+            {
+              role: 'error',
+              content: headline.trim() || 'Failed to get response.',
+              detail: detail || undefined,
+            } as unknown as Message,
+          ],
+        };
+      });
+      return;
+    }
+
+    if (end.kind === 'aborted' && onAbort === 'append-system') {
+      set((cur) => ({
+        messages: [...cur.messages, { role: 'system', content: 'Response is aborted.' } as Message],
+      }));
+    }
+  } finally {
+    if (isCurrent()) {
+      currentRunId = null;
+      set({ loading: false, runId: null });
+    }
   }
 }
 
 export function __resetChatStreamStateForTests(): void {
   aiListenersBound = false;
   currentRunId = null;
+  requestSeq = 0;
   reasoningOpen = false;
   streamWaiters.clear();
 }
@@ -384,19 +414,18 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
       loading: true,
     });
 
-    try {
-      await executeStreamingRequest(res, set, seeded, {
-        onAbort: 'append-system',
-        loopEnabled: get().loopEnabled,
-      });
-    } finally {
-      set({ loading: false, runId: null });
-      currentRunId = null;
-    }
+    // executeStreamingRequest clears loading/runId itself, but only while it is still the
+    // current request, so a superseded run never resets state that belongs to a newer one.
+    await executeStreamingRequest(res, set, seeded, {
+      onAbort: 'append-system',
+      loopEnabled: get().loopEnabled,
+    });
   },
 
   resetWithSeed: async (seed) => {
     get().abort();
+    // The aborted run's late events and continuation must not touch the reset chat.
+    invalidateCurrentRequest();
     const agentId = seed?.agentId ?? get().activeAgentId ?? null;
     set({ messages: [], input: '', images: [], loading: false, activeAgentId: agentId });
 
@@ -426,14 +455,9 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
       messages: [...seeded, { role: 'assistant', content: '' } as Message],
     });
 
-    try {
-      await executeStreamingRequest(res, set, seeded, {
-        onAbort: 'ignore',
-        loopEnabled: get().loopEnabled,
-      });
-    } finally {
-      set({ loading: false, runId: null });
-      currentRunId = null;
-    }
+    await executeStreamingRequest(res, set, seeded, {
+      onAbort: 'ignore',
+      loopEnabled: get().loopEnabled,
+    });
   },
 }));

@@ -19,6 +19,14 @@ type AiHandlers = {
     parentToolCallId: string | null;
     message: string;
   }) => void;
+  onToolCall?: (payload: {
+    runId: string;
+    parentRunId: string | null;
+    parentToolCallId: string | null;
+    toolCallId: string;
+    toolName: string;
+    input: unknown;
+  }) => void;
 };
 
 let aiHandlers: AiHandlers = {};
@@ -100,6 +108,9 @@ function setupElectronApi() {
       aiHandlers.onError = cb;
     },
     offAiError: vi.fn(),
+    onAiToolCall: (cb: AiHandlers['onToolCall']) => {
+      aiHandlers.onToolCall = cb;
+    },
   };
 }
 
@@ -332,5 +343,137 @@ describe('useChatStore', () => {
     const assistant = msgs.find((m) => m.role === 'assistant');
     expect(assistant?.content).toBe('valid text');
     expect(assistant?.content).not.toContain('stale text');
+  });
+  function rootRef(runId: string) {
+    return { runId, parentRunId: null, parentToolCallId: null };
+  }
+
+  function invokeAgentCall(runId: string) {
+    aiHandlers.onToolCall?.({
+      ...rootRef(runId),
+      toolCallId: 'tc-agent',
+      toolName: 'invoke_agent',
+      input: { agentId: 2, prompt: 'translate this' },
+    });
+  }
+
+  it('root done while a subRun is still running leaves the subRun aborted', async () => {
+    const { chat } = await freshStores();
+    aiSendMock.mockImplementation(async () => {
+      setTimeout(() => {
+        invokeAgentCall('s1');
+        aiHandlers.onToken?.({
+          runId: 'child-1',
+          parentRunId: 's1',
+          parentToolCallId: 'tc-agent',
+          text: 'partial',
+        });
+        // Root done overtakes the child's done(aborted).
+        aiHandlers.onDone?.({ ...rootRef('s1'), reason: 'aborted' });
+      }, 0);
+      return { runId: 's1' };
+    });
+
+    chat.getState().setActiveAgent(1);
+    chat.getState().setInput('hi');
+    await chat.getState().send();
+
+    // The child's done arrives after the root run has ended and is dropped by the store.
+    aiHandlers.onDone?.({
+      runId: 'child-1',
+      parentRunId: 's1',
+      parentToolCallId: 'tc-agent',
+      reason: 'aborted',
+    });
+
+    const assistant = chat.getState().messages.find((m) => m.role === 'assistant')!;
+    expect(assistant.parts![0].subRun).toMatchObject({ text: 'partial', status: 'aborted' });
+  });
+
+  it('provider error after delegating keeps the assistant turn with its parts', async () => {
+    const { chat } = await freshStores();
+    aiSendMock.mockImplementation(async () => {
+      setTimeout(() => {
+        invokeAgentCall('s1');
+        aiHandlers.onError?.({ ...rootRef('s1'), message: 'HTTP 500: boom' });
+      }, 0);
+      return { runId: 's1' };
+    });
+
+    chat.getState().setActiveAgent(1);
+    chat.getState().setInput('hi');
+    await chat.getState().send();
+
+    const msgs = chat.getState().messages;
+    const assistant = msgs.find((m) => m.role === 'assistant');
+    expect(assistant).toBeDefined();
+    expect(assistant!.parts).toHaveLength(1);
+    expect(assistant!.parts![0].subRun!.status).toBe('aborted');
+    expect(msgs.at(-1)).toMatchObject({ role: 'error', content: 'HTTP 500: boom' });
+  });
+
+  it('a stale run ending after a newer send does not touch the new run', async () => {
+    const { chat } = await freshStores();
+    aiSendMock.mockImplementationOnce(async () => ({ runId: 'A' }));
+    aiSendMock.mockImplementationOnce(async () => ({ runId: 'B' }));
+
+    chat.getState().setActiveAgent(1);
+    chat.getState().setInput('first');
+    const sendA = chat.getState().send();
+    await vi.waitFor(() => expect(chat.getState().runId).toBe('A'));
+
+    chat.getState().abort(); // user presses Stop; A's done(aborted) has not arrived yet
+    chat.getState().setInput('second');
+    const sendB = chat.getState().send();
+    await vi.waitFor(() => expect(chat.getState().runId).toBe('B'));
+
+    aiHandlers.onDone?.({ ...rootRef('A'), reason: 'aborted' });
+    await sendA;
+
+    const msgs = chat.getState().messages;
+    expect(msgs.at(-1)).toEqual({ role: 'assistant', content: '' });
+    expect(msgs.some((m) => m.content === 'Response is aborted.')).toBe(false);
+    expect(chat.getState().loading).toBe(true);
+    expect(chat.getState().runId).toBe('B');
+
+    aiHandlers.onToken?.({ ...rootRef('B'), text: 'B answer' });
+    aiHandlers.onDone?.({ ...rootRef('B'), reason: 'stop' });
+    await sendB;
+    expect(chat.getState().messages.at(-1)).toMatchObject({
+      role: 'assistant',
+      content: 'B answer',
+    });
+    expect(chat.getState().loading).toBe(false);
+  });
+
+  it('a stale run ending while a newer send is starting does not touch the new run', async () => {
+    const { chat } = await freshStores();
+    aiSendMock.mockImplementationOnce(async () => ({ runId: 'A' }));
+    aiSendMock.mockImplementationOnce(async () => {
+      // A's done(aborted) lands while B's aiSend round-trip is still in flight.
+      aiHandlers.onDone?.({ ...rootRef('A'), reason: 'aborted' });
+      await Promise.resolve();
+      return { runId: 'B' };
+    });
+
+    chat.getState().setActiveAgent(1);
+    chat.getState().setInput('first');
+    const sendA = chat.getState().send();
+    await vi.waitFor(() => expect(chat.getState().runId).toBe('A'));
+
+    chat.getState().abort();
+    chat.getState().setInput('second');
+    const sendB = chat.getState().send();
+    await sendA;
+    await vi.waitFor(() => expect(chat.getState().runId).toBe('B'));
+
+    const msgs = chat.getState().messages;
+    expect(msgs.at(-1)).toEqual({ role: 'assistant', content: '' });
+    expect(msgs.some((m) => m.content === 'Response is aborted.')).toBe(false);
+    expect(chat.getState().loading).toBe(true);
+
+    aiHandlers.onDone?.({ ...rootRef('B'), reason: 'stop' });
+    await sendB;
+    expect(chat.getState().loading).toBe(false);
   });
 });
