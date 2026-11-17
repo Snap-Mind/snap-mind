@@ -276,6 +276,29 @@ describe('useChatStore', () => {
     expect(chat.getState().loading).toBe(false);
   });
 
+  it('loopEnabled defaults true for builtin agent and false otherwise', async () => {
+    const { chat } = await freshStores();
+    chat.getState().hydrateFromSettings();
+    expect(chat.getState().loopEnabled).toBe(true); // agent 1 is builtin
+
+    chat.getState().setActiveAgent(2); // agent 2 is not builtin
+    expect(chat.getState().loopEnabled).toBe(false);
+  });
+
+  it('send passes loopEnabled to aiSend', async () => {
+    const { chat } = await freshStores();
+    chat.getState().setActiveAgent(1);
+    chat.setState({ loopEnabled: true } as any);
+    chat.getState().setInput('hi');
+    await chat.getState().send();
+
+    expect(aiSendMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loopEnabled: true,
+      })
+    );
+  });
+
   it('ignores token events whose runId is not current', async () => {
     const { chat } = await freshStores();
 

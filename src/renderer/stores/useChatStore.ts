@@ -5,6 +5,8 @@ import { useAgentsStore } from './useAgentsStore';
 import { useProvidersStore } from './useProvidersStore';
 import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '@/services/agent-resolver';
 import type { AgentResolution } from '@/services/agent-resolver';
+import { applyAiEvent } from './apply-ai-event';
+import type { AiStreamEvent } from './apply-ai-event';
 
 export interface ImageAttachment {
   data: string;
@@ -27,6 +29,7 @@ export interface ChatStoreState extends ChatInternalState {
   reasoningEnabled: boolean;
   webSearchEnabled: boolean;
   activeAgentId: number | null;
+  loopEnabled: boolean;
 
   setInput(v: string): void;
   addImages(files: File[]): Promise<void>;
@@ -36,6 +39,7 @@ export interface ChatStoreState extends ChatInternalState {
   setReasoning(v: boolean): void;
   setWebSearch(v: boolean): void;
   setActiveAgent(id: number | null): void;
+  setLoopEnabled(v: boolean): void;
 
   send(): Promise<void>;
   abort(): void;
@@ -124,7 +128,13 @@ function ensureAiListeners(set: ChatSet) {
   aiListenersBound = true;
 
   api.onAiToken((e) => {
-    if (e.parentRunId !== null) return;
+    if (e.parentRunId !== null) {
+      if (currentRunId) {
+        const ev: AiStreamEvent = { kind: 'token', e };
+        set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
+      }
+      return;
+    }
     if (e.runId !== currentRunId) return;
     if (reasoningOpen) {
       reasoningOpen = false;
@@ -150,7 +160,13 @@ function ensureAiListeners(set: ChatSet) {
   });
 
   api.onAiDone((e) => {
-    if (e.parentRunId !== null) return;
+    if (e.parentRunId !== null) {
+      if (currentRunId) {
+        const ev: AiStreamEvent = { kind: 'done', e };
+        set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
+      }
+      return;
+    }
     if (e.runId !== currentRunId) return;
     if (reasoningOpen) {
       reasoningOpen = false;
@@ -160,7 +176,13 @@ function ensureAiListeners(set: ChatSet) {
   });
 
   api.onAiError((e) => {
-    if (e.parentRunId !== null) return;
+    if (e.parentRunId !== null) {
+      if (currentRunId) {
+        const ev: AiStreamEvent = { kind: 'error', e };
+        set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
+      }
+      return;
+    }
     if (e.runId !== currentRunId) return;
     if (reasoningOpen) {
       reasoningOpen = false;
@@ -168,22 +190,40 @@ function ensureAiListeners(set: ChatSet) {
     }
     finishStreamWaiter(e.runId, { kind: 'error', message: e.message });
   });
+
+  api.onAiToolCall?.((e) => {
+    if (!currentRunId) return;
+    const ev: AiStreamEvent = { kind: 'tool-call', e };
+    set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
+  });
+
+  api.onAiApprovalRequest?.((e) => {
+    if (!currentRunId) return;
+    const ev: AiStreamEvent = { kind: 'approval-request', e };
+    set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
+  });
+
+  api.onAiToolResult?.((e) => {
+    if (!currentRunId) return;
+    const ev: AiStreamEvent = { kind: 'tool-result', e };
+    set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
+  });
 }
 
 async function executeStreamingRequest(
   res: Extract<AgentResolution, { ok: true }>,
   set: ChatSet,
   messages: Message[],
-  options: { onAbort?: 'append-system' | 'ignore' } = {}
+  options: { onAbort?: 'append-system' | 'ignore'; loopEnabled?: boolean } = {}
 ): Promise<void> {
-  const onAbort = options.onAbort ?? 'append-system';
+  const { onAbort = 'append-system', loopEnabled = false } = options;
   ensureAiListeners(set);
   reasoningOpen = false;
 
   const result = await window.electronAPI.aiSend({
     agentId: res.agent.id,
     messages: messages.filter((m) => m.role !== 'error'),
-    loopEnabled: false,
+    loopEnabled,
   });
 
   if ('error' in result) {
@@ -244,6 +284,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
   reasoningEnabled: false,
   webSearchEnabled: false,
   activeAgentId: null,
+  loopEnabled: false,
   runId: null,
 
   setInput: (v) => set({ input: v }),
@@ -259,7 +300,12 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
   clearImages: () => set({ images: [] }),
   setAutoScroll: (v) => set({ autoScroll: v }),
 
-  setActiveAgent: (id) => set({ activeAgentId: id }),
+  setLoopEnabled: (v) => set({ loopEnabled: v }),
+
+  setActiveAgent: (id) => {
+    const agent = useAgentsStore.getState().agents.find((a) => a.id === id);
+    set({ activeAgentId: id, loopEnabled: agent?.isBuiltin ?? false });
+  },
 
   setReasoning: (v) => {
     set({ reasoningEnabled: v });
@@ -280,6 +326,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
       activeAgentId: builtinId,
       reasoningEnabled: agent?.reasoning ?? false,
       webSearchEnabled: agent?.webSearch ?? false,
+      loopEnabled: agent?.isBuiltin ?? false,
     });
 
     window.electronAPI?.chat?.onResetWithSeed?.((seed) => {
@@ -338,7 +385,10 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     });
 
     try {
-      await executeStreamingRequest(res, set, seeded, { onAbort: 'append-system' });
+      await executeStreamingRequest(res, set, seeded, {
+        onAbort: 'append-system',
+        loopEnabled: get().loopEnabled,
+      });
     } finally {
       set({ loading: false, runId: null });
       currentRunId = null;
@@ -354,6 +404,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     set({
       reasoningEnabled: agent?.reasoning ?? false,
       webSearchEnabled: agent?.webSearch ?? false,
+      loopEnabled: agent?.isBuiltin ?? false,
     });
 
     if (!seed?.text) return;
@@ -376,7 +427,10 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     });
 
     try {
-      await executeStreamingRequest(res, set, seeded, { onAbort: 'ignore' });
+      await executeStreamingRequest(res, set, seeded, {
+        onAbort: 'ignore',
+        loopEnabled: get().loopEnabled,
+      });
     } finally {
       set({ loading: false, runId: null });
       currentRunId = null;

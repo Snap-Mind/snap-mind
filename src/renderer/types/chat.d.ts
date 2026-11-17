@@ -4,4 +4,7 @@ export type {
   ImageContentPart,
   ContentPart,
   Message,
+  ToolPartState,
+  SubRun,
+  ToolPart,
 } from '../../shared/chat.js';
