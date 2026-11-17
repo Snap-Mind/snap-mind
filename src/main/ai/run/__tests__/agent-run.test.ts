@@ -331,13 +331,14 @@ describe('AgentRun', () => {
     const broker = new ApprovalBroker();
     const received: RunEvent[] = [];
 
+    // Fix issue 1: capture decision in outer variable; never use expect() inside generator
+    let capturedDecision: 'allow' | 'deny' | undefined;
     const { runtime } = fakeRuntime(async function* (req) {
-      const result = await req.onApprove!({
+      capturedDecision = await req.onApprove!({
         toolCallId: 'tc-mod',
         toolName: 'mod_tool',
         input: { x: 1 },
       });
-      expect(result).toBe('allow');
       yield { type: 'done', reason: 'stop' } as RunEvent;
     });
 
@@ -356,8 +357,11 @@ describe('AgentRun', () => {
       makeInvokeAgentTool: async () => null,
     });
 
-    await run.start(makeInput({ loopEnabled: true }));
+    const outcome = await run.start(makeInput({ loopEnabled: true }));
 
+    // Assert outside the generator
+    expect(capturedDecision).toBe('allow');
+    expect(outcome.status).toBe('stop');
     const approvalEvent = received.find((e) => e.type === 'approval-request');
     expect(approvalEvent).toBeDefined();
     expect(approvalEvent).toMatchObject({
@@ -409,6 +413,81 @@ describe('AgentRun', () => {
     await run.start(makeInput({ loopEnabled: true, signal: controller.signal }));
 
     expect(approveResult).toBe('deny');
+  });
+
+  it('makeInvokeAgentTool throwing resolves error outcome', async () => {
+    // Issue 2: setup code outside try could cause start() to reject; now it must resolve error outcome
+    const received: RunEvent[] = [];
+    const { runtime } = fakeRuntime([{ type: 'done', reason: 'stop' }]);
+
+    const run = new AgentRun({
+      runtime,
+      registry: new ToolRegistry(),
+      broker: new ApprovalBroker(),
+      tree: new SessionTree(),
+      onEvent: (_ref, event) => received.push(event),
+      makeInvokeAgentTool: async () => {
+        throw new Error('db down');
+      },
+    });
+
+    // builtin root with loop on → makeInvokeAgentTool is called and throws
+    const outcome = await run.start(
+      makeInput({ target: makeTarget(builtinAgent), loopEnabled: true, parentRunId: null })
+    );
+
+    expect(outcome.status).toBe('error');
+    expect(outcome.message).toContain('db down');
+    // onEvent should have received exactly one error event
+    const errorEvents = received.filter((e) => e.type === 'error');
+    expect(errorEvents).toHaveLength(1);
+  });
+
+  it('onApprove after abort returns deny without broker request', async () => {
+    // Issue 3: after abort the signal, onApprove must return 'deny' immediately
+    // without calling broker.request (which would create an unresolvable pending request)
+    const registry = new ToolRegistry();
+    registry.register({
+      name: 'post_abort_tool',
+      description: 'A moderate tool',
+      inputSchema: {},
+      risk: 'moderate',
+      execute: async () => 'ok',
+    });
+
+    const controller = new AbortController();
+    const broker = new ApprovalBroker();
+    const received: RunEvent[] = [];
+    const requestSpy = vi.spyOn(broker, 'request');
+
+    let postAbortDecision: 'allow' | 'deny' | undefined;
+    const { runtime } = fakeRuntime(async function* (req) {
+      // Abort the controller first, then call onApprove
+      controller.abort();
+      postAbortDecision = await req.onApprove!({
+        toolCallId: 'tc-post-abort',
+        toolName: 'post_abort_tool',
+        input: {},
+      });
+      yield { type: 'done', reason: 'stop' } as RunEvent;
+    });
+
+    const run = new AgentRun({
+      runtime,
+      registry,
+      broker,
+      tree: new SessionTree(),
+      onEvent: (_ref, event) => received.push(event),
+      makeInvokeAgentTool: async () => null,
+    });
+
+    await run.start(makeInput({ loopEnabled: true, signal: controller.signal }));
+
+    expect(postAbortDecision).toBe('deny');
+    // broker.request must NOT have been called — no hanging pending request
+    expect(requestSpy).not.toHaveBeenCalled();
+    // No approval-request event should have been emitted
+    expect(received.some((e) => e.type === 'approval-request')).toBe(false);
   });
 
   it('bound tool execute receives runId in ctx', async () => {
