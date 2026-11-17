@@ -56,4 +56,33 @@ describe('RunRegistry', () => {
     // Should not throw
     expect(() => registry.abort('nonexistent')).not.toThrow();
   });
+
+  it('abort parent aborts grandchild through child', () => {
+    const registry = new RunRegistry();
+    const parentSignal = registry.open('parent', null);
+    const childSignal = registry.open('child', 'parent');
+    const grandchildSignal = registry.open('grandchild', 'child');
+
+    expect(parentSignal.aborted).toBe(false);
+    expect(childSignal.aborted).toBe(false);
+    expect(grandchildSignal.aborted).toBe(false);
+
+    registry.abort('parent');
+
+    expect(parentSignal.aborted).toBe(true);
+    expect(childSignal.aborted).toBe(true);
+    expect(grandchildSignal.aborted).toBe(true);
+  });
+
+  it('closed child is not aborted by later parent abort', () => {
+    const registry = new RunRegistry();
+    registry.open('parent', null);
+    const childSignal = registry.open('child', 'parent');
+
+    registry.close('child');
+    registry.abort('parent');
+
+    expect(childSignal.aborted).toBe(false);
+    expect(registry.isOpen('child')).toBe(false);
+  });
 });
