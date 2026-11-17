@@ -14,13 +14,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/renderer/*"]
     },
     "types": ["@testing-library/jest-dom"]
   },
-  "include": ["src"],
-  "exclude": ["dist-electron", "**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"],
-  "references": [{ "path": "./tsconfig.main.json" }, { "path": "./tsconfig.preload.json" }]
+  "include": ["src/renderer", "src/shared"],
+  "exclude": ["dist-electron", "**/__tests__/**", "**/*.test.ts", "**/*.test.tsx"]
 }

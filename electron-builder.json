@@ -24,7 +24,7 @@
       "to": "settings.default.json"
     },
     {
-      "from": "electron/db/migrations",
+      "from": "src/main/db/migrations",
       "to": "db-migrations"
     }
   ],
@@ -42,7 +42,7 @@
     "gatekeeperAssess": false,
     "entitlements": "config/entitlements/mac.plist",
     "entitlementsInherit": "config/entitlements/mac.plist",
-    "icon": "electron/assets/snap-mind-app-icon-macOS.png",
+    "icon": "src/main/assets/snap-mind-app-icon-macOS.png",
     "binaries": ["Contents/Resources/helper/selectedtext"]
   },
   "asar": true

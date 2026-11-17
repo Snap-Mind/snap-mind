@@ -4,17 +4,12 @@ import { builtinModules } from 'node:module';
 
 // Vite config for Electron main process bundling
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
   build: {
     outDir: 'dist-electron',
     emptyOutDir: false,
     sourcemap: true,
     lib: {
-      entry: path.resolve(__dirname, 'main.ts'),
+      entry: path.resolve(__dirname, 'src/main/index.ts'),
       formats: ['es'],
       fileName: () => 'main.js',
     },

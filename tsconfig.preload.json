@@ -2,24 +2,22 @@
   "compilerOptions": {
     "composite": true,
     "target": "ESNext",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "strict": false,
+    "rootDir": "src/preload",
     "outDir": "dist-electron",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": false,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    },
-    "sourceMap": true
+    "sourceMap": true,
+    "tsBuildInfoFile": "dist-electron/preload.tsbuildinfo"
   },
-  "include": ["preload.ts"],
+  "include": ["src/preload/preload.ts"],
   "exclude": ["node_modules"]
 }

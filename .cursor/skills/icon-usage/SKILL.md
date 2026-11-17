@@ -3,14 +3,14 @@ name: icon-usage
 description: >-
   Enforce centralized icon usage through the Icon component. Use when adding,
   using, or referencing icons in any component. All icons must go through
-  src/components/Icon.tsx — never import react-icons directly in other files.
+  src/renderer/components/Icon.tsx — never import react-icons directly in other files.
 ---
 
 # Icon Usage Convention
 
 ## Rule
 
-**All icons in this project MUST be used through the centralized `Icon` component at `src/components/Icon.tsx`.**
+**All icons in this project MUST be used through the centralized `Icon` component at `src/renderer/components/Icon.tsx`.**
 
 Never import icons directly from `react-icons/*` or any icon library in page/feature components.
 
@@ -25,7 +25,7 @@ import Icon from '@/components/Icon';
 
 ## Adding a New Icon
 
-When you need an icon that doesn't exist in the `Icon` component yet, update `src/components/Icon.tsx`:
+When you need an icon that doesn't exist in the `Icon` component yet, update `src/renderer/components/Icon.tsx`:
 
 1. Add the import from `react-icons/lu` (Lucide) or the appropriate library
 2. Add the icon name to the `IconType` union type (keep alphabetical order)
@@ -43,7 +43,7 @@ import { LuGithub, LuHeart } from 'react-icons/lu';
 
 ## Existing Icon Names
 
-Check the `IconType` union in `src/components/Icon.tsx` for all available icons. The naming convention follows Lucide's kebab-case (e.g. `circle-check-big`, `external-link`, `file-text`).
+Check the `IconType` union in `src/renderer/components/Icon.tsx` for all available icons. The naming convention follows Lucide's kebab-case (e.g. `circle-check-big`, `external-link`, `file-text`).
 
 ## Icon Libraries
 
