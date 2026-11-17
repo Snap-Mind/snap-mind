@@ -59,7 +59,7 @@ Modify path readers and configs in Tasks 2–4. Update `CLAUDE.md` and the icon 
 - Consumes: the current exports of those five type modules.
 - Produces: `src/shared/*` modules. Renderer `@/types/<name>` still resolves through the re-export. Main imports `../../src/shared/<name>.js` until Task 3 shortens that path.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/shared/__tests__/sharedTypes.test.ts`:
 
@@ -87,13 +87,13 @@ describe('shared types', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/shared/__tests__/sharedTypes.test.ts`
 
 Expected: FAIL. The module `../agent-dto.js` cannot be resolved.
 
-- [ ] **Step 3: Move the type modules and add re-exports**
+- [x] **Step 3: Move the type modules and add re-exports**
 
 ```bash
 mkdir -p src/shared
@@ -183,13 +183,13 @@ with:
 import { UpdateEvent } from '../../src/shared/autoUpdate.js';
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `npx vitest run src/shared/__tests__/sharedTypes.test.ts electron/ai/__tests__/AIService.test.ts electron/ai/__tests__/mapMessages.test.ts`
 
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/shared src/types/agent-dto.ts src/types/provider-dto.ts src/types/chat.d.ts src/types/autoUpdate.d.ts src/types/ai-ipc.ts electron/ai electron/ipc/registerAiIpc.ts electron/services/AutoUpdateService.ts
@@ -218,7 +218,7 @@ Do this before creating `src/main/`. The root `index.html` loads `/src/main.jsx`
 - Consumes: Task 1 re-exports and `src/shared`.
 - Produces: `@/` → `src/renderer`. `index.html` script is `/src/renderer/main.tsx`. Renderer tsconfig `include` is `src/renderer` and `src/shared`.
 
-- [ ] **Step 1: Move the renderer files**
+- [x] **Step 1: Move the renderer files**
 
 ```bash
 mkdir -p src/renderer
@@ -240,13 +240,13 @@ git mv src/utils src/renderer/utils
 
 Leave `src/shared/` where Task 1 put it.
 
-- [ ] **Step 2: Point the re-exports at `src/shared`**
+- [x] **Step 2: Point the re-exports at `src/shared`**
 
 In each file under `src/renderer/types/` that Task 1 created, replace `../shared/` with `../../../shared/`.
 
 The five files are `agent-dto.ts`, `provider-dto.ts`, `chat.d.ts`, `autoUpdate.d.ts`, and `ai-ipc.ts`. `src/renderer/types/index.d.ts` keeps its `./agent-dto` style imports.
 
-- [ ] **Step 3: Update the renderer entry and aliases**
+- [x] **Step 3: Update the renderer entry and aliases**
 
 In `index.html`, replace the script tag with:
 
@@ -284,13 +284,13 @@ Replace `tsconfig.json` `compilerOptions.paths` and `include`:
 
 Keep the existing `exclude` list and the `references` to `tsconfig.main.json` and `tsconfig.preload.json`.
 
-- [ ] **Step 4: Run the renderer tests**
+- [x] **Step 4: Run the renderer tests**
 
 Run: `npm test`
 
 Expected: PASS. Main-process tests still import `electron/**` and `../../main`. Those paths still exist.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add index.html src vite.config.ts vitest.config.ts tsconfig.json
@@ -319,7 +319,7 @@ EOF
 - Consumes: `src/shared` from Task 1. Renderer layout from Task 2.
 - Produces: main entry `src/main/index.ts`. Vite output remains `dist-electron/main.js`. Unpackaged migrations path is `path.join(process.cwd(), 'src/main/db/migrations')`. Packaged migrations path stays `path.join(resourcesPath, 'db-migrations')`. Unpackaged tray files are under `src/main/assets`. Packaged tray files stay `path.join(__dirname, 'electron/assets/...')`.
 
-- [ ] **Step 1: Write the failing migration test**
+- [x] **Step 1: Write the failing migration test**
 
 Create `electron/db/__tests__/migrate.test.ts`:
 
@@ -343,13 +343,13 @@ describe('resolveMigrationsFolder', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run electron/db/__tests__/migrate.test.ts`
 
 Expected: FAIL on the unpackaged assertion. The function still returns `electron/db/migrations`. The packaged assertion passes.
 
-- [ ] **Step 3: Move the main tree**
+- [x] **Step 3: Move the main tree**
 
 ```bash
 git mv electron src/main
@@ -392,7 +392,7 @@ Replace shared import prefixes now that the files live under `src/main`:
 | `src/main/ipc/registerAiIpc.ts`             | `../../src/shared/`    | `../../shared/`    |
 | `src/main/services/AutoUpdateService.ts`    | `../../src/shared/`    | `../../shared/`    |
 
-- [ ] **Step 4: Update dev readers and keep packaged readers**
+- [x] **Step 4: Update dev readers and keep packaged readers**
 
 In `src/main/db/migrate.ts`, set the unpackaged branch to:
 
@@ -437,7 +437,7 @@ const helperPath =
 
 `path.join` accepts that slash on macOS and Windows. The packaged file is still `Contents/Resources/helper/selectedtext`.
 
-- [ ] **Step 5: Update build configs**
+- [x] **Step 5: Update build configs**
 
 `vite.config.main.ts`: delete the `resolve.alias` block. Set the lib entry to `src/main/index.ts`. Keep `outDir: 'dist-electron'`, `fileName: () => 'main.js'`, and `entryFileNames: 'main.js'`.
 
@@ -531,7 +531,7 @@ Keep every helper `to` value and `"to": "db-migrations"`.
 
 In `README.md` and `README.zh.md`, replace `./electron/assets/snap-mind-app-icon-macOS.png` with `./src/main/assets/snap-mind-app-icon-macOS.png`.
 
-- [ ] **Step 6: Run the tests and the main build**
+- [x] **Step 6: Run the tests and the main build**
 
 Run: `npx vitest run src/main/db/__tests__/migrate.test.ts src/main/__tests__/hotkeyFlow.test.ts`
 
@@ -554,7 +554,7 @@ grep -q 'helper/selectedtext' dist-electron/main.js
 
 Expected: each `grep` exits 0.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/main vite.config.main.ts tsconfig.main.json eslint.config.js drizzle.config.ts scripts/copy-assets.js electron-builder.json electron-builder-win.json README.md README.zh.md
@@ -580,7 +580,7 @@ EOF
 - Consumes: the current `preload.ts` source. It imports only `electron`.
 - Produces: `dist-electron/preload.js` beside `dist-electron/main.js`. `rootDir` is `src/preload`.
 
-- [ ] **Step 1: Move the file and set `rootDir`**
+- [x] **Step 1: Move the file and set `rootDir`**
 
 ```bash
 mkdir -p src/preload
@@ -600,7 +600,7 @@ Replace `tsconfig.preload.json` `compilerOptions` fields that control emit, and 
 
 Keep `"module": "CommonJS"` and `"moduleResolution": "node"`. Delete the `paths` block. The preload file does not use `@/`.
 
-- [ ] **Step 2: Compile and check the output path**
+- [x] **Step 2: Compile and check the output path**
 
 ```bash
 rm -rf dist-electron
@@ -611,7 +611,7 @@ test ! -f dist-electron/src/preload/preload.js
 
 Expected: `dist-electron/preload.js` exists. The nested path does not exist.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/preload tsconfig.preload.json
@@ -635,7 +635,7 @@ EOF
 - Consumes: Tasks 1–4.
 - Produces: a macOS `.app` whose resource paths match the spec §4 table.
 
-- [ ] **Step 1: Run unit tests and the three build targets**
+- [x] **Step 1: Run unit tests and the three build targets**
 
 ```bash
 npm test
@@ -647,7 +647,7 @@ test -f dist/index.html
 
 Expected: tests pass and all three files exist.
 
-- [ ] **Step 2: Build the macOS app**
+- [x] **Step 2: Build the macOS app**
 
 ```bash
 ./build.sh
@@ -662,7 +662,7 @@ If `./build.sh` exits non-zero, continue only when both of these are true:
 
 Any other failure stops this task. Fix the build and run `./build.sh` again.
 
-- [ ] **Step 3: Inspect packaged paths**
+- [x] **Step 3: Inspect packaged paths**
 
 ```bash
 APP=$(find build -type d -name 'SnapMind.app' | head -n 1)
@@ -687,7 +687,7 @@ Expected: every command exits 0.
 
 `settings.default.json` is read from `process.resourcesPath` at runtime. The string check confirms the reader is still in the bundle. The file check confirms the builder copied it.
 
-- [ ] **Step 4: Commit a fix only if Step 3 required one**
+- [x] **Step 4: Commit a fix only if Step 3 required one**
 
 If the tree is clean, do not create an empty commit.
 
@@ -715,7 +715,7 @@ EOF
 - Consumes: the layout verified in Task 5.
 - Produces: an always-on Cursor rule and a `CLAUDE.md` whose paths match the tree.
 
-- [ ] **Step 1: Add the Cursor rule**
+- [x] **Step 1: Add the Cursor rule**
 
 Create `.cursor/rules/source-layout.mdc`:
 
@@ -757,7 +757,7 @@ Dev readers use `src/main/assets` and `src/main/db/migrations`. A change to an e
 `helper/`, `settings.default.json`, and `config/entitlements/` stay at the repo root.
 ```
 
-- [ ] **Step 2: Update living docs**
+- [x] **Step 2: Update living docs**
 
 In `.cursor/skills/icon-usage/SKILL.md`, replace every `src/components/Icon.tsx` with `src/renderer/components/Icon.tsx`.
 
@@ -791,7 +791,7 @@ Add this sentence to the persistence section, after the migrations bullet:
 Unpackaged runs read migrations from `src/main/db/migrations`. Packaged runs read `Contents/Resources/db-migrations`. Tray icons are copied to `dist-electron/electron/assets` and stay at that path inside `app.asar`.
 ```
 
-- [ ] **Step 3: Check the docs for stale source paths**
+- [x] **Step 3: Check the docs for stale source paths**
 
 ```bash
 grep -n 'electron/\|`main.ts`\|`preload.ts`\|src/components/Icon' CLAUDE.md .cursor/skills/icon-usage/SKILL.md || true
@@ -799,7 +799,7 @@ grep -n 'electron/\|`main.ts`\|`preload.ts`\|src/components/Icon' CLAUDE.md .cur
 
 Expected: the only `electron/` hit is `dist-electron/electron/assets` in `CLAUDE.md`. No `` `main.ts` ``, `` `preload.ts` ``, or `src/components/Icon` hits.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .cursor/rules/source-layout.mdc .cursor/skills/icon-usage/SKILL.md CLAUDE.md

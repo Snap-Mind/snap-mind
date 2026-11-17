@@ -1,8 +1,8 @@
 # SnapMind source layout — process folders under `src`
 
-Status: design approved, ready for planning
+Status: implemented
 Owner: Louis Liu
-Last updated: 2026-10-20
+Last updated: 2026-11-17
 
 ## Goal
 
