@@ -81,7 +81,7 @@ describe('AIService (AgentRun-backed)', () => {
     const onEvent = vi.fn();
 
     const result = await svc.send(
-      { agentId: 1, messages: [{ role: 'user', content: 'hi' }] },
+      { agentId: 1, messages: [{ role: 'user', content: 'hi' }], loopEnabled: false },
       onEvent
     );
 
@@ -108,12 +108,12 @@ describe('AIService (AgentRun-backed)', () => {
     const onEvent = vi.fn();
 
     const result = await svc.send(
-      { agentId: 1, messages: [{ role: 'user', content: 'hi' }] },
+      { agentId: 1, messages: [{ role: 'user', content: 'hi' }], loopEnabled: false },
       onEvent
     );
 
-    expect(result).toHaveProperty('streamId');
-    expect(typeof (result as { streamId: string }).streamId).toBe('string');
+    expect(result).toHaveProperty('runId');
+    expect(typeof (result as { runId: string }).runId).toBe('string');
 
     // Drain all pending microtasks. AgentRun is deferred via setImmediate (not a microtask),
     // so onEvent must NOT have fired yet — even after exhausting the entire microtask queue.
@@ -153,7 +153,7 @@ describe('AIService (AgentRun-backed)', () => {
     const svc = makeService([agent], [provider], runtime);
 
     const result1 = await svc.send(
-      { agentId: 1, messages: [{ role: 'user', content: 'first' }] },
+      { agentId: 1, messages: [{ role: 'user', content: 'first' }], loopEnabled: false },
       vi.fn()
     );
 
@@ -162,9 +162,12 @@ describe('AIService (AgentRun-backed)', () => {
     await vi.waitFor(() => expect(firstSignal).toBeDefined());
 
     // Second send aborts every open run
-    await svc.send({ agentId: 1, messages: [{ role: 'user', content: 'second' }] }, vi.fn());
+    await svc.send(
+      { agentId: 1, messages: [{ role: 'user', content: 'second' }], loopEnabled: false },
+      vi.fn()
+    );
 
-    expect(result1).toHaveProperty('streamId');
+    expect(result1).toHaveProperty('runId');
     expect(firstSignal!.aborted).toBe(true);
   });
 
@@ -241,8 +244,8 @@ describe('AIService (AgentRun-backed)', () => {
       { agentId: 1, messages: [{ role: 'user', content: 'run' }], loopEnabled: true },
       vi.fn()
     );
-    expect(result).toHaveProperty('streamId');
-    const rootId = (result as { streamId: string }).streamId;
+    expect(result).toHaveProperty('runId');
+    const rootId = (result as { runId: string }).runId;
 
     await new Promise<void>((r) => setImmediate(r));
 
@@ -359,7 +362,7 @@ describe('AIService (AgentRun-backed)', () => {
     expect(childSignal!.aborted).toBe(true);
 
     // Clean up: trigger root abort via second send (abortAll)
-    await svc.send({ agentId: 1, messages: [] }, vi.fn());
+    await svc.send({ agentId: 1, messages: [], loopEnabled: false }, vi.fn());
   });
 
   it('respondApproval resolves a pending broker request', async () => {
@@ -517,7 +520,7 @@ describe('AIService (AgentRun-backed)', () => {
       }
     );
 
-    expect(result).toHaveProperty('streamId');
+    expect(result).toHaveProperty('runId');
 
     // Flush setImmediate to let AgentRun start
     await new Promise<void>((r) => setImmediate(r));
@@ -543,7 +546,10 @@ describe('AIService (AgentRun-backed)', () => {
     const svc = makeService([agent], [provider], runtime);
     const onEvent = vi.fn();
 
-    await svc.send({ agentId: 1, messages: [{ role: 'user', content: 'hi' }] }, onEvent);
+    await svc.send(
+      { agentId: 1, messages: [{ role: 'user', content: 'hi' }], loopEnabled: false },
+      onEvent
+    );
 
     await new Promise<void>((r) => setImmediate(r));
     for (let i = 0; i < 20; i++) await Promise.resolve();

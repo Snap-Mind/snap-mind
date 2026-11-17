@@ -11,7 +11,7 @@ describe('shared types', () => {
     const provider = { id: 2 } as ProviderDTO;
     const message = { role: 'user', content: 'hi' } as Message;
     const event = { type: 'checking' } as UpdateEvent;
-    const request = { agentId: 1, messages: [message] } as AiSendRequest;
+    const request = { agentId: 1, messages: [message], loopEnabled: false } as AiSendRequest;
     expect(agent.id).toBe(1);
     expect(provider.id).toBe(2);
     expect(message.role).toBe('user');

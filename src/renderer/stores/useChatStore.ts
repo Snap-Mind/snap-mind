@@ -15,7 +15,7 @@ export interface ImageAttachment {
 type StreamEnd = { kind: 'stop' } | { kind: 'aborted' } | { kind: 'error'; message: string };
 
 interface ChatInternalState {
-  streamId: string | null;
+  runId: string | null;
 }
 
 export interface ChatStoreState extends ChatInternalState {
@@ -46,7 +46,7 @@ export interface ChatStoreState extends ChatInternalState {
 type ChatSet = StoreApi<ChatStoreState>['setState'];
 
 let aiListenersBound = false;
-let currentStreamId: string | null = null;
+let currentRunId: string | null = null;
 let reasoningOpen = false;
 const streamWaiters = new Map<string, (end: StreamEnd) => void>();
 
@@ -103,17 +103,17 @@ function attachSourcesToLastAssistant(set: ChatSet, sources: ChatSource[]) {
   });
 }
 
-function finishStreamWaiter(streamId: string, end: StreamEnd) {
-  const resolve = streamWaiters.get(streamId);
+function finishStreamWaiter(runId: string, end: StreamEnd) {
+  const resolve = streamWaiters.get(runId);
   if (resolve) {
-    streamWaiters.delete(streamId);
+    streamWaiters.delete(runId);
     resolve(end);
   }
 }
 
-function waitForStreamEnd(streamId: string): Promise<StreamEnd> {
+function waitForStreamEnd(runId: string): Promise<StreamEnd> {
   return new Promise((resolve) => {
-    streamWaiters.set(streamId, resolve);
+    streamWaiters.set(runId, resolve);
   });
 }
 
@@ -123,45 +123,50 @@ function ensureAiListeners(set: ChatSet) {
   if (!api?.onAiToken) return;
   aiListenersBound = true;
 
-  api.onAiToken(({ streamId, text }) => {
-    if (streamId !== currentStreamId) return;
+  api.onAiToken((e) => {
+    if (e.parentRunId !== null) return;
+    if (e.runId !== currentRunId) return;
     if (reasoningOpen) {
       reasoningOpen = false;
       appendTokenToLastAssistant(set, '</think>');
     }
-    appendTokenToLastAssistant(set, text);
+    appendTokenToLastAssistant(set, e.text);
   });
 
-  api.onAiReasoning(({ streamId, text }) => {
-    if (streamId !== currentStreamId) return;
+  api.onAiReasoning((e) => {
+    if (e.parentRunId !== null) return;
+    if (e.runId !== currentRunId) return;
     if (!reasoningOpen) {
       reasoningOpen = true;
       appendTokenToLastAssistant(set, '<think>');
     }
-    appendTokenToLastAssistant(set, text);
+    appendTokenToLastAssistant(set, e.text);
   });
 
-  api.onAiSource(({ streamId, source }) => {
-    if (streamId !== currentStreamId) return;
-    attachSourcesToLastAssistant(set, [source]);
+  api.onAiSource((e) => {
+    if (e.parentRunId !== null) return;
+    if (e.runId !== currentRunId) return;
+    attachSourcesToLastAssistant(set, [e.source]);
   });
 
-  api.onAiDone(({ streamId, reason }) => {
-    if (streamId !== currentStreamId) return;
+  api.onAiDone((e) => {
+    if (e.parentRunId !== null) return;
+    if (e.runId !== currentRunId) return;
     if (reasoningOpen) {
       reasoningOpen = false;
       appendTokenToLastAssistant(set, '</think>');
     }
-    finishStreamWaiter(streamId, { kind: reason });
+    finishStreamWaiter(e.runId, { kind: e.reason });
   });
 
-  api.onAiError(({ streamId, message }) => {
-    if (streamId !== currentStreamId) return;
+  api.onAiError((e) => {
+    if (e.parentRunId !== null) return;
+    if (e.runId !== currentRunId) return;
     if (reasoningOpen) {
       reasoningOpen = false;
       appendTokenToLastAssistant(set, '</think>');
     }
-    finishStreamWaiter(streamId, { kind: 'error', message });
+    finishStreamWaiter(e.runId, { kind: 'error', message: e.message });
   });
 }
 
@@ -178,6 +183,7 @@ async function executeStreamingRequest(
   const result = await window.electronAPI.aiSend({
     agentId: res.agent.id,
     messages: messages.filter((m) => m.role !== 'error'),
+    loopEnabled: false,
   });
 
   if ('error' in result) {
@@ -185,13 +191,13 @@ async function executeStreamingRequest(
     return;
   }
 
-  const endPromise = waitForStreamEnd(result.streamId);
-  currentStreamId = result.streamId;
-  set({ streamId: result.streamId });
+  const endPromise = waitForStreamEnd(result.runId);
+  currentRunId = result.runId;
+  set({ runId: result.runId });
 
   const end = await endPromise;
-  currentStreamId = null;
-  set({ streamId: null });
+  currentRunId = null;
+  set({ runId: null });
 
   if (end.kind === 'error') {
     // The provider wording is the headline; extra lines go into the collapsible detail.
@@ -224,7 +230,7 @@ async function executeStreamingRequest(
 
 export function __resetChatStreamStateForTests(): void {
   aiListenersBound = false;
-  currentStreamId = null;
+  currentRunId = null;
   reasoningOpen = false;
   streamWaiters.clear();
 }
@@ -238,7 +244,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
   reasoningEnabled: false,
   webSearchEnabled: false,
   activeAgentId: null,
-  streamId: null,
+  runId: null,
 
   setInput: (v) => set({ input: v }),
 
@@ -286,9 +292,9 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
   },
 
   abort: () => {
-    const id = get().streamId;
+    const id = get().runId;
     if (id) void window.electronAPI?.aiAbort?.(id);
-    set({ loading: false, streamId: null });
+    set({ loading: false, runId: null });
   },
 
   send: async () => {
@@ -334,8 +340,8 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     try {
       await executeStreamingRequest(res, set, seeded, { onAbort: 'append-system' });
     } finally {
-      set({ loading: false, streamId: null });
-      currentStreamId = null;
+      set({ loading: false, runId: null });
+      currentRunId = null;
     }
   },
 
@@ -372,8 +378,8 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     try {
       await executeStreamingRequest(res, set, seeded, { onAbort: 'ignore' });
     } finally {
-      set({ loading: false, streamId: null });
-      currentStreamId = null;
+      set({ loading: false, runId: null });
+      currentRunId = null;
     }
   },
 }));

@@ -10,6 +10,8 @@ import type {
   ModelDTO,
 } from './provider-dto';
 import type {
+  AiApprovalRequestEvent,
+  AiApprovalResponse,
   AiDoneEvent,
   AiErrorEvent,
   AiReasoningEvent,
@@ -17,6 +19,8 @@ import type {
   AiSendResult,
   AiSourceEvent,
   AiTokenEvent,
+  AiToolCallEvent,
+  AiToolResultEvent,
 } from './ai-ipc';
 
 export interface LoggerService {
@@ -132,13 +136,20 @@ interface ElectronAPI {
   };
 
   aiSend: (req: AiSendRequest) => Promise<AiSendResult>;
-  aiAbort: (streamId: string) => Promise<{ ok: true }>;
+  aiAbort: (runId: string) => Promise<{ ok: true }>;
+  aiRespondApproval: (res: AiApprovalResponse) => Promise<{ ok: true }>;
   onAiToken: (callback: (payload: AiTokenEvent) => void) => void;
   offAiToken: () => void;
   onAiReasoning: (callback: (payload: AiReasoningEvent) => void) => void;
   offAiReasoning: () => void;
   onAiSource: (callback: (payload: AiSourceEvent) => void) => void;
   offAiSource: () => void;
+  onAiToolCall: (callback: (payload: AiToolCallEvent) => void) => void;
+  offAiToolCall: () => void;
+  onAiApprovalRequest: (callback: (payload: AiApprovalRequestEvent) => void) => void;
+  offAiApprovalRequest: () => void;
+  onAiToolResult: (callback: (payload: AiToolResultEvent) => void) => void;
+  offAiToolResult: () => void;
   onAiDone: (callback: (payload: AiDoneEvent) => void) => void;
   offAiDone: () => void;
   onAiError: (callback: (payload: AiErrorEvent) => void) => void;

@@ -79,7 +79,7 @@ export class AIService {
         agentId: req.agentId,
         kind: target.provider.kind,
         modelId: target.model.modelId,
-        loopEnabled: req.loopEnabled ?? false,
+        loopEnabled: req.loopEnabled,
       })
     );
 
@@ -138,13 +138,13 @@ export class AIService {
           parentToolCallId: null,
           target,
           messages: req.messages,
-          loopEnabled: req.loopEnabled ?? false,
+          loopEnabled: req.loopEnabled,
           signal,
         })
         .finally(() => this.runs.close(runId));
     });
 
-    return { streamId: runId };
+    return { runId };
   }
 
   abort(runId: string): void {

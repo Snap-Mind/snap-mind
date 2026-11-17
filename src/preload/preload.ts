@@ -104,7 +104,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('models:delete', providerId, modelId),
   },
   aiSend: (req) => ipcRenderer.invoke('ai:send', req),
-  aiAbort: (streamId) => ipcRenderer.invoke('ai:abort', streamId),
+  aiAbort: (runId) => ipcRenderer.invoke('ai:abort', runId),
+  aiRespondApproval: (res) => ipcRenderer.invoke('ai:approval-response', res),
   onAiToken: (callback) => {
     ipcRenderer.on('ai:token', (_event, payload) => callback(payload));
   },
@@ -117,6 +118,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('ai:source', (_event, payload) => callback(payload));
   },
   offAiSource: () => ipcRenderer.removeAllListeners('ai:source'),
+  onAiToolCall: (callback) => {
+    ipcRenderer.on('ai:tool-call', (_event, payload) => callback(payload));
+  },
+  offAiToolCall: () => ipcRenderer.removeAllListeners('ai:tool-call'),
+  onAiApprovalRequest: (callback) => {
+    ipcRenderer.on('ai:approval-request', (_event, payload) => callback(payload));
+  },
+  offAiApprovalRequest: () => ipcRenderer.removeAllListeners('ai:approval-request'),
+  onAiToolResult: (callback) => {
+    ipcRenderer.on('ai:tool-result', (_event, payload) => callback(payload));
+  },
+  offAiToolResult: () => ipcRenderer.removeAllListeners('ai:tool-result'),
   onAiDone: (callback) => {
     ipcRenderer.on('ai:done', (_event, payload) => callback(payload));
   },

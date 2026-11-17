@@ -1,9 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type AiHandlers = {
-  onToken?: (payload: { streamId: string; text: string }) => void;
-  onDone?: (payload: { streamId: string; reason: 'stop' | 'aborted' }) => void;
-  onError?: (payload: { streamId: string; message: string }) => void;
+  onToken?: (payload: {
+    runId: string;
+    parentRunId: string | null;
+    parentToolCallId: string | null;
+    text: string;
+  }) => void;
+  onDone?: (payload: {
+    runId: string;
+    parentRunId: string | null;
+    parentToolCallId: string | null;
+    reason: 'stop' | 'aborted';
+  }) => void;
+  onError?: (payload: {
+    runId: string;
+    parentRunId: string | null;
+    parentToolCallId: string | null;
+    message: string;
+  }) => void;
 };
 
 let aiHandlers: AiHandlers = {};
@@ -57,12 +72,12 @@ const seedProviders = [
 function setupElectronApi() {
   aiHandlers = {};
   aiSendMock = vi.fn(async () => {
-    const streamId = 's1';
+    const runId = 's1';
     setTimeout(() => {
-      aiHandlers.onToken?.({ streamId, text: 'Hello' });
-      aiHandlers.onDone?.({ streamId, reason: 'stop' });
+      aiHandlers.onToken?.({ runId, parentRunId: null, parentToolCallId: null, text: 'Hello' });
+      aiHandlers.onDone?.({ runId, parentRunId: null, parentToolCallId: null, reason: 'stop' });
     }, 0);
-    return { streamId };
+    return { runId };
   });
 
   (globalThis as any).window.electronAPI = {
@@ -153,6 +168,7 @@ describe('useChatStore', () => {
         { role: 'system', content: 'translate:' },
         { role: 'user', content: 'foo' },
       ],
+      loopEnabled: false,
     });
   });
 
@@ -217,11 +233,13 @@ describe('useChatStore', () => {
     aiSendMock.mockImplementation(async () => {
       setTimeout(() => {
         aiHandlers.onError?.({
-          streamId: 's1',
+          runId: 's1',
+          parentRunId: null,
+          parentToolCallId: null,
           message: 'HTTP 410: Gone\n{"error":"model not found"}',
         });
       }, 0);
-      return { streamId: 's1' };
+      return { runId: 's1' };
     });
 
     chat.getState().setActiveAgent(1);
@@ -250,11 +268,46 @@ describe('useChatStore', () => {
 
   it('abort() calls aiAbort and clears loading', async () => {
     const { chat } = await freshStores();
-    chat.setState({ loading: true, streamId: 's1' } as any);
+    chat.setState({ loading: true, runId: 's1' } as any);
 
     chat.getState().abort();
 
     expect(window.electronAPI.aiAbort).toHaveBeenCalledWith('s1');
     expect(chat.getState().loading).toBe(false);
+  });
+
+  it('ignores token events whose runId is not current', async () => {
+    const { chat } = await freshStores();
+
+    aiSendMock.mockImplementation(async () => {
+      const runId = 'current-run';
+      setTimeout(() => {
+        // Fire a stale runId token first — should be ignored
+        aiHandlers.onToken?.({
+          runId: 'stale-run',
+          parentRunId: null,
+          parentToolCallId: null,
+          text: 'stale text',
+        });
+        // Fire the current runId token — should be appended
+        aiHandlers.onToken?.({
+          runId,
+          parentRunId: null,
+          parentToolCallId: null,
+          text: 'valid text',
+        });
+        aiHandlers.onDone?.({ runId, parentRunId: null, parentToolCallId: null, reason: 'stop' });
+      }, 0);
+      return { runId };
+    });
+
+    chat.getState().setActiveAgent(1);
+    chat.getState().setInput('hi');
+    await chat.getState().send();
+
+    const msgs = chat.getState().messages;
+    const assistant = msgs.find((m) => m.role === 'assistant');
+    expect(assistant?.content).toBe('valid text');
+    expect(assistant?.content).not.toContain('stale text');
   });
 });

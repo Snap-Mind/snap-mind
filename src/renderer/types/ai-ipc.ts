@@ -1,10 +1,15 @@
 export type {
   AiSendErrorCode,
+  AiRunRef,
   AiSendRequest,
   AiSendResult,
   AiTokenEvent,
   AiReasoningEvent,
   AiSourceEvent,
+  AiToolCallEvent,
+  AiApprovalRequestEvent,
+  AiToolResultEvent,
   AiDoneEvent,
   AiErrorEvent,
+  AiApprovalResponse,
 } from '../../shared/ai-ipc.js';
