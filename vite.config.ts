@@ -22,9 +22,11 @@ export default defineConfig({
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router'],
-          'ui-vendor': ['@heroui/react', '@heroui/use-theme'],
+        manualChunks: (id) => {
+          if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/react-router/'))
+            return 'react-vendor';
+          if (id.includes('/@heroui/react/') || id.includes('/@heroui/use-theme/'))
+            return 'ui-vendor';
         },
       },
     },
