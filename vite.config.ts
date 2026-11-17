@@ -23,10 +23,17 @@ export default defineConfig({
       },
       output: {
         manualChunks: (id) => {
-          if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/react-router/'))
-            return 'react-vendor';
-          if (id.includes('/@heroui/react/') || id.includes('/@heroui/use-theme/'))
+          if (
+            id.includes('/node_modules/@heroui/react/') ||
+            id.includes('/node_modules/@heroui/use-theme/')
+          )
             return 'ui-vendor';
+          if (
+            id.includes('/node_modules/react/') ||
+            id.includes('/node_modules/react-dom/') ||
+            id.includes('/node_modules/react-router/')
+          )
+            return 'react-vendor';
         },
       },
     },

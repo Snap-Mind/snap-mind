@@ -46,7 +46,7 @@
     "@heroui/react": "^2.8.10",
     "@heroui/use-theme": "^2.1.10",
     "@lobehub/icons-static-svg": "^1.66.0",
-    "@tailwindcss/vite": "^4.1.11",
+    "@tailwindcss/vite": "^4.3.5",
     "ai": "^7.0.173",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.2",
@@ -68,7 +68,7 @@
     "rehype-raw": "^7.0.0",
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "tailwindcss": "^4.1.11",
+    "tailwindcss": "^4.3.5",
     "zod": "^4.6.7",
     "zustand": "^5.0.14"
   },
