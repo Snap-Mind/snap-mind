@@ -14,6 +14,7 @@ export default defineConfig({
       fileName: () => 'main.js',
     },
     rollupOptions: {
+      platform: 'node',
       // Externalize Electron and all Node built-ins (including both 'assert' and 'node:assert')
       external: [
         'electron',
