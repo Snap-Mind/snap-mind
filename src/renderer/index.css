@@ -5,5 +5,31 @@
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
-@import './styles/github-markdown-css-overwrite.css'
+@import './styles/github-markdown-css-overwrite.css';
+
+@keyframes snap-mind-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes snap-mind-breathe {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+.snap-mind-loading-orbit {
+  animation: snap-mind-orbit 3.2s linear infinite;
+}
+
+.snap-mind-loading-mark {
+  animation: snap-mind-breathe 1.8s ease-in-out infinite;
+}
 

@@ -22,7 +22,7 @@ vi.mock('@/stores/useAgentsStore', () => ({
     selector({ agents: [{ id: 7, name: 'Worker Agent' }] }),
 }));
 
-vi.stubGlobal('window', {
+Object.assign(window, {
   electronAPI: {
     aiRespondApproval: vi.fn().mockResolvedValue({ ok: true }),
   },
@@ -42,14 +42,41 @@ describe('ToolParts', () => {
         subRun: {
           runId: 'run-1',
           agentId: 7,
+          thinking: 'plan',
           text: 'Hello from worker',
           status: 'done',
         },
       },
     ];
     render(<ToolParts parts={parts} />);
-    expect(screen.getByText('Worker Agent')).toBeInTheDocument();
-    expect(screen.getByText('Hello from worker')).toBeInTheDocument();
+    const thought = screen.getByRole('button', { name: 'chat.thought' });
+    const subRun = screen.getByRole('button', { name: 'chat.subRunDone' });
+    expect(thought.compareDocumentPosition(subRun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(thought.contains(subRun)).toBe(false);
+    expect(screen.queryByText('plan')).not.toBeInTheDocument();
+    expect(screen.queryByText('Hello from worker')).not.toBeInTheDocument();
+  });
+
+  it('hides the sub-agent title until it has a reply', () => {
+    const parts: ToolPart[] = [
+      {
+        type: 'tool',
+        toolCallId: 'tc-sub',
+        toolName: 'invoke_agent',
+        input: {},
+        state: 'input-available',
+        subRun: {
+          runId: 'run-1',
+          agentId: 7,
+          thinking: 'plan',
+          text: '',
+          status: 'running',
+        },
+      },
+    ];
+    render(<ToolParts parts={parts} />);
+    expect(screen.getByRole('button', { name: 'chat.thinking...' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'chat.subRunRunning' })).not.toBeInTheDocument();
   });
 
   it('renders error text for output-error', () => {
@@ -64,6 +91,7 @@ describe('ToolParts', () => {
       },
     ];
     render(<ToolParts parts={parts} />);
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'chat.toolCall' })).toBeInTheDocument();
+    expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
   });
 });

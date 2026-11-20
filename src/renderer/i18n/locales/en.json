@@ -149,9 +149,13 @@
     "toolAllow": "Allow",
     "toolDeny": "Deny",
     "toolNeedsApproval": "{{tool}} needs your approval",
+    "generating": "Generating",
+    "toolCall": "Used {{tool}}",
+    "noProcessOutput": "No output",
     "subRunRunning": "Running {{name}}…",
     "subRunFailed": "{{name}} failed",
-    "subRunAborted": "{{name}} was stopped"
+    "subRunAborted": "{{name}} was stopped",
+    "subRunDone": "Ran {{name}}"
   },
   "common": {
     "brand": "SnapMind",

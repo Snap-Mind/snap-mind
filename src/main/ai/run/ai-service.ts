@@ -12,6 +12,7 @@ import { createInvokeAgentTool } from '../tools/invoke-agent.js';
 import { resolveAgentForRun } from '../resolve-agent-for-run.js';
 import logService from '../../log-service.js';
 import { redactValue } from '../redact.js';
+import { summarizeRunEvent } from '../log-run-event.js';
 
 export { type AiSendResult };
 
@@ -77,19 +78,23 @@ export class AIService {
       redactValue({
         runId,
         agentId: req.agentId,
+        agentName: target.agent.name,
+        isBuiltin: target.agent.isBuiltin,
         kind: target.provider.kind,
         modelId: target.model.modelId,
         loopEnabled: req.loopEnabled,
+        messageCount: req.messages.length,
       })
     );
 
-    // Wrap onEvent to log error events before forwarding
     const wrappedOnEvent = (ref: RunRef, event: RunEvent): void => {
+      const summary = summarizeRunEvent(ref, event);
       if (event.type === 'error') {
-        this.streamLog.error(
-          'run error',
-          redactValue({ runId: ref.runId, parentRunId: ref.parentRunId, message: event.message })
-        );
+        this.streamLog.error('run error', summary);
+      } else if (event.type === 'done') {
+        this.streamLog.info('run done', summary);
+      } else {
+        this.streamLog.debug('run event', summary);
       }
       onEvent(ref, event);
     };

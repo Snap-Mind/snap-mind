@@ -10,7 +10,24 @@ function makeAssistant(content = ''): Message {
 }
 
 describe('applyAiEvent', () => {
-  it('root tool-call appends input-available part to last assistant', () => {
+  it('root tool-call after open think closes the think block', () => {
+    const msgs: Message[] = [makeAssistant('<think>plan')];
+    const result = applyAiEvent(msgs, ROOT, {
+      kind: 'tool-call',
+      e: {
+        runId: ROOT,
+        parentRunId: null,
+        parentToolCallId: null,
+        toolCallId: 'tc-agent',
+        toolName: 'invoke_agent',
+        input: { agentId: 1 },
+      },
+    });
+    expect(result[0].content).toBe('<think>plan</think>');
+    expect(result[1].parts![0].toolName).toBe('invoke_agent');
+  });
+
+  it('root tool-call after text pushes a new list item', () => {
     const msgs: Message[] = [makeAssistant('hello')];
     const ev: AiStreamEvent = {
       kind: 'tool-call',
@@ -25,14 +42,16 @@ describe('applyAiEvent', () => {
     };
     const result = applyAiEvent(msgs, ROOT, ev);
     expect(result).not.toBe(msgs);
-    expect(result[0].parts).toHaveLength(1);
-    expect(result[0].parts![0]).toMatchObject({
+    expect(result).toHaveLength(2);
+    expect(result[0].content).toBe('hello');
+    expect(result[1].parts).toHaveLength(1);
+    expect(result[1].parts![0]).toMatchObject({
       type: 'tool',
       toolCallId: 'tc1',
       toolName: 'web_search',
       state: 'input-available',
     });
-    expect(result[0].parts![0].subRun).toBeUndefined();
+    expect(result[1].parts![0].subRun).toBeUndefined();
   });
 
   it('approval-request sets state approval-requested and requestId', () => {
@@ -136,9 +155,41 @@ describe('applyAiEvent', () => {
     expect(part.subRun).toMatchObject({
       runId: '',
       agentId: 42,
+      thinking: '',
       text: '',
       status: 'running',
     });
+  });
+
+  it('child reasoning appends to subRun.thinking, not to text', () => {
+    const msgs: Message[] = [
+      {
+        role: 'assistant',
+        content: '',
+        parts: [
+          {
+            type: 'tool',
+            toolCallId: 'tc-agent',
+            toolName: 'invoke_agent',
+            input: { agentId: 1 },
+            state: 'input-available',
+            subRun: { runId: '', agentId: 1, thinking: '', text: '', status: 'running' },
+          },
+        ],
+      },
+    ];
+    const ev: AiStreamEvent = {
+      kind: 'reasoning',
+      e: {
+        runId: 'child-run',
+        parentRunId: ROOT,
+        parentToolCallId: 'tc-agent',
+        text: 'let me think',
+      },
+    };
+    const result = applyAiEvent(msgs, ROOT, ev);
+    expect(result[0].parts![0].subRun!.thinking).toBe('let me think');
+    expect(result[0].parts![0].subRun!.text).toBe('');
   });
 
   it('child token appends to subRun.text, not to content', () => {
@@ -153,7 +204,7 @@ describe('applyAiEvent', () => {
             toolName: 'invoke_agent',
             input: { agentId: 1 },
             state: 'input-available',
-            subRun: { runId: '', agentId: 1, text: '', status: 'running' },
+            subRun: { runId: '', agentId: 1, thinking: '', text: '', status: 'running' },
           },
         ],
       },
@@ -169,8 +220,34 @@ describe('applyAiEvent', () => {
     };
     const result = applyAiEvent(msgs, ROOT, ev);
     expect(result[0].content).toBe('root text'); // unchanged
+    expect(result[0].content).toBe('root text');
     expect(result[0].parts![0].subRun!.text).toBe('hello from child');
     expect(result[0].parts![0].subRun!.runId).toBe('child-run');
+  });
+
+  it('root token after a process item starts a new assistant row', () => {
+    const msgs: Message[] = [
+      {
+        role: 'assistant',
+        content: '',
+        parts: [
+          {
+            type: 'tool',
+            toolCallId: 'tc1',
+            toolName: 'web_search',
+            input: {},
+            state: 'output-available',
+            output: 'ok',
+          },
+        ],
+      },
+    ];
+    const result = applyAiEvent(msgs, ROOT, {
+      kind: 'token',
+      e: { runId: ROOT, parentRunId: null, parentToolCallId: null, text: 'final' },
+    });
+    expect(result).toHaveLength(2);
+    expect(result[1]).toMatchObject({ role: 'assistant', content: 'final', runId: ROOT });
   });
 
   it('child done marks subRun done', () => {
@@ -185,7 +262,13 @@ describe('applyAiEvent', () => {
             toolName: 'invoke_agent',
             input: {},
             state: 'input-available',
-            subRun: { runId: 'child-run', agentId: 1, text: 'some text', status: 'running' },
+            subRun: {
+              runId: 'child-run',
+              agentId: 1,
+              thinking: '',
+              text: 'some text',
+              status: 'running',
+            },
           },
         ],
       },
@@ -215,7 +298,7 @@ describe('applyAiEvent', () => {
             toolName: 'invoke_agent',
             input: {},
             state: 'input-available',
-            subRun: { runId: 'child-run', agentId: 1, text: '', status: 'running' },
+            subRun: { runId: 'child-run', agentId: 1, thinking: '', text: '', status: 'running' },
           },
         ],
       },
@@ -260,7 +343,7 @@ describe('applyAiEvent', () => {
             toolName: 'invoke_agent',
             input: { agentId: 7, prompt: 'p' },
             state: 'input-available',
-            subRun: { runId: '', agentId: 7, text: '', status: 'running' },
+            subRun: { runId: '', agentId: 7, thinking: '', text: '', status: 'running' },
           },
         ],
       },
@@ -344,7 +427,7 @@ describe('applyAiEvent', () => {
       input: { agentId: 3, prompt: 'go' },
       state: 'approval-requested',
       requestId: 'req-9',
-      subRun: { runId: '', agentId: 3, text: '', status: 'running' },
+      subRun: { runId: '', agentId: 3, thinking: '', text: '', status: 'running' },
     });
 
     const call: AiStreamEvent = {
@@ -449,7 +532,7 @@ describe('applyAiEvent', () => {
             toolName: 'invoke_agent',
             input: { agentId: 7 },
             state: 'input-available',
-            subRun: { runId: 'c1', agentId: 7, text: 'partial', status: 'running' },
+            subRun: { runId: 'c1', agentId: 7, thinking: '', text: 'partial', status: 'running' },
           },
           {
             type: 'tool',
@@ -458,7 +541,7 @@ describe('applyAiEvent', () => {
             input: { agentId: 8 },
             state: 'approval-requested',
             requestId: 'req-2',
-            subRun: { runId: '', agentId: 8, text: '', status: 'running' },
+            subRun: { runId: '', agentId: 8, thinking: '', text: '', status: 'running' },
           },
           {
             type: 'tool',

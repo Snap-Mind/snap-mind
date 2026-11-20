@@ -5,6 +5,10 @@ import { mapMessages } from './map-messages.js';
 import { mapReasoningLevel } from '../mapping/map-params.js';
 import { describeAiError } from '../describe-ai-error.js';
 import { createLanguageModel } from '../providers/create-language-model.js';
+import logService from '../../log-service.js';
+import { redactValue } from '../redact.js';
+
+const runtimeLog = logService.scope('ai.runtime');
 
 export type StreamTextLike = (_opts: Record<string, unknown>) => { stream: AsyncIterable<unknown> };
 
@@ -97,7 +101,17 @@ export class AiSdkRuntime implements ModelRuntime {
       }
     }
 
-    // Stream and map parts
+    runtimeLog.debug(
+      'stream start',
+      redactValue({
+        modelId: req.model.modelId,
+        kind: req.model.provider.kind,
+        toolNames: req.tools.map((tool) => tool.name),
+        maxSteps: req.maxSteps,
+        messageCount: req.messages.length,
+      })
+    );
+
     try {
       const result = this.streamText(baseOpts);
       for await (const rawPart of result.stream) {
@@ -204,6 +218,7 @@ export class AiSdkRuntime implements ModelRuntime {
         };
       }
       default:
+        runtimeLog.debug('skip sdk part', redactValue({ type: part['type'] }));
         return null;
     }
   }

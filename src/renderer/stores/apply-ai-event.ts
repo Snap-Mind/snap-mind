@@ -1,6 +1,7 @@
 import type { Message, ToolPart, SubRun, ToolPartState } from '@/types/chat';
 import type {
   AiTokenEvent,
+  AiReasoningEvent,
   AiDoneEvent,
   AiErrorEvent,
   AiToolCallEvent,
@@ -10,6 +11,7 @@ import type {
 
 export type AiStreamEvent =
   | { kind: 'token'; e: AiTokenEvent }
+  | { kind: 'reasoning'; e: AiReasoningEvent }
   | { kind: 'done'; e: AiDoneEvent }
   | { kind: 'error'; e: AiErrorEvent }
   | { kind: 'tool-call'; e: AiToolCallEvent }
@@ -48,6 +50,25 @@ function findPartByCallId(
   return null;
 }
 
+function lastAssistantIndex(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'assistant') return i;
+  }
+  return -1;
+}
+
+function isProcessItem(msg: Message): boolean {
+  return Boolean(msg.parts?.length);
+}
+
+function hasOpenThink(content: string): boolean {
+  return content.lastIndexOf('<think>') > content.lastIndexOf('</think>');
+}
+
+function textOf(msg: Message): string {
+  return typeof msg.content === 'string' ? msg.content : '';
+}
+
 function updatePart(
   messages: Message[],
   msgIdx: number,
@@ -66,7 +87,7 @@ function newSubRun(toolName: string, input: unknown): SubRun | undefined {
   if (toolName !== 'invoke_agent') return undefined;
   const agentId = (input as Record<string, unknown> | undefined)?.agentId;
   if (typeof agentId !== 'number') return undefined;
-  return { runId: '', agentId, text: '', status: 'running' };
+  return { runId: '', agentId, thinking: '', text: '', status: 'running' };
 }
 
 function newToolPart(
@@ -88,62 +109,120 @@ function appendPart(messages: Message[], msgIdx: number, part: ToolPart): Messag
   return msgs;
 }
 
+function attachOrPushPart(messages: Message[], rootRunId: string, part: ToolPart): Message[] {
+  const lastIdx = lastAssistantIndex(messages);
+  if (lastIdx === -1) {
+    return [...messages, { role: 'assistant', content: '', runId: rootRunId, parts: [part] }];
+  }
+  const last = messages[lastIdx];
+  const emptyText = textOf(last).trim().length === 0;
+  if (!isProcessItem(last) && !emptyText) {
+    return [...messages, { role: 'assistant', content: '', runId: rootRunId, parts: [part] }];
+  }
+  return appendPart(messages, lastIdx, part);
+}
+
+function appendRootText(messages: Message[], rootRunId: string, text: string): Message[] {
+  const last = messages.at(-1);
+  if (last?.role === 'assistant' && !isProcessItem(last)) {
+    const msgs = [...messages];
+    msgs[msgs.length - 1] = {
+      ...last,
+      runId: last.runId ?? rootRunId,
+      content: textOf(last) + text,
+    };
+    return msgs;
+  }
+  return [...messages, { role: 'assistant', content: text, runId: rootRunId }];
+}
+
+function closeOpenThinkOnLast(messages: Message[], rootRunId: string): Message[] {
+  const last = messages.at(-1);
+  if (last?.role === 'assistant' && !isProcessItem(last) && hasOpenThink(textOf(last))) {
+    return appendRootText(messages, rootRunId, '</think>');
+  }
+  return messages;
+}
+
+function appendRootReasoning(messages: Message[], rootRunId: string, text: string): Message[] {
+  const last = messages.at(-1);
+  if (last?.role === 'assistant' && !isProcessItem(last)) {
+    let content = textOf(last);
+    if (!hasOpenThink(content)) content += '<think>';
+    const msgs = [...messages];
+    msgs[msgs.length - 1] = {
+      ...last,
+      runId: last.runId ?? rootRunId,
+      content: content + text,
+    };
+    return msgs;
+  }
+  return [...messages, { role: 'assistant', content: `<think>${text}`, runId: rootRunId }];
+}
+
 /**
- * Called when the root run ends. Anything still in flight on the last assistant message can
- * no longer progress: a running sub-run is marked aborted (its own done event may be lost or
- * arrive after the root's), and a pending approval is resolved as an error so no card is left
- * waiting. Returns the same reference when nothing needs settling.
+ * Called when the root run ends. Anything still in flight can no longer progress.
  */
 export function settleRunningParts(messages: Message[]): Message[] {
-  let idx = -1;
-  for (let i = messages.length - 1; i >= 0; i--) {
-    if (messages[i].role === 'assistant') {
-      idx = i;
-      break;
-    }
-  }
-  if (idx === -1) return messages;
-  const parts = messages[idx].parts;
-  if (!parts?.length) return messages;
-
   let changed = false;
-  const nextParts = parts.map((part) => {
-    const pendingApproval = part.state === 'approval-requested';
-    const runningSubRun = part.subRun?.status === 'running';
-    if (!pendingApproval && !runningSubRun) return part;
-    changed = true;
-    const next: ToolPart = { ...part };
-    if (pendingApproval) {
-      next.state = 'output-error';
-      next.output = 'Run ended before approval.';
-    }
-    if (runningSubRun) next.subRun = { ...part.subRun!, status: 'aborted' };
-    return next;
+  const next = messages.map((msg) => {
+    const parts = msg.parts;
+    if (!parts?.length) return msg;
+    const nextParts = parts.map((part) => {
+      const pendingApproval = part.state === 'approval-requested';
+      const runningSubRun = part.subRun?.status === 'running';
+      if (!pendingApproval && !runningSubRun) return part;
+      changed = true;
+      const nextPart: ToolPart = { ...part };
+      if (pendingApproval) {
+        nextPart.state = 'output-error';
+        nextPart.output = 'Run ended before approval.';
+      }
+      if (runningSubRun) nextPart.subRun = { ...part.subRun!, status: 'aborted' };
+      return nextPart;
+    });
+    if (nextParts === parts) return msg;
+    return { ...msg, parts: nextParts };
   });
-  if (!changed) return messages;
-
-  const msgs = [...messages];
-  msgs[idx] = { ...messages[idx], parts: nextParts };
-  return msgs;
+  return changed ? next : messages;
 }
 
 export function applyAiEvent(messages: Message[], rootRunId: string, ev: AiStreamEvent): Message[] {
   const { kind } = ev;
-  const e = ev.e as any; // union discriminated by kind; cast to access fields generically
+  const e = ev.e as {
+    runId: string;
+    parentRunId: string | null;
+    parentToolCallId: string | null;
+    text?: string;
+    toolCallId?: string;
+    toolName?: string;
+    input?: unknown;
+    requestId?: string;
+    output?: unknown;
+    isError?: boolean;
+    reason?: 'stop' | 'aborted';
+    message?: string;
+  };
 
-  // (a) Child path: parentRunId === rootRunId
   if (e.parentRunId === rootRunId) {
-    // Child tool events are ignored in v1
     if (kind === 'tool-call' || kind === 'approval-request' || kind === 'tool-result') {
       return messages;
     }
-    const loc = findPartWithSubRun(messages, e.parentToolCallId);
+    const loc = findPartWithSubRun(messages, e.parentToolCallId ?? '');
     if (!loc) return messages;
 
     if (kind === 'token') {
       return updatePart(messages, loc.msgIdx, loc.partIdx, (part) => {
         const subRun: SubRun = { ...part.subRun! };
-        subRun.text += e.text;
+        subRun.text += e.text ?? '';
+        if (subRun.runId === '') subRun.runId = e.runId;
+        return { ...part, subRun };
+      });
+    }
+    if (kind === 'reasoning') {
+      return updatePart(messages, loc.msgIdx, loc.partIdx, (part) => {
+        const subRun: SubRun = { ...part.subRun! };
+        subRun.thinking += e.text ?? '';
         if (subRun.runId === '') subRun.runId = e.runId;
         return { ...part, subRun };
       });
@@ -166,33 +245,34 @@ export function applyAiEvent(messages: Message[], rootRunId: string, ev: AiStrea
     return messages;
   }
 
-  // (b) Root tool path: parentRunId === null && runId === rootRunId
   if (e.parentRunId === null && e.runId === rootRunId) {
-    // Root token/done/error stay on today's store paths — no change here
-    if (kind === 'token' || kind === 'done' || kind === 'error') {
+    if (kind === 'token') {
+      const last = messages.at(-1);
+      let next = messages;
+      if (last?.role === 'assistant' && !isProcessItem(last) && hasOpenThink(textOf(last))) {
+        next = appendRootText(messages, rootRunId, '</think>');
+      }
+      return appendRootText(next, rootRunId, e.text ?? '');
+    }
+    if (kind === 'reasoning') {
+      return appendRootReasoning(messages, rootRunId, e.text ?? '');
+    }
+    if (kind === 'done' || kind === 'error') {
+      const last = messages.at(-1);
+      if (last?.role === 'assistant' && !isProcessItem(last) && hasOpenThink(textOf(last))) {
+        return appendRootText(messages, rootRunId, '</think>');
+      }
       return messages;
     }
 
-    // Find the last assistant message
-    let lastAssistantIdx = -1;
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].role === 'assistant') {
-        lastAssistantIdx = i;
-        break;
-      }
-    }
-    if (lastAssistantIdx === -1) return messages;
-
-    const loc = findPartByCallId(messages, e.toolCallId);
+    const loc = findPartByCallId(messages, e.toolCallId ?? '');
 
     if (kind === 'tool-call') {
-      // Upsert: approval-request / tool-result may have arrived first and created the part.
       if (loc) {
         return updatePart(messages, loc.msgIdx, loc.partIdx, (part) => {
-          const next: ToolPart = { ...part, toolName: e.toolName, input: e.input };
+          const next: ToolPart = { ...part, toolName: e.toolName ?? part.toolName, input: e.input };
           if (!part.subRun) {
-            const subRun = newSubRun(e.toolName, e.input);
-            // If the result already landed, the worker is finished — never start it as running.
+            const subRun = newSubRun(e.toolName ?? '', e.input);
             if (subRun && part.state === 'output-available') subRun.status = 'done';
             if (subRun && part.state === 'output-error') {
               subRun.status = 'error';
@@ -203,19 +283,23 @@ export function applyAiEvent(messages: Message[], rootRunId: string, ev: AiStrea
           return next;
         });
       }
-      return appendPart(
-        messages,
-        lastAssistantIdx,
-        newToolPart(e.toolCallId, e.toolName, e.input, 'input-available')
+      return attachOrPushPart(
+        closeOpenThinkOnLast(messages, rootRunId),
+        rootRunId,
+        newToolPart(e.toolCallId ?? '', e.toolName ?? '', e.input, 'input-available')
       );
     }
 
     if (kind === 'approval-request') {
       if (!loc) {
-        // The approval can overtake its tool-call; create the part so the card renders.
-        const part = newToolPart(e.toolCallId, e.toolName, e.input, 'approval-requested');
+        const part = newToolPart(
+          e.toolCallId ?? '',
+          e.toolName ?? '',
+          e.input,
+          'approval-requested'
+        );
         part.requestId = e.requestId;
-        return appendPart(messages, lastAssistantIdx, part);
+        return attachOrPushPart(closeOpenThinkOnLast(messages, rootRunId), rootRunId, part);
       }
       return updatePart(messages, loc.msgIdx, loc.partIdx, (part) => ({
         ...part,
@@ -228,8 +312,6 @@ export function applyAiEvent(messages: Message[], rootRunId: string, ev: AiStrea
       const state: ToolPartState = e.isError ? 'output-error' : 'output-available';
       const settle = (part: ToolPart): ToolPart => {
         const next: ToolPart = { ...part, state, output: e.output };
-        // The worker may never have started (bad agentId, schema failure) or its own
-        // done/error may be lost; the root result is authoritative for a still-running subRun.
         if (part.subRun?.status === 'running') {
           next.subRun = e.isError
             ? { ...part.subRun, status: 'error', error: String(e.output) }
@@ -238,10 +320,10 @@ export function applyAiEvent(messages: Message[], rootRunId: string, ev: AiStrea
         return next;
       };
       if (!loc) {
-        return appendPart(
-          messages,
-          lastAssistantIdx,
-          settle(newToolPart(e.toolCallId, e.toolName, undefined, state))
+        return attachOrPushPart(
+          closeOpenThinkOnLast(messages, rootRunId),
+          rootRunId,
+          settle(newToolPart(e.toolCallId ?? '', e.toolName ?? '', undefined, state))
         );
       }
       return updatePart(messages, loc.msgIdx, loc.partIdx, settle);
@@ -250,6 +332,5 @@ export function applyAiEvent(messages: Message[], rootRunId: string, ev: AiStrea
     return messages;
   }
 
-  // (c) Anything else — stale run, return same reference
   return messages;
 }

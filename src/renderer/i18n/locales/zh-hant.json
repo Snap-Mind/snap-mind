@@ -149,9 +149,13 @@
     "toolAllow": "允許",
     "toolDeny": "拒絕",
     "toolNeedsApproval": "{{tool}} 需要你的批准",
+    "generating": "生成中",
+    "toolCall": "已呼叫 {{tool}}",
+    "noProcessOutput": "無輸出",
     "subRunRunning": "正在執行 {{name}}…",
     "subRunFailed": "{{name}} 執行失敗",
-    "subRunAborted": "{{name}} 已停止"
+    "subRunAborted": "{{name}} 已停止",
+    "subRunDone": "已執行 {{name}}"
   },
   "common": {
     "brand": "SnapMind",

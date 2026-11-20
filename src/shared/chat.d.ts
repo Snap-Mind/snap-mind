@@ -24,6 +24,7 @@ export type ToolPartState =
 export type SubRun = {
   runId: string;
   agentId: number;
+  thinking: string;
   text: string;
   status: 'running' | 'done' | 'aborted' | 'error';
   error?: string;

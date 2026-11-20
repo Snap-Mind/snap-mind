@@ -1,16 +1,12 @@
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
-import rehypeSanitize from 'rehype-sanitize';
-import rehypeHighlight from 'rehype-highlight';
-
 import { Message, ImageContentPart } from '@/types/chat';
 import ThinkingMessage from '@/components/ThinkingMessage';
+import ChatMarkdown from '@/components/ChatMarkdown';
 import ErrorMessage from '@/components/ErrorMessage';
 import MessageWebSources from '@/components/MessageWebSources';
 import MessageActions from '@/components/MessageActions';
 import CopyMessageButton from '@/components/CopyMessageButton';
 import ToolParts from '@/components/chat/ToolParts';
+import AiLoadingIndicator from '@/components/chat/AiLoadingIndicator';
 import { useChatMessage } from '@/hooks/useChatMessage';
 
 interface ChatMessageProps {
@@ -45,12 +41,12 @@ export default function ChatMessage({ message, isStreaming = false }: ChatMessag
   }
 
   // Define role-based style classes
-  const bubbleBaseClasses = 'p-[10px_14px] text-base leading-normal break-words transition-colors';
+  const bubbleBaseClasses = 'text-base leading-normal break-words transition-colors';
 
   // Specific styles for each role
   const userBubbleClasses =
-    'rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
-  const aiBubbleClasses = 'w-full markdown-body bg-background';
+    'p-[10px_14px] rounded-2xl shadow-sm bg-primary text-primary-foreground rounded-br-sm';
+  const aiBubbleClasses = 'w-full bg-background px-[14px] py-0';
 
   const showActions =
     !isUser &&
@@ -61,28 +57,33 @@ export default function ChatMessage({ message, isStreaming = false }: ChatMessag
 
   return (
     <div
-      className={`flex flex-row mb-0.5 ${isUser ? 'justify-end' : 'justify-start'}`}
+      className={`flex flex-row ${isUser ? 'justify-end mb-2' : 'justify-start mb-0'}`}
       aria-label={`${isUser ? 'User' : 'Assistant'} message`}
     >
       <div className={`flex flex-col ${isUser ? 'max-w-[80%] items-end' : 'w-full'}`}>
         <div
           className={`relative ${bubbleBaseClasses} ${isUser ? userBubbleClasses : aiBubbleClasses}`}
         >
-          {!isUser && <ThinkingMessage thinking={thinking} isThinking={isThinking} />}
+          {!isUser && (
+            <ThinkingMessage thinking={thinking} isThinking={isThinking && isStreaming} />
+          )}
+          {!isUser && message.parts && message.parts.length > 0 && (
+            <ToolParts parts={message.parts} />
+          )}
           <MessageImages content={message.content} />
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeHighlight]}
-          >
-            {main}
-          </ReactMarkdown>
+          {isStreaming && !main.trim() && !(message.parts && message.parts.length > 0) ? (
+            <AiLoadingIndicator />
+          ) : main.trim() ? (
+            isUser ? (
+              <div className="whitespace-pre-wrap">{main}</div>
+            ) : (
+              <ChatMarkdown text={main} />
+            )
+          ) : null}
           {!isUser && message.sources && message.sources.length > 0 && (
             <MessageWebSources sources={message.sources} />
           )}
         </div>
-        {!isUser && message.parts && message.parts.length > 0 && (
-          <ToolParts parts={message.parts} />
-        )}
         {showActions && (
           <MessageActions>
             <CopyMessageButton text={main} />

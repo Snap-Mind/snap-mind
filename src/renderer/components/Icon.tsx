@@ -15,6 +15,7 @@ import {
   LuSquare,
   LuCircleCheckBig,
   LuCircleX,
+  LuChevronRight,
   LuCopy,
   LuCog,
   LuFlame,
@@ -72,6 +73,7 @@ type IconType =
   | 'plus'
   | 'scale'
   | 'square'
+  | 'chevron-right'
   | 'circle-check-big'
   | 'circle-x'
   | 'openai'
@@ -147,6 +149,8 @@ function Icon({
         return <LuPlus className={svgClassName} color={color} size={size} />;
       case 'square':
         return <LuSquare className={svgClassName} color={color} size={size} />;
+      case 'chevron-right':
+        return <LuChevronRight className={svgClassName} color={color} size={size} />;
       case 'circle-check-big':
         return <LuCircleCheckBig className={svgClassName} color={color} size={size} />;
       case 'circle-x':

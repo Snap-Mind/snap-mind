@@ -11,6 +11,8 @@ import { SessionTree } from './session-tree.js';
 import { ApprovalBroker } from './approval-broker.js';
 import { mapParams } from '../mapping/map-params.js';
 import { describeAiError } from '../describe-ai-error.js';
+import logService from '../../log-service.js';
+import { redactValue } from '../redact.js';
 
 export const MAX_STEPS = 10;
 
@@ -36,6 +38,7 @@ export class AgentRun {
   private tree: SessionTree;
   private onEvent: (_ref: RunRef, _event: RunEvent) => void;
   private makeInvokeAgentTool: (_parent: RunRef) => Promise<ToolDef | null>;
+  private readonly runLog = logService.scope('ai.run');
 
   constructor(deps: {
     runtime: ModelRuntime;
@@ -60,6 +63,20 @@ export class AgentRun {
 
     // A run is a "controller" when it is the root, is builtin, and loop is enabled
     const controller = parentRunId === null && agent.isBuiltin && loopEnabled;
+    this.runLog.debug(
+      'start',
+      redactValue({
+        runId,
+        parentRunId,
+        parentToolCallId,
+        agentId: agent.id,
+        agentName: agent.name,
+        isBuiltin: agent.isBuiltin,
+        controller,
+        loopEnabled,
+        messageCount: messages.length,
+      })
+    );
 
     // Abort listener cancels pending approvals for this run
     const onAbort = (): void => {
@@ -67,6 +84,7 @@ export class AgentRun {
     };
 
     let text = '';
+    let thinking = '';
     let outcome: RunOutcome | undefined;
 
     try {
@@ -128,6 +146,16 @@ export class AgentRun {
 
       // Build StreamRequest
       const trimmedInstructions = agent.instructions.trim();
+      this.runLog.debug(
+        'stream request',
+        redactValue({
+          runId,
+          toolNames: runtimeTools.map((tool) => tool.name),
+          maxSteps: MAX_STEPS,
+          hasInstructions: Boolean(trimmedInstructions),
+        })
+      );
+
       const streamRequest = {
         model: {
           provider: {
@@ -152,6 +180,8 @@ export class AgentRun {
         this.onEvent(ref, event);
         if (event.type === 'text-delta') {
           text += event.text;
+        } else if (event.type === 'reasoning-delta') {
+          thinking += event.text;
         } else if (event.type === 'done') {
           outcome = {
             status: event.reason === 'stop' ? 'stop' : 'aborted',
@@ -189,7 +219,7 @@ export class AgentRun {
 
     // R7: append assistant text to session tree on clean stop
     if (outcome.status === 'stop') {
-      this.tree.appendAssistant(runId, text);
+      this.tree.appendAssistant(runId, text, thinking);
     }
 
     return outcome;

@@ -3,6 +3,10 @@ import type { RunRegistry } from '../run/run-registry.js';
 import type { SessionTree } from '../run/session-tree.js';
 import type { RunRef } from '../runtime/types.js';
 import type { ToolDef, ToolContext } from './registry.js';
+import logService from '../../log-service.js';
+import { redactValue } from '../redact.js';
+
+const invokeLog = logService.scope('ai.invoke');
 
 export async function createInvokeAgentTool(deps: {
   listWorkers: () => Promise<ResolvedTarget[]>;
@@ -65,6 +69,17 @@ export async function createInvokeAgentTool(deps: {
       const signal = runs.open(childRunId, ctx.runId);
 
       const messages = [{ role: 'user' as const, content: prompt }];
+      invokeLog.debug(
+        'child start',
+        redactValue({
+          parentRunId: ctx.runId,
+          childRunId,
+          toolCallId: ctx.toolCallId,
+          agentId,
+          agentName: target.agent.name,
+          promptChars: prompt.length,
+        })
+      );
 
       try {
         tree.addChild(ctx.runId, childRunId, agentId, messages);
@@ -78,12 +93,21 @@ export async function createInvokeAgentTool(deps: {
           signal,
         });
 
+        invokeLog.debug(
+          'child end',
+          redactValue({
+            childRunId,
+            status: outcome.status,
+            textChars: outcome.text.length,
+            message: outcome.message,
+          })
+        );
+
         if (outcome.status === 'stop') {
           return outcome.text;
         } else if (outcome.status === 'aborted') {
           throw new Error('Worker run was aborted.');
         } else {
-          // error
           throw new Error(outcome.message ?? 'Worker run failed.');
         }
       } finally {

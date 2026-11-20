@@ -7,6 +7,7 @@ import { resolveAgent, agentErrorMessage, findBuiltinAgentId } from '@/services/
 import type { AgentResolution } from '@/services/agent-resolver';
 import { applyAiEvent, settleRunningParts } from './apply-ai-event';
 import type { AiStreamEvent } from './apply-ai-event';
+import loggerService from '@/services/logger-service';
 
 export interface ImageAttachment {
   data: string;
@@ -54,7 +55,6 @@ let currentRunId: string | null = null;
 // Bumped by every new request (and by resetWithSeed); a continuation whose sequence number is
 // no longer current belongs to a superseded run and must not touch the store.
 let requestSeq = 0;
-let reasoningOpen = false;
 const streamWaiters = new Map<string, (end: StreamEnd) => void>();
 
 function isImageFile(file: File): boolean {
@@ -86,17 +86,6 @@ function pushErrorMessage(set: ChatSet, message: string) {
   set((cur) => ({
     messages: [...cur.messages, { role: 'error', content: message } as unknown as Message],
   }));
-}
-
-function appendTokenToLastAssistant(set: ChatSet, token: string) {
-  set((cur) => {
-    const msgs = [...cur.messages];
-    const last = msgs.length - 1;
-    if (last >= 0 && msgs[last].role === 'assistant') {
-      msgs[last] = { ...msgs[last], content: (msgs[last].content as string) + token };
-    }
-    return { messages: msgs };
-  });
 }
 
 function attachSourcesToLastAssistant(set: ChatSet, sources: ChatSource[]) {
@@ -131,29 +120,28 @@ function ensureAiListeners(set: ChatSet) {
   aiListenersBound = true;
 
   api.onAiToken((e) => {
-    if (e.parentRunId !== null) {
-      if (currentRunId) {
-        const ev: AiStreamEvent = { kind: 'token', e };
-        set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
-      }
-      return;
-    }
-    if (e.runId !== currentRunId) return;
-    if (reasoningOpen) {
-      reasoningOpen = false;
-      appendTokenToLastAssistant(set, '</think>');
-    }
-    appendTokenToLastAssistant(set, e.text);
+    loggerService.debug('ai:token', {
+      runId: e.runId,
+      parentRunId: e.parentRunId,
+      parentToolCallId: e.parentToolCallId,
+      chars: e.text.length,
+    });
+    if (!currentRunId) return;
+    if (e.runId !== currentRunId && e.parentRunId !== currentRunId) return;
+    const ev: AiStreamEvent = { kind: 'token', e };
+    set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
   });
 
   api.onAiReasoning((e) => {
-    if (e.parentRunId !== null) return;
-    if (e.runId !== currentRunId) return;
-    if (!reasoningOpen) {
-      reasoningOpen = true;
-      appendTokenToLastAssistant(set, '<think>');
-    }
-    appendTokenToLastAssistant(set, e.text);
+    loggerService.debug('ai:reasoning', {
+      runId: e.runId,
+      parentRunId: e.parentRunId,
+      chars: e.text.length,
+    });
+    if (!currentRunId) return;
+    if (e.runId !== currentRunId && e.parentRunId !== currentRunId) return;
+    const ev: AiStreamEvent = { kind: 'reasoning', e };
+    set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
   });
 
   api.onAiSource((e) => {
@@ -163,6 +151,11 @@ function ensureAiListeners(set: ChatSet) {
   });
 
   api.onAiDone((e) => {
+    loggerService.debug('ai:done', {
+      runId: e.runId,
+      parentRunId: e.parentRunId,
+      reason: e.reason,
+    });
     if (e.parentRunId !== null) {
       if (currentRunId) {
         const ev: AiStreamEvent = { kind: 'done', e };
@@ -170,15 +163,19 @@ function ensureAiListeners(set: ChatSet) {
       }
       return;
     }
-    if (e.runId === currentRunId && reasoningOpen) {
-      reasoningOpen = false;
-      appendTokenToLastAssistant(set, '</think>');
+    if (e.runId === currentRunId) {
+      const ev: AiStreamEvent = { kind: 'done', e };
+      set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
     }
-    // Resolve even superseded runs so their continuations unwind (they bail out as stale).
     finishStreamWaiter(e.runId, { kind: e.reason });
   });
 
   api.onAiError((e) => {
+    loggerService.debug('ai:error', {
+      runId: e.runId,
+      parentRunId: e.parentRunId,
+      message: e.message,
+    });
     if (e.parentRunId !== null) {
       if (currentRunId) {
         const ev: AiStreamEvent = { kind: 'error', e };
@@ -186,26 +183,43 @@ function ensureAiListeners(set: ChatSet) {
       }
       return;
     }
-    if (e.runId === currentRunId && reasoningOpen) {
-      reasoningOpen = false;
-      appendTokenToLastAssistant(set, '</think>');
+    if (e.runId === currentRunId) {
+      const ev: AiStreamEvent = { kind: 'error', e };
+      set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
     }
     finishStreamWaiter(e.runId, { kind: 'error', message: e.message });
   });
 
   api.onAiToolCall?.((e) => {
+    loggerService.debug('ai:tool-call', {
+      runId: e.runId,
+      parentRunId: e.parentRunId,
+      toolCallId: e.toolCallId,
+      toolName: e.toolName,
+    });
     if (!currentRunId) return;
     const ev: AiStreamEvent = { kind: 'tool-call', e };
     set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
   });
 
   api.onAiApprovalRequest?.((e) => {
+    loggerService.debug('ai:approval-request', {
+      runId: e.runId,
+      requestId: e.requestId,
+      toolName: e.toolName,
+    });
     if (!currentRunId) return;
     const ev: AiStreamEvent = { kind: 'approval-request', e };
     set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
   });
 
   api.onAiToolResult?.((e) => {
+    loggerService.debug('ai:tool-result', {
+      runId: e.runId,
+      parentRunId: e.parentRunId,
+      toolCallId: e.toolCallId,
+      isError: e.isError,
+    });
     if (!currentRunId) return;
     const ev: AiStreamEvent = { kind: 'tool-result', e };
     set((cur) => ({ messages: applyAiEvent(cur.messages, currentRunId!, ev) }));
@@ -216,7 +230,6 @@ function ensureAiListeners(set: ChatSet) {
 function invalidateCurrentRequest(): void {
   requestSeq++;
   currentRunId = null;
-  reasoningOpen = false;
 }
 
 async function executeStreamingRequest(
@@ -301,7 +314,6 @@ export function __resetChatStreamStateForTests(): void {
   aiListenersBound = false;
   currentRunId = null;
   requestSeq = 0;
-  reasoningOpen = false;
   streamWaiters.clear();
 }
 

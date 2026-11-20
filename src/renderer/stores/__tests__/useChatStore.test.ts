@@ -27,6 +27,12 @@ type AiHandlers = {
     toolName: string;
     input: unknown;
   }) => void;
+  onReasoning?: (payload: {
+    runId: string;
+    parentRunId: string | null;
+    parentToolCallId: string | null;
+    text: string;
+  }) => void;
 };
 
 let aiHandlers: AiHandlers = {};
@@ -96,7 +102,9 @@ function setupElectronApi() {
       aiHandlers.onToken = cb;
     },
     offAiToken: vi.fn(),
-    onAiReasoning: vi.fn(),
+    onAiReasoning: (cb: AiHandlers['onReasoning']) => {
+      aiHandlers.onReasoning = cb;
+    },
     offAiReasoning: vi.fn(),
     onAiSource: vi.fn(),
     offAiSource: vi.fn(),

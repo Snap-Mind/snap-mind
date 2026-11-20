@@ -9,7 +9,7 @@ interface Props {
 
 export default function ToolParts({ parts }: Props) {
   return (
-    <div className="flex flex-col gap-1 mt-2">
+    <div className="flex flex-col">
       {parts.map((part) => {
         if (part.state === 'approval-requested') {
           return <ToolApprovalCard key={part.toolCallId} part={part} />;

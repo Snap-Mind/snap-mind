@@ -15,6 +15,7 @@ import LogoSvg from '@/components/LogoSvg';
 import ReasoningToggle from '@/components/ReasoningToggle';
 import WebSearchToggle from '@/components/WebSearchToggle';
 import LoopToggle from '@/components/chat/LoopToggle';
+import AiLoadingIndicator from '@/components/chat/AiLoadingIndicator';
 
 export default function ChatPopup() {
   const { t } = useTranslation();
@@ -208,7 +209,7 @@ export default function ChatPopup() {
           {messages.map((msg, i) => (
             <ChatMessage key={i} message={msg} isStreaming={i === streamingMessageIndex} />
           ))}
-          {loading && <ChatMessage message={{ role: 'assistant', content: '...' }} isStreaming />}
+          {loading && Boolean(messages.at(-1)?.parts?.length) && <AiLoadingIndicator />}
           <div ref={chatEndRef} />
         </div>
         <div

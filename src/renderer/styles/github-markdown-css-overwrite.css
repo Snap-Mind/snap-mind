@@ -2,6 +2,10 @@
   background-color: transparent;
 }
 
+.text-default-500 .markdown-body {
+  color: inherit;
+}
+
 /* Dark mode overrides */
 .dark .markdown-body {
   background-color: transparent;
