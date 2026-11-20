@@ -387,16 +387,16 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
   },
 
   send: async () => {
-    const s = get();
-    if (s.loading) return;
-    const trimmed = s.input.trim();
-    if (!trimmed && s.images.length === 0) return;
+    const state = get();
+    if (state.loading) return;
+    const trimmed = state.input.trim();
+    if (!trimmed && state.images.length === 0) return;
 
     let content: string | ContentPart[];
-    if (s.images.length > 0) {
+    if (state.images.length > 0) {
       const parts: ContentPart[] = [];
       if (trimmed) parts.push({ type: 'text', text: trimmed });
-      for (const img of s.images) {
+      for (const img of state.images) {
         parts.push({ type: 'image', data: img.data, mimeType: img.mimeType });
       }
       content = parts;
@@ -405,9 +405,9 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     }
 
     const userMsg: Message = { role: 'user', content };
-    const next = [...s.messages, userMsg];
+    const next = [...state.messages, userMsg];
 
-    const res = resolveActiveAgent(s.activeAgentId);
+    const res = resolveActiveAgent(state.activeAgentId);
     if (res.ok === false) {
       set({ messages: next, input: '', images: [] });
       pushErrorMessage(set, agentErrorMessage(res));
@@ -415,7 +415,7 @@ export const useChatStore = create<ChatStoreState>((set, get) => ({
     }
 
     const seeded =
-      res.agent.instructions.trim().length > 0 && s.messages.length === 0
+      res.agent.instructions.trim().length > 0 && state.messages.length === 0
         ? [{ role: 'system', content: res.agent.instructions } as Message, ...next]
         : next;
 
